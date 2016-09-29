@@ -1,0 +1,10 @@
+syntax: regexp
+
+^\.metadata$
+^\.recommenders$
+
+syntax: glob
+
+VictoryCoffee/bin
+.settings
+*~
