@@ -1,5 +1,5 @@
-// Generated from /home/vassili/VictoryCoffee/VictoryCoffee/src/newspeak/compiler/parser/Newspeak.g4 by ANTLR 4.5.3
-package newspeak.compiler.parser; 
+// Generated from /home/vassili/VictoryCoffee/VictoryCoffee/src/org/newspeaklanguage/compiler/parser/Newspeak.g4 by ANTLR 4.5.3
+package org.newspeaklanguage.compiler.parser; 
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 /**
