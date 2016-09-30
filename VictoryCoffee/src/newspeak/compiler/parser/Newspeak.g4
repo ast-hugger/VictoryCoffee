@@ -9,7 +9,7 @@ options {
 	language = Java;
 }
 
-@header {package org.newspeaklanguage.parser; }
+@header {package newspeak.compiler.parser; }
 
 sourceUnit : classDecl;
 
