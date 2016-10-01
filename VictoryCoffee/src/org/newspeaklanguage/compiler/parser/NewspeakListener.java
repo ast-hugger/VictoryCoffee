@@ -1,5 +1,5 @@
-// Generated from /home/vassili/VictoryCoffee/VictoryCoffee/src/org/newspeaklanguage/compiler/parser/Newspeak.g4 by ANTLR 4.5.3
-package org.newspeaklanguage.compiler.parser; 
+// Generated from Newspeak.g4 by ANTLR 4.5.3
+package org.newspeaklanguage.compiler.parser;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
@@ -178,36 +178,6 @@ public interface NewspeakListener extends ParseTreeListener {
 	 */
 	void exitExpression(NewspeakParser.ExpressionContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link NewspeakParser#block}.
-	 * @param ctx the parse tree
-	 */
-	void enterBlock(NewspeakParser.BlockContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link NewspeakParser#block}.
-	 * @param ctx the parse tree
-	 */
-	void exitBlock(NewspeakParser.BlockContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link NewspeakParser#blockArgs}.
-	 * @param ctx the parse tree
-	 */
-	void enterBlockArgs(NewspeakParser.BlockArgsContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link NewspeakParser#blockArgs}.
-	 * @param ctx the parse tree
-	 */
-	void exitBlockArgs(NewspeakParser.BlockArgsContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link NewspeakParser#blockTemps}.
-	 * @param ctx the parse tree
-	 */
-	void enterBlockTemps(NewspeakParser.BlockTempsContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link NewspeakParser#blockTemps}.
-	 * @param ctx the parse tree
-	 */
-	void exitBlockTemps(NewspeakParser.BlockTempsContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link NewspeakParser#messageSend}.
 	 * @param ctx the parse tree
 	 */
@@ -238,6 +208,46 @@ public interface NewspeakListener extends ParseTreeListener {
 	 */
 	void exitReceiverfulSend(NewspeakParser.ReceiverfulSendContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link NewspeakParser#message}.
+	 * @param ctx the parse tree
+	 */
+	void enterMessage(NewspeakParser.MessageContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link NewspeakParser#message}.
+	 * @param ctx the parse tree
+	 */
+	void exitMessage(NewspeakParser.MessageContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link NewspeakParser#unaryMessage}.
+	 * @param ctx the parse tree
+	 */
+	void enterUnaryMessage(NewspeakParser.UnaryMessageContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link NewspeakParser#unaryMessage}.
+	 * @param ctx the parse tree
+	 */
+	void exitUnaryMessage(NewspeakParser.UnaryMessageContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link NewspeakParser#binaryMessage}.
+	 * @param ctx the parse tree
+	 */
+	void enterBinaryMessage(NewspeakParser.BinaryMessageContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link NewspeakParser#binaryMessage}.
+	 * @param ctx the parse tree
+	 */
+	void exitBinaryMessage(NewspeakParser.BinaryMessageContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link NewspeakParser#keywordMessage}.
+	 * @param ctx the parse tree
+	 */
+	void enterKeywordMessage(NewspeakParser.KeywordMessageContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link NewspeakParser#keywordMessage}.
+	 * @param ctx the parse tree
+	 */
+	void exitKeywordMessage(NewspeakParser.KeywordMessageContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link NewspeakParser#receiver}.
 	 * @param ctx the parse tree
 	 */
@@ -257,4 +267,44 @@ public interface NewspeakListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitSpecialReceiver(NewspeakParser.SpecialReceiverContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link NewspeakParser#literal}.
+	 * @param ctx the parse tree
+	 */
+	void enterLiteral(NewspeakParser.LiteralContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link NewspeakParser#literal}.
+	 * @param ctx the parse tree
+	 */
+	void exitLiteral(NewspeakParser.LiteralContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link NewspeakParser#block}.
+	 * @param ctx the parse tree
+	 */
+	void enterBlock(NewspeakParser.BlockContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link NewspeakParser#block}.
+	 * @param ctx the parse tree
+	 */
+	void exitBlock(NewspeakParser.BlockContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link NewspeakParser#blockArgs}.
+	 * @param ctx the parse tree
+	 */
+	void enterBlockArgs(NewspeakParser.BlockArgsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link NewspeakParser#blockArgs}.
+	 * @param ctx the parse tree
+	 */
+	void exitBlockArgs(NewspeakParser.BlockArgsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link NewspeakParser#blockTemps}.
+	 * @param ctx the parse tree
+	 */
+	void enterBlockTemps(NewspeakParser.BlockTempsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link NewspeakParser#blockTemps}.
+	 * @param ctx the parse tree
+	 */
+	void exitBlockTemps(NewspeakParser.BlockTempsContext ctx);
 }

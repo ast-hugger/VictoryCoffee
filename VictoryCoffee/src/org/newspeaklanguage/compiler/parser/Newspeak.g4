@@ -9,61 +9,117 @@ options {
 	language = Java;
 }
 
-@header {package org.newspeaklanguage.compiler.parser; }
+@header {package org.newspeaklanguage.compiler.parser;}
 
-sourceUnit : classDecl;
+sourceUnit : classDecl EOF;
 
-classDecl :
-	'class' IDENTIFIER '=' IDENTIFIER? classBody ;
+/*
+ *  Class
+ */
 
-classBody :
-	classHeader instanceSideDecl classSideDecl? ;
+classDecl
+	: 'class' IDENTIFIER messagePattern? '=' (IDENTIFIER messagePattern)? classBody ;
 
-classHeader :
-	LPAREN slotDecl* RPAREN;
+classBody
+	: classHeader instanceSideDecl classSideDecl? ;
 
-instanceSideDecl :
-	LPAREN category* RPAREN;
+classHeader
+	: LPAREN VBAR slotDecl* VBAR RPAREN;
 
-classSideDecl :
-	COLON LPAREN category* RPAREN;
+instanceSideDecl
+	: LPAREN classDecl* category* RPAREN;
 
-category :
-	STRING methodDecl* ;
+classSideDecl
+	: COLON LPAREN category* RPAREN;
 
-slotDecl :
-	accessModifier? IDENTIFIER (mutableSlotInitializer | immutableSlotInitializer)? ;
+/*
+ *  Slots and methods
+ */
 
-mutableSlotInitializer :
-	CCE_SIGN expression DOT ;
+category
+	: STRING methodDecl* ;
 
-immutableSlotInitializer :
-	EQUAL_SIGN expression DOT ;
+slotDecl
+	: accessModifier? IDENTIFIER (mutableSlotInitializer | immutableSlotInitializer)? ;
 
-methodDecl :
-	accessModifier? messagePattern EQUAL_SIGN LPAREN codeBody RPAREN ;
+mutableSlotInitializer
+	: CCE_SIGN expression DOT ;
 
-accessModifier :
-	'public' | 'protected' | 'private' ;
+immutableSlotInitializer
+	: EQUAL_SIGN expression DOT ;
 
-messagePattern :
-	IDENTIFIER
+methodDecl
+	: accessModifier? messagePattern EQUAL_SIGN LPAREN codeBody? RPAREN ;
+
+accessModifier
+	: 'public' | 'protected' | 'private' ;
+
+messagePattern
+	: IDENTIFIER
 	| BINARY_SELECTOR IDENTIFIER
 	| (KEYWORD IDENTIFIER)+ ;
 
-codeBody :
-	statement (DOT statement)* DOT?;
 
-statement :
-	expression |
-	returnStatement ;
+/*
+ *  Code
+ */
 
-returnStatement :
-	CARET expression ;
+codeBody
+	: statement (DOT statement)* DOT?;
 
-expression :
-	block
+statement
+	: expression
+	| returnStatement ;
+
+returnStatement
+	: CARET expression ;
+
+expression
+	: receiver
 	| messageSend ;
+
+// TODO fit setter sends into this somehow
+
+messageSend
+	: receiverlessSend
+	| receiverfulSend ;
+
+receiverlessSend
+	: message ;
+
+receiverfulSend
+	: receiver message;
+
+message
+	: unaryMessage
+	| binaryMessage
+	| keywordMessage;
+
+unaryMessage
+	: IDENTIFIER;
+
+binaryMessage
+	: BINARY_SELECTOR expression;
+
+keywordMessage
+	: (KEYWORD expression)+ ;
+
+receiver
+	: IDENTIFIER
+	| specialReceiver
+	| literal;
+
+specialReceiver
+	: NIL
+	| TRUE
+	| FALSE
+	| SELF
+	| SUPER
+	| OUTER IDENTIFIER;
+
+literal
+	: block
+	| STRING;
 
 block :
 	LBRACKET blockArgs? blockTemps? codeBody RBRACKET ;
@@ -74,39 +130,19 @@ blockArgs :
 blockTemps :
 	VBAR slotDecl* VBAR ;
 
+/*
+ * Lexer
+ */
 
-messageSend :
-	receiverlessSend
-	| receiverfulSend ;
-
-receiverlessSend :
-	IDENTIFIER ;  // SUPER BOGUS
-
-receiverfulSend :
-	receiver IDENTIFIER; // SUPER BOGUS
-
-receiver :
-	specialReceiver
-	| IDENTIFIER;
-
-specialReceiver :
-	NIL
-	| TRUE
-	| FALSE
-	| SELF
-	| SUPER
-	| OUTER IDENTIFIER;
-
-
-
-// NLS 4.1: Reserved words
-NIL : 'nil';
-TRUE : 'true';
+// NLS 4.1
+NIL   : 'nil';
+TRUE  : 'true';
 FALSE : 'false';
-SELF : 'self';
+SELF  : 'self';
 SUPER : 'super';
 OUTER : 'outer';
 
+// NLS 4.2
 CARET : '^';
 COLON : ':';
 COMMA : ',';
@@ -137,5 +173,6 @@ BLOCK_ARG : ':' IDENTIFIER ;
 
 STRING : '\'' ~[']* '\'' ;
 
-COMMENT : '(*' (.)*? '*)' -> skip;
-WS : [ \t\r\n]+ -> skip;
+COMMENT    : '(*' .*? '*)' -> skip;
+WHITESPACE : [ \t\r\n]+ -> skip;
+

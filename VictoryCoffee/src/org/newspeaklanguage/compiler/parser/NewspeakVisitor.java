@@ -1,5 +1,5 @@
-// Generated from /home/vassili/VictoryCoffee/VictoryCoffee/src/org/newspeaklanguage/compiler/parser/Newspeak.g4 by ANTLR 4.5.3
-package org.newspeaklanguage.compiler.parser; 
+// Generated from Newspeak.g4 by ANTLR 4.5.3
+package org.newspeaklanguage.compiler.parser;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 /**
@@ -113,24 +113,6 @@ public interface NewspeakVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitExpression(NewspeakParser.ExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link NewspeakParser#block}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBlock(NewspeakParser.BlockContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link NewspeakParser#blockArgs}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBlockArgs(NewspeakParser.BlockArgsContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link NewspeakParser#blockTemps}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBlockTemps(NewspeakParser.BlockTempsContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link NewspeakParser#messageSend}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -149,6 +131,30 @@ public interface NewspeakVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitReceiverfulSend(NewspeakParser.ReceiverfulSendContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link NewspeakParser#message}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMessage(NewspeakParser.MessageContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link NewspeakParser#unaryMessage}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitUnaryMessage(NewspeakParser.UnaryMessageContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link NewspeakParser#binaryMessage}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBinaryMessage(NewspeakParser.BinaryMessageContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link NewspeakParser#keywordMessage}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitKeywordMessage(NewspeakParser.KeywordMessageContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link NewspeakParser#receiver}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -160,4 +166,28 @@ public interface NewspeakVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitSpecialReceiver(NewspeakParser.SpecialReceiverContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link NewspeakParser#literal}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLiteral(NewspeakParser.LiteralContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link NewspeakParser#block}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBlock(NewspeakParser.BlockContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link NewspeakParser#blockArgs}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBlockArgs(NewspeakParser.BlockArgsContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link NewspeakParser#blockTemps}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBlockTemps(NewspeakParser.BlockTempsContext ctx);
 }
