@@ -6,5 +6,8 @@ syntax: regexp
 syntax: glob
 
 VictoryCoffee/bin
+.classpath
+.project
 .settings
 *~
+*.log
