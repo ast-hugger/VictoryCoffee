@@ -2,6 +2,13 @@ package org.newspeaklanguage.compiler.semantics;
 
 import org.newspeaklanguage.compiler.ast.AstNode;
 
+/**
+ * A scope entry. Keeps track of the scope where the name is defined and the AST
+ * node such as a SlotDefinition which defined it.
+ * 
+ * @author vassili
+ *
+ */
 public class NameDefinition {
   
   private final String name;

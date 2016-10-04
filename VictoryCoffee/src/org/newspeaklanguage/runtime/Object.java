@@ -1,15 +1,28 @@
 package org.newspeaklanguage.runtime;
 
+/**
+ * Every Newspeak object is in the Java sense an instance of a subclass of this
+ * class. The compiler generates the subclass when it compiles a Newspeak class.
+ * 
+ * @author vassili
+ *
+ */
 public class Object {
   
-  private final Class klass;
+  private final Class nsClass;
   
-  Object(Class klass) {
-    this.klass = klass;
+  /**
+   * Any generated subclass must provide a constructor with this signature.
+   */
+  public Object(Class nsClass) {
+    this.nsClass = nsClass;
   }
   
-  public Class klass() {
-    return klass;
+  /**
+   * @return The Newspeak class of the object.
+   */
+  public Class nsClass() {
+    return nsClass;
   }
 
 }

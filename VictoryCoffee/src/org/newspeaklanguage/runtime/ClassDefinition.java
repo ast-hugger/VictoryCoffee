@@ -9,13 +9,18 @@ package org.newspeaklanguage.runtime;
  */
 public class ClassDefinition {
 
-  private final java.lang.Class<?> implementation;
+  /**
+   * The subclass of {@link Object} instances (in the Java sense) of which
+   * represent instances of one of the Classes produced from this
+   * ClassDefinition.
+   */
+  private final java.lang.Class<? extends Object> implementation;
   
-  ClassDefinition(java.lang.Class<?> implementation) {
+  ClassDefinition(java.lang.Class<? extends Object> implementation) {
     this.implementation = implementation;
   }
   
-  public java.lang.Class<?> implementation() {
+  public java.lang.Class<? extends Object> implementation() {
     return implementation;
   }
   
