@@ -49,7 +49,7 @@ immutableSlotInitializer
 	: EQUAL_SIGN expression DOT ;
 
 methodDecl
-	: accessModifier? messagePattern EQUAL_SIGN LPAREN codeBody? RPAREN ;
+	: accessModifier? messagePattern EQUAL_SIGN LPAREN (VBAR slotDecl* VBAR)? codeBody? RPAREN ;
 
 accessModifier
 	: 'public' | 'protected' | 'private' ;
@@ -76,7 +76,7 @@ returnStatement
 
 expression
 	: receiver
-	| messageSend ;
+	| messageSend;
 
 // TODO fit setter sends into this somehow
 
@@ -89,6 +89,11 @@ receiverlessSend
 
 receiverfulSend
 	: receiver message;
+
+receiver
+	: literal
+	| receiverlessSend
+	| LPAREN expression RPAREN;
 
 message
 	: unaryMessage
@@ -104,21 +109,17 @@ binaryMessage
 keywordMessage
 	: (KEYWORD expression)+ ;
 
-receiver
-	: IDENTIFIER
-	| specialReceiver
-	| literal;
-
-specialReceiver
-	: NIL
-	| TRUE
-	| FALSE
-	| SELF
-	| SUPER
-	| OUTER IDENTIFIER;
+//specialReceiver
+//	: NIL
+//	| TRUE
+//	| FALSE
+//	| SELF
+//	| SUPER
+//	| OUTER IDENTIFIER;
 
 literal
 	: block
+	| INTEGER
 	| STRING;
 
 block :
@@ -135,12 +136,12 @@ blockTemps :
  */
 
 // NLS 4.1
-NIL   : 'nil';
-TRUE  : 'true';
-FALSE : 'false';
-SELF  : 'self';
-SUPER : 'super';
-OUTER : 'outer';
+//NIL   : 'nil';
+//TRUE  : 'true';
+//FALSE : 'false';
+//SELF  : 'self';
+//SUPER : 'super';
+//OUTER : 'outer';
 
 // NLS 4.2
 CARET : '^';
@@ -172,6 +173,7 @@ SETTER_KEYWORD : KEYWORD ':';
 BLOCK_ARG : ':' IDENTIFIER ;
 
 STRING : '\'' ~[']* '\'' ;
+INTEGER : [0-9]+;
 
 COMMENT    : '(*' .*? '*)' -> skip;
 WHITESPACE : [ \t\r\n]+ -> skip;

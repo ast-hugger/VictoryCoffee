@@ -5,15 +5,18 @@ import java.util.List;
 public class MessagePattern extends AstNode {
   
   private final String selector;
-  private final List<String> argumentNames;
+  private final List<Argument> arguments;
   
-  MessagePattern(String selector, List<String> argumentNames) {
+  MessagePattern(String selector, List<Argument> arguments) {
     this.selector = selector;
-    this.argumentNames = argumentNames;
+    this.arguments = arguments;
   }
 
   public String selector() { return selector; }
-  public List<String> argumentNames() { return argumentNames; }
+  public List<Argument> arguments() { return arguments; }
   
-  
+  @Override
+  public void accept(AstNodeVisitor visitor) {
+    visitor.visitMessagePattern(this);
+  }
 }

@@ -256,6 +256,18 @@ public class NewspeakBaseListener implements NewspeakListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterReceiver(NewspeakParser.ReceiverContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitReceiver(NewspeakParser.ReceiverContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterMessage(NewspeakParser.MessageContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -299,30 +311,6 @@ public class NewspeakBaseListener implements NewspeakListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitKeywordMessage(NewspeakParser.KeywordMessageContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterReceiver(NewspeakParser.ReceiverContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitReceiver(NewspeakParser.ReceiverContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterSpecialReceiver(NewspeakParser.SpecialReceiverContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSpecialReceiver(NewspeakParser.SpecialReceiverContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

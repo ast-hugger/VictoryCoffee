@@ -10,5 +10,8 @@ public class LiteralNumber extends AstNode {
   
   public Number value() { return value; }
 
-
+  @Override
+  public void accept(AstNodeVisitor visitor) {
+    visitor.visitLiteralNumber(this);
+  }
 }

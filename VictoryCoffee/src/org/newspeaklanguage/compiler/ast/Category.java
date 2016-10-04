@@ -14,5 +14,10 @@ public class Category extends AstNode {
   
   public String name() { return name; }
   public List<Method> methods() { return methods; }
+  
+  @Override
+  public void accept(AstNodeVisitor visitor) {
+    visitor.visitCategory(this);
+  }
 
 }

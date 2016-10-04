@@ -9,5 +9,10 @@ public class LiteralString extends AstNode {
   }
   
   public String value() { return value; }
+  
+  @Override
+  public void accept(AstNodeVisitor visitor) {
+    visitor.visitLiteralString(visitor);
+  }
 
 }

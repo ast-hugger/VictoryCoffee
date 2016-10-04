@@ -131,6 +131,12 @@ public interface NewspeakVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitReceiverfulSend(NewspeakParser.ReceiverfulSendContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link NewspeakParser#receiver}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitReceiver(NewspeakParser.ReceiverContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link NewspeakParser#message}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -154,18 +160,6 @@ public interface NewspeakVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitKeywordMessage(NewspeakParser.KeywordMessageContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link NewspeakParser#receiver}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitReceiver(NewspeakParser.ReceiverContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link NewspeakParser#specialReceiver}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitSpecialReceiver(NewspeakParser.SpecialReceiverContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link NewspeakParser#literal}.
 	 * @param ctx the parse tree

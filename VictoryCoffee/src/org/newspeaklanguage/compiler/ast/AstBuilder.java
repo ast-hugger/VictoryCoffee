@@ -1,7 +1,9 @@
 package org.newspeaklanguage.compiler.ast;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -37,10 +39,10 @@ public class AstBuilder extends NewspeakBaseVisitor<AstNode> {
     NewspeakParser.MessagePatternContext superCtx = ctx.messagePattern(1);
     MessagePattern superclassInitMessage = superCtx == null ? null : (MessagePattern) visit(superCtx);
     
-    List<Slot> slots = ctx.classBody().classHeader().slotDecl().stream()
-        .map(each -> (Slot) visit(each))
+    List<SlotDefinition> slots = ctx.classBody().classHeader().slotDecl().stream()
+        .map(each -> (SlotDefinition) visit(each))
         .collect(Collectors.toList());
-// The following is better but too verbose
+// The following is better in theory, but too verbose
 //        .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
     
     List<ClassDecl> nestedClasses = ctx.classBody().instanceSideDecl().classDecl().stream()
@@ -67,14 +69,93 @@ public class AstBuilder extends NewspeakBaseVisitor<AstNode> {
   public AstNode visitSlotDecl(NewspeakParser.SlotDeclContext ctx) {
     String name = ctx.IDENTIFIER().getText();
     boolean immutable = ctx.immutableSlotInitializer() != null;
-    return new Slot(name, null, !immutable);
+    return new SlotDefinition(name, null, !immutable);
   }
   
   @Override
   public AstNode visitCategory(NewspeakParser.CategoryContext ctx) {
     String name = ctx.STRING().getText();
-    // TODO get the actual methods
-    return new Category(name, null);
+    List<Method> methods = ctx.methodDecl().stream()
+        .map(each -> (Method) visit(each))
+        .collect(Collectors.toList());
+    return new Category(name, methods);
+  }
+  
+  @Override
+  public AstNode visitMethodDecl(NewspeakParser.MethodDeclContext ctx) {
+    MessagePattern pattern = (MessagePattern) visit(ctx.messagePattern());
+    List<SlotDefinition> temps = ctx.slotDecl().stream()
+        .map(each -> (SlotDefinition) visit(each))
+        .collect(Collectors.toList());
+    List<AstNode> statements = ctx.codeBody().statement().stream()
+        .map(each -> visit(each))
+        .collect(Collectors.toList());
+    return new Method(pattern, temps, statements);
+  }
+  
+  // TODO we don't do setter sends for now
+  
+  @Override
+  public AstNode visitReceiverlessSend(NewspeakParser.ReceiverlessSendContext ctx) {
+    NewspeakParser.UnaryMessageContext unary = ctx.message().unaryMessage();
+    if (unary != null) {
+      String selector = unary.IDENTIFIER().getText();
+      return new MessageSendNoReceiver(selector, Collections.emptyList(), false);
+    }
+    
+    NewspeakParser.BinaryMessageContext binary = ctx.message().binaryMessage();
+    if (binary != null) {
+      String selector = binary.BINARY_SELECTOR().getText();
+      AstNode arg = visit(binary.expression());
+      return new MessageSendNoReceiver(selector, Arrays.asList(arg), false);
+    }
+    
+    NewspeakParser.KeywordMessageContext message = ctx.message().keywordMessage();
+    assert message != null;
+    Optional<String> keyword = message.KEYWORD().stream()
+        .map(each -> each.getText())
+        .reduce(String::concat);
+    List<AstNode> args = message.expression().stream()
+        .map(this::visit)
+        .collect(Collectors.toList());
+    return new MessageSendNoReceiver(keyword.get(), args, false);
+  }
+  
+  @Override
+  public AstNode visitReceiverfulSend(NewspeakParser.ReceiverfulSendContext ctx) {
+    AstNode receiver = visit(ctx.receiver());
+    
+    NewspeakParser.UnaryMessageContext unary = ctx.message().unaryMessage();
+    if (unary != null) {
+      String selector = unary.IDENTIFIER().getText();
+      return new MessageSendWithReceiver(receiver, selector, Collections.emptyList());
+    }
+    
+    NewspeakParser.BinaryMessageContext binary = ctx.message().binaryMessage();
+    if (binary != null) {
+      String selector = binary.BINARY_SELECTOR().getText();
+      AstNode arg = visit(binary.expression());
+      return new MessageSendWithReceiver(receiver, selector, Arrays.asList(arg));
+    }
+    
+    NewspeakParser.KeywordMessageContext message = ctx.message().keywordMessage();
+    assert message != null;
+    Optional<String> keyword = message.KEYWORD().stream()
+        .map(each -> each.getText())
+        .reduce(String::concat);
+    List<AstNode> args = message.expression().stream()
+        .map(this::visit)
+        .collect(Collectors.toList());
+    return new MessageSendWithReceiver(receiver, keyword.get(), args);
+  }
+  
+  @Override
+  public AstNode visitLiteral(NewspeakParser.LiteralContext ctx) {
+    if (ctx.INTEGER() != null) {
+      int intValue = Integer.parseInt(ctx.INTEGER().getText());
+      return new LiteralNumber(intValue);
+    }
+    throw new IllegalArgumentException("Unsupported literal");
   }
   
 }

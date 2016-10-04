@@ -208,6 +208,16 @@ public interface NewspeakListener extends ParseTreeListener {
 	 */
 	void exitReceiverfulSend(NewspeakParser.ReceiverfulSendContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link NewspeakParser#receiver}.
+	 * @param ctx the parse tree
+	 */
+	void enterReceiver(NewspeakParser.ReceiverContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link NewspeakParser#receiver}.
+	 * @param ctx the parse tree
+	 */
+	void exitReceiver(NewspeakParser.ReceiverContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link NewspeakParser#message}.
 	 * @param ctx the parse tree
 	 */
@@ -247,26 +257,6 @@ public interface NewspeakListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitKeywordMessage(NewspeakParser.KeywordMessageContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link NewspeakParser#receiver}.
-	 * @param ctx the parse tree
-	 */
-	void enterReceiver(NewspeakParser.ReceiverContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link NewspeakParser#receiver}.
-	 * @param ctx the parse tree
-	 */
-	void exitReceiver(NewspeakParser.ReceiverContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link NewspeakParser#specialReceiver}.
-	 * @param ctx the parse tree
-	 */
-	void enterSpecialReceiver(NewspeakParser.SpecialReceiverContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link NewspeakParser#specialReceiver}.
-	 * @param ctx the parse tree
-	 */
-	void exitSpecialReceiver(NewspeakParser.SpecialReceiverContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link NewspeakParser#literal}.
 	 * @param ctx the parse tree
