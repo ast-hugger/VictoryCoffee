@@ -3,7 +3,6 @@ package org.newspeaklanguage.compiler.codegen;
 import org.newspeaklanguage.compiler.NamingPolicy;
 import org.newspeaklanguage.compiler.ast.Category;
 import org.newspeaklanguage.compiler.ast.ClassDecl;
-import org.newspeaklanguage.compiler.ast.MessagePattern;
 import org.newspeaklanguage.compiler.ast.Method;
 import org.newspeaklanguage.compiler.ast.SlotDefinition;
 import org.objectweb.asm.ClassWriter;
@@ -11,6 +10,7 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.newspeaklanguage.runtime.Object;
+import org.newspeaklanguage.runtime.StandardObject;
 
 public class ClassGenerator {
   
@@ -40,8 +40,13 @@ public class ClassGenerator {
   
   private void start() {
     // TODO bogus: assuming the superclass is always Object
-    classWriter.visit(52, Opcodes.ACC_PUBLIC | Opcodes.ACC_SUPER, className(), null,
-        Object.INTERNAL_CLASS_NAME, null);
+    classWriter.visit(
+        52,
+        Opcodes.ACC_PUBLIC | Opcodes.ACC_SUPER,
+        className(),
+        null,
+        StandardObject.INTERNAL_CLASS_NAME,
+        null);
   }
   
   private void processSlots() {
@@ -108,9 +113,9 @@ public class ClassGenerator {
     // TODO bogus: assuming the superclass is always Object
     methodVisitor.visitMethodInsn(
         Opcodes.INVOKESPECIAL,
-        Object.INTERNAL_CLASS_NAME,
+        StandardObject.INTERNAL_CLASS_NAME,
         "<init>",
-        Object.CONSTRUCTOR_DESCRIPTOR,
+        StandardObject.CONSTRUCTOR_DESCRIPTOR,
         false);
     methodVisitor.visitInsn(Opcodes.RETURN);
     methodVisitor.visitMaxs(2, 2); // args ignored; ClassWriter computes them

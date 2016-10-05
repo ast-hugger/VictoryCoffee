@@ -5,7 +5,7 @@ import org.junit.Test;
 import junit.framework.TestCase;
 
 public class StructureTests extends TestCase {
-
+/*
   public static class Outer extends Object {
     Outer(ObjectFactory klass) {
       super(klass);
@@ -66,5 +66,5 @@ public class StructureTests extends TestCase {
     assertEquals(outerInstance, innerInnerClass.enclosingObjects[0]);
     assertEquals(innerInstance, innerInnerClass.enclosingObjects[1]);
   }
-    
+ */
 }

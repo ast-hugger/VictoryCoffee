@@ -203,14 +203,22 @@ public class AstBuilder extends NewspeakBaseVisitor<AstNode> {
   }
   
   @Override
-  public AstNode visitLiteral(NewspeakParser.LiteralContext ctx) {
-    if (ctx.INTEGER() != null) {
-      int intValue = Integer.parseInt(ctx.INTEGER().getText());
-      return new LiteralNumber(intValue);
-    }
-    throw new IllegalArgumentException("Unsupported literal");
+  public AstNode visitIntegerLiteral(NewspeakParser.IntegerLiteralContext ctx) {
+    int intValue = Integer.parseInt(ctx.INTEGER().getText());
+    return new LiteralNumber(intValue);
   }
   
+  @Override
+  public AstNode visitStringLiteral(NewspeakParser.StringLiteralContext ctx) {
+    String tokenText = ctx.STRING().getText(); // with leading and trailing 's
+    return new LiteralString(tokenText.substring(1, tokenText.length() - 1));
+  }
+
+  @Override
+  public AstNode visitBlockLiteral(NewspeakParser.BlockLiteralContext ctx) {
+    throw new IllegalArgumentException("Unsupported literal");
+  }
+
   @Override
   public AstNode visitReturnStatement(NewspeakParser.ReturnStatementContext ctx) {
     AstNode expr = visit(ctx.expression());

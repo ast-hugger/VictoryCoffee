@@ -7,6 +7,7 @@ import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.invoke.MethodType;
 
 import org.newspeaklanguage.compiler.NamingPolicy;
+import org.newspeaklanguage.runtime.MessageNotUnderstood;
 import org.newspeaklanguage.runtime.Object;
 
 public final class MessageDispatch {
@@ -29,9 +30,14 @@ public final class MessageDispatch {
   public static Object dispatch(MessageSendSite callSite, Object receiver) throws Throwable {
     Class<?> receiverClass = receiver.getClass();
     String methodName = NamingPolicy.methodNameForSelector(callSite.selector());
-    MethodHandle method = callSite.lookup()
+    MethodHandle method;
+    try {
+      method = callSite.lookup()
         .findVirtual(receiverClass, methodName, methodType(callSite.type().parameterCount() - 1))
         .asType(callSite.type());
+    } catch (NoSuchMethodException e) {
+      throw new MessageNotUnderstood(receiver, callSite.selector(), new Object[0]);
+    }
     callSite.addInlineCache(receiverClass, method);
     return (Object) method.invoke(receiver);
   }

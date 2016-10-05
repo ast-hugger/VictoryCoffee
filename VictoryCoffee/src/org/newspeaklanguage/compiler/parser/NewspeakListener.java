@@ -354,15 +354,41 @@ public interface NewspeakListener extends ParseTreeListener {
 	 */
 	void exitOuterReceiver(NewspeakParser.OuterReceiverContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link NewspeakParser#literal}.
+	 * Enter a parse tree produced by the {@code blockLiteral}
+	 * labeled alternative in {@link NewspeakParser#literal}.
 	 * @param ctx the parse tree
 	 */
-	void enterLiteral(NewspeakParser.LiteralContext ctx);
+	void enterBlockLiteral(NewspeakParser.BlockLiteralContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link NewspeakParser#literal}.
+	 * Exit a parse tree produced by the {@code blockLiteral}
+	 * labeled alternative in {@link NewspeakParser#literal}.
 	 * @param ctx the parse tree
 	 */
-	void exitLiteral(NewspeakParser.LiteralContext ctx);
+	void exitBlockLiteral(NewspeakParser.BlockLiteralContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code integerLiteral}
+	 * labeled alternative in {@link NewspeakParser#literal}.
+	 * @param ctx the parse tree
+	 */
+	void enterIntegerLiteral(NewspeakParser.IntegerLiteralContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code integerLiteral}
+	 * labeled alternative in {@link NewspeakParser#literal}.
+	 * @param ctx the parse tree
+	 */
+	void exitIntegerLiteral(NewspeakParser.IntegerLiteralContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code stringLiteral}
+	 * labeled alternative in {@link NewspeakParser#literal}.
+	 * @param ctx the parse tree
+	 */
+	void enterStringLiteral(NewspeakParser.StringLiteralContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code stringLiteral}
+	 * labeled alternative in {@link NewspeakParser#literal}.
+	 * @param ctx the parse tree
+	 */
+	void exitStringLiteral(NewspeakParser.StringLiteralContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link NewspeakParser#block}.
 	 * @param ctx the parse tree

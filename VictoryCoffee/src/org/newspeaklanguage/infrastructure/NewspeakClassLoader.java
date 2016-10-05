@@ -13,6 +13,11 @@ public class NewspeakClassLoader extends ClassLoader {
   private final Map<String, Class<? extends Object>> classesByName = 
       new HashMap<String, Class<? extends Object>>();
 
+  public NewspeakClassLoader() {
+    // Still not sure if we need or need not to inherit from the main loader,
+    // so provide both constructors for now.
+  }
+  
   public NewspeakClassLoader(ClassLoader parent) {
     super(parent);
   }

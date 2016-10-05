@@ -424,13 +424,37 @@ public class NewspeakBaseListener implements NewspeakListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterLiteral(NewspeakParser.LiteralContext ctx) { }
+	@Override public void enterBlockLiteral(NewspeakParser.BlockLiteralContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitLiteral(NewspeakParser.LiteralContext ctx) { }
+	@Override public void exitBlockLiteral(NewspeakParser.BlockLiteralContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterIntegerLiteral(NewspeakParser.IntegerLiteralContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitIntegerLiteral(NewspeakParser.IntegerLiteralContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterStringLiteral(NewspeakParser.StringLiteralContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitStringLiteral(NewspeakParser.StringLiteralContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

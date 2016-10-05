@@ -218,11 +218,26 @@ public interface NewspeakVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitOuterReceiver(NewspeakParser.OuterReceiverContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link NewspeakParser#literal}.
+	 * Visit a parse tree produced by the {@code blockLiteral}
+	 * labeled alternative in {@link NewspeakParser#literal}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitLiteral(NewspeakParser.LiteralContext ctx);
+	T visitBlockLiteral(NewspeakParser.BlockLiteralContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code integerLiteral}
+	 * labeled alternative in {@link NewspeakParser#literal}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIntegerLiteral(NewspeakParser.IntegerLiteralContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code stringLiteral}
+	 * labeled alternative in {@link NewspeakParser#literal}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitStringLiteral(NewspeakParser.StringLiteralContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link NewspeakParser#block}.
 	 * @param ctx the parse tree

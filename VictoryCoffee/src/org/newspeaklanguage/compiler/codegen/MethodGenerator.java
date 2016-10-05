@@ -1,5 +1,7 @@
 package org.newspeaklanguage.compiler.codegen;
 
+import java.util.List;
+
 import org.newspeaklanguage.compiler.ast.Argument;
 import org.newspeaklanguage.compiler.ast.AstNode;
 import org.newspeaklanguage.compiler.ast.AstNodeVisitor;
@@ -54,7 +56,18 @@ public class MethodGenerator implements AstNodeVisitor {
     method.messagePattern().accept(this);
     method.temps().stream().forEach(each -> each.accept(this));
     localNames.close();
-    method.body().stream().forEach(each -> each.accept(this));
+    List<AstNode> body = method.body();
+    body.stream().forEach(each -> each.accept(this));
+    if (body.isEmpty()) {
+      // Empty method or no explicit return: return self
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+      methodVisitor.visitInsn(Opcodes.ARETURN);
+    } else if (!(body.get(body.size() - 1) instanceof Return)) {
+      // Empty method or no explicit return: return self
+      methodVisitor.visitInsn(Opcodes.POP);
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+      methodVisitor.visitInsn(Opcodes.ARETURN);
+    }
   }
 
   @Override
@@ -80,7 +93,18 @@ public class MethodGenerator implements AstNodeVisitor {
 
   @Override
   public void visitLiteralString(LiteralString literalString) {
-    unimplemented(literalString);
+    // TODO the literal is implemented as instantiation on the spot.
+    // It would be better to implement is as a static class field, returned
+    // by the use site.
+    methodVisitor.visitTypeInsn(Opcodes.NEW, Builtins.StringObject.INTERNAL_CLASS_NAME);
+    methodVisitor.visitInsn(Opcodes.DUP);
+    methodVisitor.visitLdcInsn(literalString.value());
+    methodVisitor.visitMethodInsn(
+        Opcodes.INVOKESPECIAL,
+        Builtins.StringObject.INTERNAL_CLASS_NAME,
+        "<init>",
+        "(Ljava/lang/String;)V",
+        false);
   }
 
   @Override

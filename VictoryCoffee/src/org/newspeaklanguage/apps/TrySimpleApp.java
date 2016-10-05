@@ -38,7 +38,7 @@ public class TrySimpleApp {
     ObjectFactory factory = ObjectFactory.create(classDef, null);
     say("Running...");
     Object module = factory.makeInstance();
-    Object x = invoke(module, "_main");
+    Object x = invoke(module, "$main");
     say("Result: " + x);
     say("Done.");
   }

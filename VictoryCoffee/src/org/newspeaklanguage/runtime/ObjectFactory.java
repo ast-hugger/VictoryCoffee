@@ -30,15 +30,15 @@ public class ObjectFactory extends Object {
   public static final String TYPE_DESCRIPTOR = "L" + INTERNAL_CLASS_NAME + ";";
 
   public static ObjectFactory create(ClassDefinition classDef, Object container) {
-    return new ObjectFactory(Builtins.objectMetafactory, classDef, container);
+    return new ObjectFactory(null, classDef, container);
   }
   
   /*
    * Instance side
    */
   
+  private final ObjectFactory nsClass;
   private final ClassDefinition classDefinition;
-  
   // Public so call sites for outer sends can read this directly as a field
   public final Object[] enclosingObjects;
 
@@ -47,7 +47,7 @@ public class ObjectFactory extends Object {
    * Provided for bootstrapping and testing to create the Class class.
    */
   ObjectFactory() {
-    super(null);
+    this.nsClass = null;
     this.classDefinition = null;
     this.enclosingObjects = null;
   }
@@ -67,7 +67,7 @@ public class ObjectFactory extends Object {
    * @throws IllegalAccessException
    */
   ObjectFactory(ObjectFactory nsClass, ClassDefinition classDefinition, Object container) {
-    super(nsClass);
+    this.nsClass = nsClass;
     this.classDefinition = classDefinition;
     
     // Capture the enclosing objects
@@ -82,6 +82,10 @@ public class ObjectFactory extends Object {
       this.enclosingObjects[i] = higherObjects[i];
     }
     this.enclosingObjects[higherLength] = container;
+  }
+  
+  public ObjectFactory nsClass() {
+    return nsClass;
   }
   
   public ClassDefinition classDefinition() {

@@ -132,9 +132,10 @@ superReceiver : SUPER;
 outerReceiver : OUTER IDENTIFIER;
 
 literal
-	: block
-	| INTEGER
-	| STRING;
+	: block    # blockLiteral
+	| INTEGER  # integerLiteral
+	| STRING   # stringLiteral
+	;
 
 block :
 	LBRACKET blockArgs? blockTemps? codeBody RBRACKET ;
@@ -174,12 +175,10 @@ RBRACKET : ']';
 RCURLY : '}';
 RPAREN : ')';
 SEMICOLON : ';';
-SLASH : '/';
+// SLASH : '/';
 VBAR : '|';
 
-SPECIAL_CHAR : '+' | '/' | '*' | '~' ; // good enough for now
-
-BINARY_SELECTOR : SPECIAL_CHAR | '-';
+BINARY_SELECTOR : '+' | '/' | '*' | '-'; // good enough for now
 
 IDENTIFIER : [a-zA-Z_][a-zA-Z_0-9]*;
 KEYWORD : IDENTIFIER ':';
