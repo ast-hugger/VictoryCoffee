@@ -24,7 +24,7 @@ classBody
 	: classHeader instanceSideDecl classSideDecl? ;
 
 classHeader
-	: LPAREN VBAR slotDecl* VBAR RPAREN;
+	: LPAREN (VBAR slotDecl* VBAR)? RPAREN;
 
 instanceSideDecl
 	: LPAREN classDecl* category* RPAREN;
@@ -49,23 +49,24 @@ immutableSlotInitializer
 	: EQUAL_SIGN expression DOT ;
 
 methodDecl
-	: accessModifier? messagePattern EQUAL_SIGN LPAREN (VBAR slotDecl* VBAR)? codeBody? RPAREN ;
+	: accessModifier? messagePattern EQUAL_SIGN LPAREN (VBAR slotDecl* VBAR)? codeBody RPAREN ;
 
 accessModifier
 	: 'public' | 'protected' | 'private' ;
 
 messagePattern
-	: IDENTIFIER
-	| BINARY_SELECTOR IDENTIFIER
-	| (KEYWORD IDENTIFIER)+ ;
-
+	: IDENTIFIER # unaryPattern
+	| BINARY_SELECTOR IDENTIFIER # binaryPattern
+	| (KEYWORD IDENTIFIER)+ # keywordPattern
+	;
 
 /*
  *  Code
  */
 
 codeBody
-	: statement (DOT statement)* DOT?;
+	: /* empty */
+	| statement (DOT statement)* DOT?;
 
 statement
 	: expression
@@ -92,6 +93,7 @@ receiverfulSend
 
 receiver
 	: literal
+	| specialReceiver
 	| receiverlessSend
 	| LPAREN expression RPAREN;
 
@@ -109,13 +111,25 @@ binaryMessage
 keywordMessage
 	: (KEYWORD expression)+ ;
 
-//specialReceiver
-//	: NIL
-//	| TRUE
-//	| FALSE
-//	| SELF
-//	| SUPER
-//	| OUTER IDENTIFIER;
+specialReceiver
+	: nilReceiver
+	| trueReceiver
+	| falseReceiver
+	| selfReceiver
+	| superReceiver
+	| outerReceiver;
+
+nilReceiver : NIL;
+
+trueReceiver : TRUE;
+
+falseReceiver : FALSE;
+
+selfReceiver : SELF;
+
+superReceiver : SUPER;
+
+outerReceiver : OUTER IDENTIFIER;
 
 literal
 	: block
@@ -136,12 +150,12 @@ blockTemps :
  */
 
 // NLS 4.1
-//NIL   : 'nil';
-//TRUE  : 'true';
-//FALSE : 'false';
-//SELF  : 'self';
-//SUPER : 'super';
-//OUTER : 'outer';
+NIL   : 'nil';
+TRUE  : 'true';
+FALSE : 'false';
+SELF  : 'self';
+SUPER : 'super';
+OUTER : 'outer';
 
 // NLS 4.2
 CARET : '^';

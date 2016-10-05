@@ -1,7 +1,5 @@
 package org.newspeaklanguage.runtime;
 
-import static org.junit.Assert.assertEquals;
-
 import org.junit.Test;
 
 import junit.framework.TestCase;
@@ -9,50 +7,46 @@ import junit.framework.TestCase;
 public class StructureTests extends TestCase {
 
   public static class Outer extends Object {
-    Outer(Class klass) {
+    Outer(ObjectFactory klass) {
       super(klass);
     }
   }
   
   public static class Inner extends Object {
-    Inner(Class klass) {
+    Inner(ObjectFactory klass) {
       super(klass);
     }
   }
   
   public static class InnerInner extends Object {
-    InnerInner(Class klass) {
+    InnerInner(ObjectFactory klass) {
       super(klass);
     }
   }
   
-  public Class classClass = new Class();
+  public ObjectFactory classClass = new ObjectFactory();
   
   public ClassDefinition outerDefinition = new ClassDefinition(Outer.class);
   public ClassDefinition innerDefinition = new ClassDefinition(Inner.class);
   public ClassDefinition innerInnerDefinition = new ClassDefinition(InnerInner.class);
   
-  public Class outerClass;
+  public ObjectFactory outerClass;
   public Object outerInstance;
   
-  public Class innerClass;
+  public ObjectFactory innerClass;
   public Object innerInstance;
   
-  public Class innerInnerClass;
+  public ObjectFactory innerInnerClass;
   public Object innerInnerInstance;
   
   @Override
   public void setUp() {
-    try {
-      outerClass = new Class(classClass, outerDefinition, null);
-      outerInstance = outerClass.makeInstance();
-      innerClass = new Class(classClass, innerDefinition, outerInstance);
-      innerInstance = innerClass.makeInstance();
-      innerInnerClass = new Class(classClass, innerInnerDefinition, innerInstance);
-      innerInnerInstance = innerInnerClass.makeInstance();
-    } catch (NoSuchMethodException | IllegalAccessException e) {
-      fail("Failure creating classes");
-    }
+    outerClass = new ObjectFactory(classClass, outerDefinition, null);
+    outerInstance = outerClass.makeInstance();
+    innerClass = new ObjectFactory(classClass, innerDefinition, outerInstance);
+    innerInstance = innerClass.makeInstance();
+    innerInnerClass = new ObjectFactory(classClass, innerInnerDefinition, innerInstance);
+    innerInnerInstance = innerInnerClass.makeInstance();
   }
   
   @Test

@@ -13,7 +13,7 @@ import org.newspeaklanguage.compiler.ast.SlotDefinition;
  * scopes. Nodes that establish scopes such as classes and methods get annotated
  * with the scopes they establish.
  * 
- * @author vassili
+ * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
  */
 public class ScopeBuilder extends AstNodeVisitorSkeleton {

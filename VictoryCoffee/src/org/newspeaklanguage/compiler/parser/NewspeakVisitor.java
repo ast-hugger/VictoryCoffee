@@ -83,11 +83,26 @@ public interface NewspeakVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitAccessModifier(NewspeakParser.AccessModifierContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link NewspeakParser#messagePattern}.
+	 * Visit a parse tree produced by the {@code unaryPattern}
+	 * labeled alternative in {@link NewspeakParser#messagePattern}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitMessagePattern(NewspeakParser.MessagePatternContext ctx);
+	T visitUnaryPattern(NewspeakParser.UnaryPatternContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code binaryPattern}
+	 * labeled alternative in {@link NewspeakParser#messagePattern}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBinaryPattern(NewspeakParser.BinaryPatternContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code keywordPattern}
+	 * labeled alternative in {@link NewspeakParser#messagePattern}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitKeywordPattern(NewspeakParser.KeywordPatternContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link NewspeakParser#codeBody}.
 	 * @param ctx the parse tree
@@ -160,6 +175,48 @@ public interface NewspeakVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitKeywordMessage(NewspeakParser.KeywordMessageContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link NewspeakParser#specialReceiver}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSpecialReceiver(NewspeakParser.SpecialReceiverContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link NewspeakParser#nilReceiver}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitNilReceiver(NewspeakParser.NilReceiverContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link NewspeakParser#trueReceiver}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTrueReceiver(NewspeakParser.TrueReceiverContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link NewspeakParser#falseReceiver}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFalseReceiver(NewspeakParser.FalseReceiverContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link NewspeakParser#selfReceiver}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSelfReceiver(NewspeakParser.SelfReceiverContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link NewspeakParser#superReceiver}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSuperReceiver(NewspeakParser.SuperReceiverContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link NewspeakParser#outerReceiver}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitOuterReceiver(NewspeakParser.OuterReceiverContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link NewspeakParser#literal}.
 	 * @param ctx the parse tree

@@ -1,4 +1,4 @@
-package org.newspeaklanguage.misc;
+package org.newspeaklanguage.apps;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -8,7 +8,7 @@ import org.newspeaklanguage.compiler.parser.NewspeakLexer;
 import org.newspeaklanguage.compiler.parser.NewspeakParser;
 import org.newspeaklanguage.compiler.parser.NewspeakParser.SourceUnitContext;
 
-public class ParserRunner {
+public class TryParser {
 
   private static final String source =
 "class Foo name: x = Object name: x (\n"

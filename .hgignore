@@ -10,5 +10,6 @@ VictoryCoffeeTests/bin
 .classpath
 .project
 .settings
+*.class
 *~
 *.log

@@ -128,15 +128,41 @@ public interface NewspeakListener extends ParseTreeListener {
 	 */
 	void exitAccessModifier(NewspeakParser.AccessModifierContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link NewspeakParser#messagePattern}.
+	 * Enter a parse tree produced by the {@code unaryPattern}
+	 * labeled alternative in {@link NewspeakParser#messagePattern}.
 	 * @param ctx the parse tree
 	 */
-	void enterMessagePattern(NewspeakParser.MessagePatternContext ctx);
+	void enterUnaryPattern(NewspeakParser.UnaryPatternContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link NewspeakParser#messagePattern}.
+	 * Exit a parse tree produced by the {@code unaryPattern}
+	 * labeled alternative in {@link NewspeakParser#messagePattern}.
 	 * @param ctx the parse tree
 	 */
-	void exitMessagePattern(NewspeakParser.MessagePatternContext ctx);
+	void exitUnaryPattern(NewspeakParser.UnaryPatternContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code binaryPattern}
+	 * labeled alternative in {@link NewspeakParser#messagePattern}.
+	 * @param ctx the parse tree
+	 */
+	void enterBinaryPattern(NewspeakParser.BinaryPatternContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code binaryPattern}
+	 * labeled alternative in {@link NewspeakParser#messagePattern}.
+	 * @param ctx the parse tree
+	 */
+	void exitBinaryPattern(NewspeakParser.BinaryPatternContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code keywordPattern}
+	 * labeled alternative in {@link NewspeakParser#messagePattern}.
+	 * @param ctx the parse tree
+	 */
+	void enterKeywordPattern(NewspeakParser.KeywordPatternContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code keywordPattern}
+	 * labeled alternative in {@link NewspeakParser#messagePattern}.
+	 * @param ctx the parse tree
+	 */
+	void exitKeywordPattern(NewspeakParser.KeywordPatternContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link NewspeakParser#codeBody}.
 	 * @param ctx the parse tree
@@ -257,6 +283,76 @@ public interface NewspeakListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitKeywordMessage(NewspeakParser.KeywordMessageContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link NewspeakParser#specialReceiver}.
+	 * @param ctx the parse tree
+	 */
+	void enterSpecialReceiver(NewspeakParser.SpecialReceiverContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link NewspeakParser#specialReceiver}.
+	 * @param ctx the parse tree
+	 */
+	void exitSpecialReceiver(NewspeakParser.SpecialReceiverContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link NewspeakParser#nilReceiver}.
+	 * @param ctx the parse tree
+	 */
+	void enterNilReceiver(NewspeakParser.NilReceiverContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link NewspeakParser#nilReceiver}.
+	 * @param ctx the parse tree
+	 */
+	void exitNilReceiver(NewspeakParser.NilReceiverContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link NewspeakParser#trueReceiver}.
+	 * @param ctx the parse tree
+	 */
+	void enterTrueReceiver(NewspeakParser.TrueReceiverContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link NewspeakParser#trueReceiver}.
+	 * @param ctx the parse tree
+	 */
+	void exitTrueReceiver(NewspeakParser.TrueReceiverContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link NewspeakParser#falseReceiver}.
+	 * @param ctx the parse tree
+	 */
+	void enterFalseReceiver(NewspeakParser.FalseReceiverContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link NewspeakParser#falseReceiver}.
+	 * @param ctx the parse tree
+	 */
+	void exitFalseReceiver(NewspeakParser.FalseReceiverContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link NewspeakParser#selfReceiver}.
+	 * @param ctx the parse tree
+	 */
+	void enterSelfReceiver(NewspeakParser.SelfReceiverContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link NewspeakParser#selfReceiver}.
+	 * @param ctx the parse tree
+	 */
+	void exitSelfReceiver(NewspeakParser.SelfReceiverContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link NewspeakParser#superReceiver}.
+	 * @param ctx the parse tree
+	 */
+	void enterSuperReceiver(NewspeakParser.SuperReceiverContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link NewspeakParser#superReceiver}.
+	 * @param ctx the parse tree
+	 */
+	void exitSuperReceiver(NewspeakParser.SuperReceiverContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link NewspeakParser#outerReceiver}.
+	 * @param ctx the parse tree
+	 */
+	void enterOuterReceiver(NewspeakParser.OuterReceiverContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link NewspeakParser#outerReceiver}.
+	 * @param ctx the parse tree
+	 */
+	void exitOuterReceiver(NewspeakParser.OuterReceiverContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link NewspeakParser#literal}.
 	 * @param ctx the parse tree

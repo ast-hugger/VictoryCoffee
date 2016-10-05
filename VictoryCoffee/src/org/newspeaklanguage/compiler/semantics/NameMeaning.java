@@ -6,7 +6,7 @@ package org.newspeaklanguage.compiler.semantics;
  * reference, a pseudo variable (nil, true, false, self, super, outer), a
  * lexical outer send, or a self send.
  * 
- * @author vassili
+ * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
  */
 public abstract class NameMeaning {

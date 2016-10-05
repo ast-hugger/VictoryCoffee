@@ -58,31 +58,9 @@ public class NameResolver extends AstNodeVisitorSkeleton {
     }
     
     if (messageSend.isName()) {
-      NameMeaning meaning = null;
-      switch (messageSend.selector()) {
-      case "nil":
-        meaning = new NameMeaningNil();
-        break;
-      case "true":
-        meaning = new NameMeaningLiteralBoolean(true);
-        break;
-      case "false":
-        meaning = new NameMeaningLiteralBoolean(false);
-        break;
-      case "self":
-        meaning = new NameMeaningSelf();
-        break;
-      case "super":
-        meaning = new NameMeaningSuper();
-        break;
-      case "outer":
-        meaning = new NameMeaningOuter();
-        break;
-      default:
-        meaning = def == null
-            ? new NameMeaningSelfSend()
-            : new NameMeaningVariableReference(def);  
-      }
+      NameMeaning meaning = def == null 
+          ? new NameMeaningSelfSend()
+          : new NameMeaningVariableReference(def);
       messageSend.setMeaning(meaning);
     }
   }

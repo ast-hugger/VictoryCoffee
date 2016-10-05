@@ -2,8 +2,6 @@ package org.newspeaklanguage.compiler.ast;
 
 public interface AstNodeVisitor {
   
-  public void visit(AstNode node);
-
   public void visitArgument(Argument argument);
 
   public void visitBlock(Block block);
@@ -14,7 +12,7 @@ public interface AstNodeVisitor {
 
   public void visitLiteralNumber(LiteralNumber literalNumber);
 
-  public void visitLiteralString(AstNodeVisitor visitor);
+  public void visitLiteralString(LiteralString literalString);
 
   public void visitMessagePattern(MessagePattern messagePattern);
 
@@ -25,5 +23,17 @@ public interface AstNodeVisitor {
   public void visitMethod(Method method);
 
   public void visitSlotDefinition(SlotDefinition slotDefinition);
+
+  public void visitLiteralNil(LiteralNil literalNil);
+
+  public void visitLiteralBoolean(LiteralBoolean literalBoolean);
+
+  public void visitSelf(Self self);
+
+  public void visitSuper(Super super1);
+
+  public void visitOuter(Outer outer);
+
+  public void visitReturn(Return return1);
 
 }

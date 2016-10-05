@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * A message send with an explicit receiver, just like in Smalltalk.
  * 
- * @author vassili
+ * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
  */
 public class MessageSendWithReceiver extends MessageSendNoReceiver {

@@ -12,7 +12,7 @@ public class LiteralString extends AstNode {
   
   @Override
   public void accept(AstNodeVisitor visitor) {
-    visitor.visitLiteralString(visitor);
+    visitor.visitLiteralString(this);
   }
 
 }

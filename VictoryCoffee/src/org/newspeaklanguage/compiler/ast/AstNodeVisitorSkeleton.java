@@ -7,12 +7,11 @@ import java.util.List;
  * node in the tree while doing nothing. A concrete visitor based on this only
  * needs to override the methods reacting to what it cares about.
  * 
- * @author vassili
+ * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
  */
 public abstract class AstNodeVisitorSkeleton implements AstNodeVisitor {
 
-  @Override
   public void visit(AstNode node) {
     if (node != null) {
       node.accept(this);
@@ -52,11 +51,31 @@ public abstract class AstNodeVisitorSkeleton implements AstNodeVisitor {
   }
 
   @Override
+  public void visitLiteralNil(LiteralNil literalNil) {
+  }
+
+  @Override
+  public void visitLiteralBoolean(LiteralBoolean literalBoolean) {
+  }
+
+  @Override
   public void visitLiteralNumber(LiteralNumber literalNumber) {
   }
 
   @Override
-  public void visitLiteralString(AstNodeVisitor visitor) {
+  public void visitLiteralString(LiteralString literalString) {
+  }
+  
+  @Override
+  public void visitSelf(Self self) {
+  }
+
+  @Override
+  public void visitSuper(Super superNode) {
+  }
+  
+  @Override
+  public void visitOuter(Outer outer) {
   }
 
   @Override
@@ -75,6 +94,11 @@ public abstract class AstNodeVisitorSkeleton implements AstNodeVisitor {
     visit(messageSendWithReceiver.arguments());
   }
 
+  @Override
+  public void visitReturn(Return returnNode) {
+    visit(returnNode.expression());
+  }
+  
   @Override
   public void visitMethod(Method method) {
     visit(method.messagePattern());

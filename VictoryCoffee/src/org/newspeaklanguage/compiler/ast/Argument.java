@@ -3,10 +3,10 @@ package org.newspeaklanguage.compiler.ast;
 /**
  * A method or block argument.
  * 
- * @author vassili
+ * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
  */
-public class Argument extends AstNode {
+public class Argument extends AstNode implements NamedNode {
   
   private final String name;
   
@@ -14,6 +14,7 @@ public class Argument extends AstNode {
     this.name = name;
   }
   
+  @Override
   public String name() { return name; }
   
   @Override

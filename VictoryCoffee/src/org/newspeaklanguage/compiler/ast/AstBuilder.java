@@ -13,7 +13,7 @@ import org.newspeaklanguage.compiler.parser.NewspeakParser;
 /**
  * The bridge between our ANTLR grammar and the AST defined in this package.
  * 
- * @author vassili
+ * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
  */
 public class AstBuilder extends NewspeakBaseVisitor<AstNode> {
@@ -93,7 +93,60 @@ public class AstBuilder extends NewspeakBaseVisitor<AstNode> {
     return new Method(pattern, temps, statements);
   }
   
+  @Override
+  public AstNode visitUnaryPattern(NewspeakParser.UnaryPatternContext ctx) {
+    return new MessagePattern(ctx.IDENTIFIER().getText(), Collections.emptyList());
+  }
+  
+  @Override
+  public AstNode visitBinaryPattern(NewspeakParser.BinaryPatternContext ctx) {
+    Argument arg = new Argument(ctx.IDENTIFIER().getText()); 
+    return new MessagePattern(ctx.BINARY_SELECTOR().getText(), Arrays.asList(arg));
+  }
+  
+  @Override
+  public AstNode visitKeywordPattern(NewspeakParser.KeywordPatternContext ctx) {
+    Optional<String> partialSelector = ctx.KEYWORD().stream()
+        .map(each -> each.getText())
+        .reduce((a, b) -> a + ":" + b);
+    String selector = partialSelector.get() + ":";
+    List<Argument> args = ctx.IDENTIFIER().stream()
+        .map(each -> new Argument(each.getText()))
+        .collect(Collectors.toList());
+    return new MessagePattern(selector, args);
+  }
+  
   // TODO we don't do setter sends for now
+  
+  @Override
+  public AstNode visitNilReceiver(NewspeakParser.NilReceiverContext ctx) {
+    return new LiteralNil();
+  }
+  
+  @Override
+  public AstNode visitTrueReceiver(NewspeakParser.TrueReceiverContext ctx) {
+    return new LiteralBoolean(true);
+  }
+  
+  @Override
+  public AstNode visitFalseReceiver(NewspeakParser.FalseReceiverContext ctx) {
+    return new LiteralBoolean(false);
+  }
+  
+  @Override
+  public AstNode visitSelfReceiver(NewspeakParser.SelfReceiverContext ctx) {
+    return new Self();
+  }
+  
+  @Override
+  public AstNode visitSuperReceiver(NewspeakParser.SuperReceiverContext ctx) {
+    return new Super();
+  }
+  
+  @Override
+  public AstNode visitOuterReceiver(NewspeakParser.OuterReceiverContext ctx) {
+    return new Outer(ctx.IDENTIFIER().getText());
+  }
   
   @Override
   public AstNode visitReceiverlessSend(NewspeakParser.ReceiverlessSendContext ctx) {
@@ -156,6 +209,12 @@ public class AstBuilder extends NewspeakBaseVisitor<AstNode> {
       return new LiteralNumber(intValue);
     }
     throw new IllegalArgumentException("Unsupported literal");
+  }
+  
+  @Override
+  public AstNode visitReturnStatement(NewspeakParser.ReturnStatementContext ctx) {
+    AstNode expr = visit(ctx.expression());
+    return new Return(expr);
   }
   
 }

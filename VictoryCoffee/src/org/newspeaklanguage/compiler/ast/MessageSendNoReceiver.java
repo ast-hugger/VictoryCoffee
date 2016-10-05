@@ -8,7 +8,7 @@ import org.newspeaklanguage.compiler.semantics.NameMeaning;
 /**
  * A message send with implicit receiver. This includes what would count as slot references.
  * 
- * @author vassili
+ * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
  */
 public class MessageSendNoReceiver extends AstNode {

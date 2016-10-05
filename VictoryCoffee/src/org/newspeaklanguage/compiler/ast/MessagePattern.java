@@ -15,6 +15,10 @@ public class MessagePattern extends AstNode {
   public String selector() { return selector; }
   public List<Argument> arguments() { return arguments; }
   
+  public int arity() {
+    return arguments.size();
+  }
+  
   @Override
   public void accept(AstNodeVisitor visitor) {
     visitor.visitMessagePattern(this);
