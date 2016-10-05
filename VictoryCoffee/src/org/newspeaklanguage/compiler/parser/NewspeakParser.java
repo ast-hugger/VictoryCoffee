@@ -29,20 +29,22 @@ public class NewspeakParser extends Parser {
 		RULE_slotDecl = 7, RULE_mutableSlotInitializer = 8, RULE_immutableSlotInitializer = 9, 
 		RULE_methodDecl = 10, RULE_accessModifier = 11, RULE_messagePattern = 12, 
 		RULE_codeBody = 13, RULE_statement = 14, RULE_returnStatement = 15, RULE_expression = 16, 
-		RULE_messageSend = 17, RULE_receiverlessSend = 18, RULE_receiverfulSend = 19, 
-		RULE_receiver = 20, RULE_message = 21, RULE_unaryMessage = 22, RULE_binaryMessage = 23, 
-		RULE_keywordMessage = 24, RULE_specialReceiver = 25, RULE_nilReceiver = 26, 
-		RULE_trueReceiver = 27, RULE_falseReceiver = 28, RULE_selfReceiver = 29, 
-		RULE_superReceiver = 30, RULE_outerReceiver = 31, RULE_literal = 32, RULE_block = 33, 
-		RULE_blockArgs = 34, RULE_blockTemps = 35;
+		RULE_messageSend = 17, RULE_receiver = 18, RULE_binaryReceiver = 19, RULE_keywordReceiver = 20, 
+		RULE_setterSend = 21, RULE_unarySend = 22, RULE_unaryMessage = 23, RULE_binarySend = 24, 
+		RULE_binaryMessage = 25, RULE_keywordSend = 26, RULE_keywordMessage = 27, 
+		RULE_specialReceiver = 28, RULE_nilReceiver = 29, RULE_trueReceiver = 30, 
+		RULE_falseReceiver = 31, RULE_selfReceiver = 32, RULE_superReceiver = 33, 
+		RULE_outerReceiver = 34, RULE_literal = 35, RULE_block = 36, RULE_blockArgs = 37, 
+		RULE_blockTemps = 38;
 	public static final String[] ruleNames = {
 		"sourceUnit", "classDecl", "classBody", "classHeader", "instanceSideDecl", 
 		"classSideDecl", "category", "slotDecl", "mutableSlotInitializer", "immutableSlotInitializer", 
 		"methodDecl", "accessModifier", "messagePattern", "codeBody", "statement", 
-		"returnStatement", "expression", "messageSend", "receiverlessSend", "receiverfulSend", 
-		"receiver", "message", "unaryMessage", "binaryMessage", "keywordMessage", 
-		"specialReceiver", "nilReceiver", "trueReceiver", "falseReceiver", "selfReceiver", 
-		"superReceiver", "outerReceiver", "literal", "block", "blockArgs", "blockTemps"
+		"returnStatement", "expression", "messageSend", "receiver", "binaryReceiver", 
+		"keywordReceiver", "setterSend", "unarySend", "unaryMessage", "binarySend", 
+		"binaryMessage", "keywordSend", "keywordMessage", "specialReceiver", "nilReceiver", 
+		"trueReceiver", "falseReceiver", "selfReceiver", "superReceiver", "outerReceiver", 
+		"literal", "block", "blockArgs", "blockTemps"
 	};
 
 	private static final String[] _LITERAL_NAMES = {
@@ -117,14 +119,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_sourceUnit; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterSourceUnit(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitSourceUnit(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitSourceUnit(this);
 			else return visitor.visitChildren(this);
@@ -137,9 +131,9 @@ public class NewspeakParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(72);
+			setState(78);
 			classDecl();
-			setState(73);
+			setState(79);
 			match(EOF);
 			}
 		}
@@ -173,14 +167,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_classDecl; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterClassDecl(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitClassDecl(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitClassDecl(this);
 			else return visitor.visitChildren(this);
@@ -194,33 +180,33 @@ public class NewspeakParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(75);
+			setState(81);
 			match(T__0);
-			setState(76);
+			setState(82);
 			match(IDENTIFIER);
-			setState(78);
+			setState(84);
 			_la = _input.LA(1);
 			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << BINARY_SELECTOR) | (1L << IDENTIFIER) | (1L << KEYWORD))) != 0)) {
 				{
-				setState(77);
+				setState(83);
 				messagePattern();
 				}
 			}
 
-			setState(80);
+			setState(86);
 			match(EQUAL_SIGN);
-			setState(83);
+			setState(89);
 			_la = _input.LA(1);
 			if (_la==IDENTIFIER) {
 				{
-				setState(81);
+				setState(87);
 				match(IDENTIFIER);
-				setState(82);
+				setState(88);
 				messagePattern();
 				}
 			}
 
-			setState(85);
+			setState(91);
 			classBody();
 			}
 		}
@@ -250,14 +236,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_classBody; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterClassBody(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitClassBody(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitClassBody(this);
 			else return visitor.visitChildren(this);
@@ -271,15 +249,15 @@ public class NewspeakParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(87);
+			setState(93);
 			classHeader();
-			setState(88);
+			setState(94);
 			instanceSideDecl();
-			setState(90);
+			setState(96);
 			_la = _input.LA(1);
 			if (_la==COLON) {
 				{
-				setState(89);
+				setState(95);
 				classSideDecl();
 				}
 			}
@@ -315,14 +293,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_classHeader; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterClassHeader(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitClassHeader(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitClassHeader(this);
 			else return visitor.visitChildren(this);
@@ -336,34 +306,34 @@ public class NewspeakParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(92);
+			setState(98);
 			match(LPAREN);
-			setState(101);
+			setState(107);
 			_la = _input.LA(1);
 			if (_la==VBAR) {
 				{
-				setState(93);
+				setState(99);
 				match(VBAR);
-				setState(97);
+				setState(103);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__1) | (1L << T__2) | (1L << T__3) | (1L << IDENTIFIER))) != 0)) {
 					{
 					{
-					setState(94);
+					setState(100);
 					slotDecl();
 					}
 					}
-					setState(99);
+					setState(105);
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				}
-				setState(100);
+				setState(106);
 				match(VBAR);
 				}
 			}
 
-			setState(103);
+			setState(109);
 			match(RPAREN);
 			}
 		}
@@ -398,14 +368,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_instanceSideDecl; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterInstanceSideDecl(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitInstanceSideDecl(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitInstanceSideDecl(this);
 			else return visitor.visitChildren(this);
@@ -419,37 +381,37 @@ public class NewspeakParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(105);
+			setState(111);
 			match(LPAREN);
-			setState(109);
+			setState(115);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==T__0) {
 				{
 				{
-				setState(106);
-				classDecl();
-				}
-				}
-				setState(111);
-				_errHandler.sync(this);
-				_la = _input.LA(1);
-			}
-			setState(115);
-			_errHandler.sync(this);
-			_la = _input.LA(1);
-			while (_la==STRING) {
-				{
-				{
 				setState(112);
-				category();
+				classDecl();
 				}
 				}
 				setState(117);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(118);
+			setState(121);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			while (_la==STRING) {
+				{
+				{
+				setState(118);
+				category();
+				}
+				}
+				setState(123);
+				_errHandler.sync(this);
+				_la = _input.LA(1);
+			}
+			setState(124);
 			match(RPAREN);
 			}
 		}
@@ -479,14 +441,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_classSideDecl; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterClassSideDecl(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitClassSideDecl(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitClassSideDecl(this);
 			else return visitor.visitChildren(this);
@@ -500,25 +454,25 @@ public class NewspeakParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(120);
+			setState(126);
 			match(COLON);
-			setState(121);
+			setState(127);
 			match(LPAREN);
-			setState(125);
+			setState(131);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==STRING) {
 				{
 				{
-				setState(122);
+				setState(128);
 				category();
 				}
 				}
-				setState(127);
+				setState(133);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(128);
+			setState(134);
 			match(RPAREN);
 			}
 		}
@@ -546,14 +500,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_category; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterCategory(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitCategory(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitCategory(this);
 			else return visitor.visitChildren(this);
@@ -567,19 +513,19 @@ public class NewspeakParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(130);
+			setState(136);
 			match(STRING);
-			setState(134);
+			setState(140);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__1) | (1L << T__2) | (1L << T__3) | (1L << BINARY_SELECTOR) | (1L << IDENTIFIER) | (1L << KEYWORD))) != 0)) {
 				{
 				{
-				setState(131);
+				setState(137);
 				methodDecl();
 				}
 				}
-				setState(136);
+				setState(142);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
@@ -612,14 +558,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_slotDecl; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterSlotDecl(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitSlotDecl(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitSlotDecl(this);
 			else return visitor.visitChildren(this);
@@ -633,28 +571,28 @@ public class NewspeakParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(138);
+			setState(144);
 			_la = _input.LA(1);
 			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__1) | (1L << T__2) | (1L << T__3))) != 0)) {
 				{
-				setState(137);
+				setState(143);
 				accessModifier();
 				}
 			}
 
-			setState(140);
+			setState(146);
 			match(IDENTIFIER);
-			setState(143);
+			setState(149);
 			switch (_input.LA(1)) {
 			case CCE_SIGN:
 				{
-				setState(141);
+				setState(147);
 				mutableSlotInitializer();
 				}
 				break;
 			case EQUAL_SIGN:
 				{
-				setState(142);
+				setState(148);
 				immutableSlotInitializer();
 				}
 				break;
@@ -691,14 +629,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_mutableSlotInitializer; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterMutableSlotInitializer(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitMutableSlotInitializer(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitMutableSlotInitializer(this);
 			else return visitor.visitChildren(this);
@@ -711,11 +641,11 @@ public class NewspeakParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(145);
+			setState(151);
 			match(CCE_SIGN);
-			setState(146);
+			setState(152);
 			expression();
-			setState(147);
+			setState(153);
 			match(DOT);
 			}
 		}
@@ -741,14 +671,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_immutableSlotInitializer; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterImmutableSlotInitializer(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitImmutableSlotInitializer(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitImmutableSlotInitializer(this);
 			else return visitor.visitChildren(this);
@@ -761,11 +683,11 @@ public class NewspeakParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(149);
+			setState(155);
 			match(EQUAL_SIGN);
-			setState(150);
+			setState(156);
 			expression();
-			setState(151);
+			setState(157);
 			match(DOT);
 			}
 		}
@@ -808,14 +730,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_methodDecl; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterMethodDecl(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitMethodDecl(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitMethodDecl(this);
 			else return visitor.visitChildren(this);
@@ -829,49 +743,49 @@ public class NewspeakParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(154);
+			setState(160);
 			_la = _input.LA(1);
 			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__1) | (1L << T__2) | (1L << T__3))) != 0)) {
 				{
-				setState(153);
+				setState(159);
 				accessModifier();
 				}
 			}
 
-			setState(156);
+			setState(162);
 			messagePattern();
-			setState(157);
+			setState(163);
 			match(EQUAL_SIGN);
-			setState(158);
+			setState(164);
 			match(LPAREN);
-			setState(167);
+			setState(173);
 			_la = _input.LA(1);
 			if (_la==VBAR) {
 				{
-				setState(159);
+				setState(165);
 				match(VBAR);
-				setState(163);
+				setState(169);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__1) | (1L << T__2) | (1L << T__3) | (1L << IDENTIFIER))) != 0)) {
 					{
 					{
-					setState(160);
+					setState(166);
 					slotDecl();
 					}
 					}
-					setState(165);
+					setState(171);
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				}
-				setState(166);
+				setState(172);
 				match(VBAR);
 				}
 			}
 
-			setState(169);
+			setState(175);
 			codeBody();
-			setState(170);
+			setState(176);
 			match(RPAREN);
 			}
 		}
@@ -892,14 +806,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_accessModifier; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterAccessModifier(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitAccessModifier(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitAccessModifier(this);
 			else return visitor.visitChildren(this);
@@ -913,7 +819,7 @@ public class NewspeakParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(172);
+			setState(178);
 			_la = _input.LA(1);
 			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__1) | (1L << T__2) | (1L << T__3))) != 0)) ) {
 			_errHandler.recoverInline(this);
@@ -948,14 +854,6 @@ public class NewspeakParser extends Parser {
 		public TerminalNode IDENTIFIER() { return getToken(NewspeakParser.IDENTIFIER, 0); }
 		public UnaryPatternContext(MessagePatternContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterUnaryPattern(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitUnaryPattern(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitUnaryPattern(this);
 			else return visitor.visitChildren(this);
@@ -972,14 +870,6 @@ public class NewspeakParser extends Parser {
 		}
 		public KeywordPatternContext(MessagePatternContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterKeywordPattern(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitKeywordPattern(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitKeywordPattern(this);
 			else return visitor.visitChildren(this);
@@ -989,14 +879,6 @@ public class NewspeakParser extends Parser {
 		public TerminalNode BINARY_SELECTOR() { return getToken(NewspeakParser.BINARY_SELECTOR, 0); }
 		public TerminalNode IDENTIFIER() { return getToken(NewspeakParser.IDENTIFIER, 0); }
 		public BinaryPatternContext(MessagePatternContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterBinaryPattern(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitBinaryPattern(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitBinaryPattern(this);
@@ -1009,13 +891,13 @@ public class NewspeakParser extends Parser {
 		enterRule(_localctx, 24, RULE_messagePattern);
 		int _la;
 		try {
-			setState(183);
+			setState(189);
 			switch (_input.LA(1)) {
 			case IDENTIFIER:
 				_localctx = new UnaryPatternContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(174);
+				setState(180);
 				match(IDENTIFIER);
 				}
 				break;
@@ -1023,9 +905,9 @@ public class NewspeakParser extends Parser {
 				_localctx = new BinaryPatternContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(175);
+				setState(181);
 				match(BINARY_SELECTOR);
-				setState(176);
+				setState(182);
 				match(IDENTIFIER);
 				}
 				break;
@@ -1033,19 +915,19 @@ public class NewspeakParser extends Parser {
 				_localctx = new KeywordPatternContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(179); 
+				setState(185); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				do {
 					{
 					{
-					setState(177);
+					setState(183);
 					match(KEYWORD);
-					setState(178);
+					setState(184);
 					match(IDENTIFIER);
 					}
 					}
-					setState(181); 
+					setState(187); 
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				} while ( _la==KEYWORD );
@@ -1082,14 +964,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_codeBody; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterCodeBody(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitCodeBody(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitCodeBody(this);
 			else return visitor.visitChildren(this);
@@ -1102,7 +976,7 @@ public class NewspeakParser extends Parser {
 		int _la;
 		try {
 			int _alt;
-			setState(197);
+			setState(203);
 			switch (_input.LA(1)) {
 			case RBRACKET:
 			case RPAREN:
@@ -1119,38 +993,38 @@ public class NewspeakParser extends Parser {
 			case CARET:
 			case LBRACKET:
 			case LPAREN:
-			case BINARY_SELECTOR:
 			case IDENTIFIER:
 			case KEYWORD:
+			case SETTER_KEYWORD:
 			case STRING:
 			case INTEGER:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(186);
+				setState(192);
 				statement();
-				setState(191);
+				setState(197);
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,16,_ctx);
 				while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
 					if ( _alt==1 ) {
 						{
 						{
-						setState(187);
+						setState(193);
 						match(DOT);
-						setState(188);
+						setState(194);
 						statement();
 						}
 						} 
 					}
-					setState(193);
+					setState(199);
 					_errHandler.sync(this);
 					_alt = getInterpreter().adaptivePredict(_input,16,_ctx);
 				}
-				setState(195);
+				setState(201);
 				_la = _input.LA(1);
 				if (_la==DOT) {
 					{
-					setState(194);
+					setState(200);
 					match(DOT);
 					}
 				}
@@ -1184,14 +1058,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_statement; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterStatement(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitStatement(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitStatement(this);
 			else return visitor.visitChildren(this);
@@ -1202,7 +1068,7 @@ public class NewspeakParser extends Parser {
 		StatementContext _localctx = new StatementContext(_ctx, getState());
 		enterRule(_localctx, 28, RULE_statement);
 		try {
-			setState(201);
+			setState(207);
 			switch (_input.LA(1)) {
 			case NIL:
 			case TRUE:
@@ -1212,21 +1078,21 @@ public class NewspeakParser extends Parser {
 			case OUTER:
 			case LBRACKET:
 			case LPAREN:
-			case BINARY_SELECTOR:
 			case IDENTIFIER:
 			case KEYWORD:
+			case SETTER_KEYWORD:
 			case STRING:
 			case INTEGER:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(199);
+				setState(205);
 				expression();
 				}
 				break;
 			case CARET:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(200);
+				setState(206);
 				returnStatement();
 				}
 				break;
@@ -1255,14 +1121,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_returnStatement; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterReturnStatement(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitReturnStatement(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitReturnStatement(this);
 			else return visitor.visitChildren(this);
@@ -1275,9 +1133,9 @@ public class NewspeakParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(203);
+			setState(209);
 			match(CARET);
-			setState(204);
+			setState(210);
 			expression();
 			}
 		}
@@ -1299,18 +1157,16 @@ public class NewspeakParser extends Parser {
 		public MessageSendContext messageSend() {
 			return getRuleContext(MessageSendContext.class,0);
 		}
+		public KeywordMessageContext keywordMessage() {
+			return getRuleContext(KeywordMessageContext.class,0);
+		}
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
 		public ExpressionContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_expression; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterExpression(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitExpression(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitExpression(this);
@@ -1322,21 +1178,39 @@ public class NewspeakParser extends Parser {
 		ExpressionContext _localctx = new ExpressionContext(_ctx, getState());
 		enterRule(_localctx, 32, RULE_expression);
 		try {
-			setState(208);
+			setState(219);
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,20,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(206);
+				setState(212);
 				receiver();
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(207);
+				setState(213);
 				messageSend();
+				}
+				break;
+			case 3:
+				enterOuterAlt(_localctx, 3);
+				{
+				setState(214);
+				keywordMessage();
+				}
+				break;
+			case 4:
+				enterOuterAlt(_localctx, 4);
+				{
+				setState(215);
+				match(LPAREN);
+				setState(216);
+				expression();
+				setState(217);
+				match(RPAREN);
 				}
 				break;
 			}
@@ -1353,24 +1227,22 @@ public class NewspeakParser extends Parser {
 	}
 
 	public static class MessageSendContext extends ParserRuleContext {
-		public ReceiverlessSendContext receiverlessSend() {
-			return getRuleContext(ReceiverlessSendContext.class,0);
+		public UnarySendContext unarySend() {
+			return getRuleContext(UnarySendContext.class,0);
 		}
-		public ReceiverfulSendContext receiverfulSend() {
-			return getRuleContext(ReceiverfulSendContext.class,0);
+		public BinarySendContext binarySend() {
+			return getRuleContext(BinarySendContext.class,0);
+		}
+		public KeywordSendContext keywordSend() {
+			return getRuleContext(KeywordSendContext.class,0);
+		}
+		public SetterSendContext setterSend() {
+			return getRuleContext(SetterSendContext.class,0);
 		}
 		public MessageSendContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_messageSend; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterMessageSend(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitMessageSend(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitMessageSend(this);
@@ -1382,116 +1254,37 @@ public class NewspeakParser extends Parser {
 		MessageSendContext _localctx = new MessageSendContext(_ctx, getState());
 		enterRule(_localctx, 34, RULE_messageSend);
 		try {
-			setState(212);
+			setState(225);
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,21,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(210);
-				receiverlessSend();
+				setState(221);
+				unarySend();
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(211);
-				receiverfulSend();
+				setState(222);
+				binarySend();
 				}
 				break;
-			}
-		}
-		catch (RecognitionException re) {
-			_localctx.exception = re;
-			_errHandler.reportError(this, re);
-			_errHandler.recover(this, re);
-		}
-		finally {
-			exitRule();
-		}
-		return _localctx;
-	}
-
-	public static class ReceiverlessSendContext extends ParserRuleContext {
-		public MessageContext message() {
-			return getRuleContext(MessageContext.class,0);
-		}
-		public ReceiverlessSendContext(ParserRuleContext parent, int invokingState) {
-			super(parent, invokingState);
-		}
-		@Override public int getRuleIndex() { return RULE_receiverlessSend; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterReceiverlessSend(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitReceiverlessSend(this);
-		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitReceiverlessSend(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-
-	public final ReceiverlessSendContext receiverlessSend() throws RecognitionException {
-		ReceiverlessSendContext _localctx = new ReceiverlessSendContext(_ctx, getState());
-		enterRule(_localctx, 36, RULE_receiverlessSend);
-		try {
-			enterOuterAlt(_localctx, 1);
-			{
-			setState(214);
-			message();
-			}
-		}
-		catch (RecognitionException re) {
-			_localctx.exception = re;
-			_errHandler.reportError(this, re);
-			_errHandler.recover(this, re);
-		}
-		finally {
-			exitRule();
-		}
-		return _localctx;
-	}
-
-	public static class ReceiverfulSendContext extends ParserRuleContext {
-		public ReceiverContext receiver() {
-			return getRuleContext(ReceiverContext.class,0);
-		}
-		public MessageContext message() {
-			return getRuleContext(MessageContext.class,0);
-		}
-		public ReceiverfulSendContext(ParserRuleContext parent, int invokingState) {
-			super(parent, invokingState);
-		}
-		@Override public int getRuleIndex() { return RULE_receiverfulSend; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterReceiverfulSend(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitReceiverfulSend(this);
-		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitReceiverfulSend(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-
-	public final ReceiverfulSendContext receiverfulSend() throws RecognitionException {
-		ReceiverfulSendContext _localctx = new ReceiverfulSendContext(_ctx, getState());
-		enterRule(_localctx, 38, RULE_receiverfulSend);
-		try {
-			enterOuterAlt(_localctx, 1);
-			{
-			setState(216);
-			receiver();
-			setState(217);
-			message();
+			case 3:
+				enterOuterAlt(_localctx, 3);
+				{
+				setState(223);
+				keywordSend();
+				}
+				break;
+			case 4:
+				enterOuterAlt(_localctx, 4);
+				{
+				setState(224);
+				setterSend();
+				}
+				break;
 			}
 		}
 		catch (RecognitionException re) {
@@ -1506,32 +1299,17 @@ public class NewspeakParser extends Parser {
 	}
 
 	public static class ReceiverContext extends ParserRuleContext {
-		public LiteralContext literal() {
-			return getRuleContext(LiteralContext.class,0);
-		}
+		public TerminalNode IDENTIFIER() { return getToken(NewspeakParser.IDENTIFIER, 0); }
 		public SpecialReceiverContext specialReceiver() {
 			return getRuleContext(SpecialReceiverContext.class,0);
 		}
-		public ReceiverlessSendContext receiverlessSend() {
-			return getRuleContext(ReceiverlessSendContext.class,0);
+		public LiteralContext literal() {
+			return getRuleContext(LiteralContext.class,0);
 		}
-		public TerminalNode LPAREN() { return getToken(NewspeakParser.LPAREN, 0); }
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
-		}
-		public TerminalNode RPAREN() { return getToken(NewspeakParser.RPAREN, 0); }
 		public ReceiverContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_receiver; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterReceiver(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitReceiver(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitReceiver(this);
@@ -1541,17 +1319,15 @@ public class NewspeakParser extends Parser {
 
 	public final ReceiverContext receiver() throws RecognitionException {
 		ReceiverContext _localctx = new ReceiverContext(_ctx, getState());
-		enterRule(_localctx, 40, RULE_receiver);
+		enterRule(_localctx, 36, RULE_receiver);
 		try {
-			setState(226);
+			setState(230);
 			switch (_input.LA(1)) {
-			case LBRACKET:
-			case STRING:
-			case INTEGER:
+			case IDENTIFIER:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(219);
-				literal();
+				setState(227);
+				match(IDENTIFIER);
 				}
 				break;
 			case NIL:
@@ -1562,28 +1338,17 @@ public class NewspeakParser extends Parser {
 			case OUTER:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(220);
+				setState(228);
 				specialReceiver();
 				}
 				break;
-			case BINARY_SELECTOR:
-			case IDENTIFIER:
-			case KEYWORD:
+			case LBRACKET:
+			case STRING:
+			case INTEGER:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(221);
-				receiverlessSend();
-				}
-				break;
-			case LPAREN:
-				enterOuterAlt(_localctx, 4);
-				{
-				setState(222);
-				match(LPAREN);
-				setState(223);
-				expression();
-				setState(224);
-				match(RPAREN);
+				setState(229);
+				literal();
 				}
 				break;
 			default:
@@ -1601,64 +1366,187 @@ public class NewspeakParser extends Parser {
 		return _localctx;
 	}
 
-	public static class MessageContext extends ParserRuleContext {
-		public UnaryMessageContext unaryMessage() {
-			return getRuleContext(UnaryMessageContext.class,0);
+	public static class BinaryReceiverContext extends ParserRuleContext {
+		public ReceiverContext receiver() {
+			return getRuleContext(ReceiverContext.class,0);
 		}
-		public BinaryMessageContext binaryMessage() {
-			return getRuleContext(BinaryMessageContext.class,0);
+		public UnarySendContext unarySend() {
+			return getRuleContext(UnarySendContext.class,0);
 		}
-		public KeywordMessageContext keywordMessage() {
-			return getRuleContext(KeywordMessageContext.class,0);
-		}
-		public MessageContext(ParserRuleContext parent, int invokingState) {
+		public BinaryReceiverContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_message; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterMessage(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitMessage(this);
-		}
+		@Override public int getRuleIndex() { return RULE_binaryReceiver; }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitMessage(this);
+			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitBinaryReceiver(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	public final MessageContext message() throws RecognitionException {
-		MessageContext _localctx = new MessageContext(_ctx, getState());
-		enterRule(_localctx, 42, RULE_message);
+	public final BinaryReceiverContext binaryReceiver() throws RecognitionException {
+		BinaryReceiverContext _localctx = new BinaryReceiverContext(_ctx, getState());
+		enterRule(_localctx, 38, RULE_binaryReceiver);
 		try {
-			setState(231);
-			switch (_input.LA(1)) {
-			case IDENTIFIER:
+			setState(234);
+			_errHandler.sync(this);
+			switch ( getInterpreter().adaptivePredict(_input,23,_ctx) ) {
+			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(228);
-				unaryMessage();
+				setState(232);
+				receiver();
 				}
 				break;
-			case BINARY_SELECTOR:
+			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(229);
-				binaryMessage();
+				setState(233);
+				unarySend();
 				}
 				break;
-			case KEYWORD:
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	public static class KeywordReceiverContext extends ParserRuleContext {
+		public ReceiverContext receiver() {
+			return getRuleContext(ReceiverContext.class,0);
+		}
+		public UnarySendContext unarySend() {
+			return getRuleContext(UnarySendContext.class,0);
+		}
+		public BinarySendContext binarySend() {
+			return getRuleContext(BinarySendContext.class,0);
+		}
+		public KeywordReceiverContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_keywordReceiver; }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitKeywordReceiver(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final KeywordReceiverContext keywordReceiver() throws RecognitionException {
+		KeywordReceiverContext _localctx = new KeywordReceiverContext(_ctx, getState());
+		enterRule(_localctx, 40, RULE_keywordReceiver);
+		try {
+			setState(239);
+			_errHandler.sync(this);
+			switch ( getInterpreter().adaptivePredict(_input,24,_ctx) ) {
+			case 1:
+				enterOuterAlt(_localctx, 1);
+				{
+				setState(236);
+				receiver();
+				}
+				break;
+			case 2:
+				enterOuterAlt(_localctx, 2);
+				{
+				setState(237);
+				unarySend();
+				}
+				break;
+			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(230);
-				keywordMessage();
+				setState(238);
+				binarySend();
 				}
 				break;
-			default:
-				throw new NoViableAltException(this);
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	public static class SetterSendContext extends ParserRuleContext {
+		public TerminalNode SETTER_KEYWORD() { return getToken(NewspeakParser.SETTER_KEYWORD, 0); }
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
+		public SetterSendContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_setterSend; }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitSetterSend(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final SetterSendContext setterSend() throws RecognitionException {
+		SetterSendContext _localctx = new SetterSendContext(_ctx, getState());
+		enterRule(_localctx, 42, RULE_setterSend);
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(241);
+			match(SETTER_KEYWORD);
+			setState(242);
+			expression();
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	public static class UnarySendContext extends ParserRuleContext {
+		public ReceiverContext receiver() {
+			return getRuleContext(ReceiverContext.class,0);
+		}
+		public UnaryMessageContext unaryMessage() {
+			return getRuleContext(UnaryMessageContext.class,0);
+		}
+		public UnarySendContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_unarySend; }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitUnarySend(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final UnarySendContext unarySend() throws RecognitionException {
+		UnarySendContext _localctx = new UnarySendContext(_ctx, getState());
+		enterRule(_localctx, 44, RULE_unarySend);
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(244);
+			receiver();
+			setState(245);
+			unaryMessage();
 			}
 		}
 		catch (RecognitionException re) {
@@ -1674,18 +1562,13 @@ public class NewspeakParser extends Parser {
 
 	public static class UnaryMessageContext extends ParserRuleContext {
 		public TerminalNode IDENTIFIER() { return getToken(NewspeakParser.IDENTIFIER, 0); }
+		public UnaryMessageContext unaryMessage() {
+			return getRuleContext(UnaryMessageContext.class,0);
+		}
 		public UnaryMessageContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_unaryMessage; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterUnaryMessage(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitUnaryMessage(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitUnaryMessage(this);
@@ -1695,12 +1578,63 @@ public class NewspeakParser extends Parser {
 
 	public final UnaryMessageContext unaryMessage() throws RecognitionException {
 		UnaryMessageContext _localctx = new UnaryMessageContext(_ctx, getState());
-		enterRule(_localctx, 44, RULE_unaryMessage);
+		enterRule(_localctx, 46, RULE_unaryMessage);
+		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(233);
+			setState(247);
 			match(IDENTIFIER);
+			setState(249);
+			_la = _input.LA(1);
+			if (_la==IDENTIFIER) {
+				{
+				setState(248);
+				unaryMessage();
+				}
+			}
+
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	public static class BinarySendContext extends ParserRuleContext {
+		public BinaryReceiverContext binaryReceiver() {
+			return getRuleContext(BinaryReceiverContext.class,0);
+		}
+		public BinaryMessageContext binaryMessage() {
+			return getRuleContext(BinaryMessageContext.class,0);
+		}
+		public BinarySendContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_binarySend; }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitBinarySend(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final BinarySendContext binarySend() throws RecognitionException {
+		BinarySendContext _localctx = new BinarySendContext(_ctx, getState());
+		enterRule(_localctx, 48, RULE_binarySend);
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(251);
+			binaryReceiver();
+			setState(252);
+			binaryMessage();
 			}
 		}
 		catch (RecognitionException re) {
@@ -1719,18 +1653,13 @@ public class NewspeakParser extends Parser {
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
+		public BinaryMessageContext binaryMessage() {
+			return getRuleContext(BinaryMessageContext.class,0);
+		}
 		public BinaryMessageContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_binaryMessage; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterBinaryMessage(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitBinaryMessage(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitBinaryMessage(this);
@@ -1740,14 +1669,65 @@ public class NewspeakParser extends Parser {
 
 	public final BinaryMessageContext binaryMessage() throws RecognitionException {
 		BinaryMessageContext _localctx = new BinaryMessageContext(_ctx, getState());
-		enterRule(_localctx, 46, RULE_binaryMessage);
+		enterRule(_localctx, 50, RULE_binaryMessage);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(235);
+			setState(254);
 			match(BINARY_SELECTOR);
-			setState(236);
+			setState(255);
 			expression();
+			setState(257);
+			_errHandler.sync(this);
+			switch ( getInterpreter().adaptivePredict(_input,26,_ctx) ) {
+			case 1:
+				{
+				setState(256);
+				binaryMessage();
+				}
+				break;
+			}
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	public static class KeywordSendContext extends ParserRuleContext {
+		public KeywordReceiverContext keywordReceiver() {
+			return getRuleContext(KeywordReceiverContext.class,0);
+		}
+		public KeywordMessageContext keywordMessage() {
+			return getRuleContext(KeywordMessageContext.class,0);
+		}
+		public KeywordSendContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_keywordSend; }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitKeywordSend(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final KeywordSendContext keywordSend() throws RecognitionException {
+		KeywordSendContext _localctx = new KeywordSendContext(_ctx, getState());
+		enterRule(_localctx, 52, RULE_keywordSend);
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(259);
+			keywordReceiver();
+			setState(260);
+			keywordMessage();
 			}
 		}
 		catch (RecognitionException re) {
@@ -1777,14 +1757,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_keywordMessage; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterKeywordMessage(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitKeywordMessage(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitKeywordMessage(this);
 			else return visitor.visitChildren(this);
@@ -1793,12 +1765,12 @@ public class NewspeakParser extends Parser {
 
 	public final KeywordMessageContext keywordMessage() throws RecognitionException {
 		KeywordMessageContext _localctx = new KeywordMessageContext(_ctx, getState());
-		enterRule(_localctx, 48, RULE_keywordMessage);
+		enterRule(_localctx, 54, RULE_keywordMessage);
 		try {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(240); 
+			setState(264); 
 			_errHandler.sync(this);
 			_alt = 1;
 			do {
@@ -1806,9 +1778,9 @@ public class NewspeakParser extends Parser {
 				case 1:
 					{
 					{
-					setState(238);
+					setState(262);
 					match(KEYWORD);
-					setState(239);
+					setState(263);
 					expression();
 					}
 					}
@@ -1816,9 +1788,9 @@ public class NewspeakParser extends Parser {
 				default:
 					throw new NoViableAltException(this);
 				}
-				setState(242); 
+				setState(266); 
 				_errHandler.sync(this);
-				_alt = getInterpreter().adaptivePredict(_input,24,_ctx);
+				_alt = getInterpreter().adaptivePredict(_input,27,_ctx);
 			} while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER );
 			}
 		}
@@ -1857,14 +1829,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_specialReceiver; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterSpecialReceiver(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitSpecialReceiver(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitSpecialReceiver(this);
 			else return visitor.visitChildren(this);
@@ -1873,49 +1837,49 @@ public class NewspeakParser extends Parser {
 
 	public final SpecialReceiverContext specialReceiver() throws RecognitionException {
 		SpecialReceiverContext _localctx = new SpecialReceiverContext(_ctx, getState());
-		enterRule(_localctx, 50, RULE_specialReceiver);
+		enterRule(_localctx, 56, RULE_specialReceiver);
 		try {
-			setState(250);
+			setState(274);
 			switch (_input.LA(1)) {
 			case NIL:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(244);
+				setState(268);
 				nilReceiver();
 				}
 				break;
 			case TRUE:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(245);
+				setState(269);
 				trueReceiver();
 				}
 				break;
 			case FALSE:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(246);
+				setState(270);
 				falseReceiver();
 				}
 				break;
 			case SELF:
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(247);
+				setState(271);
 				selfReceiver();
 				}
 				break;
 			case SUPER:
 				enterOuterAlt(_localctx, 5);
 				{
-				setState(248);
+				setState(272);
 				superReceiver();
 				}
 				break;
 			case OUTER:
 				enterOuterAlt(_localctx, 6);
 				{
-				setState(249);
+				setState(273);
 				outerReceiver();
 				}
 				break;
@@ -1941,14 +1905,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_nilReceiver; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterNilReceiver(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitNilReceiver(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitNilReceiver(this);
 			else return visitor.visitChildren(this);
@@ -1957,11 +1913,11 @@ public class NewspeakParser extends Parser {
 
 	public final NilReceiverContext nilReceiver() throws RecognitionException {
 		NilReceiverContext _localctx = new NilReceiverContext(_ctx, getState());
-		enterRule(_localctx, 52, RULE_nilReceiver);
+		enterRule(_localctx, 58, RULE_nilReceiver);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(252);
+			setState(276);
 			match(NIL);
 			}
 		}
@@ -1983,14 +1939,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_trueReceiver; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterTrueReceiver(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitTrueReceiver(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitTrueReceiver(this);
 			else return visitor.visitChildren(this);
@@ -1999,11 +1947,11 @@ public class NewspeakParser extends Parser {
 
 	public final TrueReceiverContext trueReceiver() throws RecognitionException {
 		TrueReceiverContext _localctx = new TrueReceiverContext(_ctx, getState());
-		enterRule(_localctx, 54, RULE_trueReceiver);
+		enterRule(_localctx, 60, RULE_trueReceiver);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(254);
+			setState(278);
 			match(TRUE);
 			}
 		}
@@ -2025,14 +1973,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_falseReceiver; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterFalseReceiver(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitFalseReceiver(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitFalseReceiver(this);
 			else return visitor.visitChildren(this);
@@ -2041,11 +1981,11 @@ public class NewspeakParser extends Parser {
 
 	public final FalseReceiverContext falseReceiver() throws RecognitionException {
 		FalseReceiverContext _localctx = new FalseReceiverContext(_ctx, getState());
-		enterRule(_localctx, 56, RULE_falseReceiver);
+		enterRule(_localctx, 62, RULE_falseReceiver);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(256);
+			setState(280);
 			match(FALSE);
 			}
 		}
@@ -2067,14 +2007,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_selfReceiver; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterSelfReceiver(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitSelfReceiver(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitSelfReceiver(this);
 			else return visitor.visitChildren(this);
@@ -2083,11 +2015,11 @@ public class NewspeakParser extends Parser {
 
 	public final SelfReceiverContext selfReceiver() throws RecognitionException {
 		SelfReceiverContext _localctx = new SelfReceiverContext(_ctx, getState());
-		enterRule(_localctx, 58, RULE_selfReceiver);
+		enterRule(_localctx, 64, RULE_selfReceiver);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(258);
+			setState(282);
 			match(SELF);
 			}
 		}
@@ -2109,14 +2041,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_superReceiver; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterSuperReceiver(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitSuperReceiver(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitSuperReceiver(this);
 			else return visitor.visitChildren(this);
@@ -2125,11 +2049,11 @@ public class NewspeakParser extends Parser {
 
 	public final SuperReceiverContext superReceiver() throws RecognitionException {
 		SuperReceiverContext _localctx = new SuperReceiverContext(_ctx, getState());
-		enterRule(_localctx, 60, RULE_superReceiver);
+		enterRule(_localctx, 66, RULE_superReceiver);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(260);
+			setState(284);
 			match(SUPER);
 			}
 		}
@@ -2152,14 +2076,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_outerReceiver; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterOuterReceiver(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitOuterReceiver(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitOuterReceiver(this);
 			else return visitor.visitChildren(this);
@@ -2168,13 +2084,13 @@ public class NewspeakParser extends Parser {
 
 	public final OuterReceiverContext outerReceiver() throws RecognitionException {
 		OuterReceiverContext _localctx = new OuterReceiverContext(_ctx, getState());
-		enterRule(_localctx, 62, RULE_outerReceiver);
+		enterRule(_localctx, 68, RULE_outerReceiver);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(262);
+			setState(286);
 			match(OUTER);
-			setState(263);
+			setState(287);
 			match(IDENTIFIER);
 			}
 		}
@@ -2206,14 +2122,6 @@ public class NewspeakParser extends Parser {
 		}
 		public BlockLiteralContext(LiteralContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterBlockLiteral(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitBlockLiteral(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitBlockLiteral(this);
 			else return visitor.visitChildren(this);
@@ -2222,14 +2130,6 @@ public class NewspeakParser extends Parser {
 	public static class StringLiteralContext extends LiteralContext {
 		public TerminalNode STRING() { return getToken(NewspeakParser.STRING, 0); }
 		public StringLiteralContext(LiteralContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterStringLiteral(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitStringLiteral(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitStringLiteral(this);
@@ -2240,14 +2140,6 @@ public class NewspeakParser extends Parser {
 		public TerminalNode INTEGER() { return getToken(NewspeakParser.INTEGER, 0); }
 		public IntegerLiteralContext(LiteralContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterIntegerLiteral(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitIntegerLiteral(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitIntegerLiteral(this);
 			else return visitor.visitChildren(this);
@@ -2256,15 +2148,15 @@ public class NewspeakParser extends Parser {
 
 	public final LiteralContext literal() throws RecognitionException {
 		LiteralContext _localctx = new LiteralContext(_ctx, getState());
-		enterRule(_localctx, 64, RULE_literal);
+		enterRule(_localctx, 70, RULE_literal);
 		try {
-			setState(268);
+			setState(292);
 			switch (_input.LA(1)) {
 			case LBRACKET:
 				_localctx = new BlockLiteralContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(265);
+				setState(289);
 				block();
 				}
 				break;
@@ -2272,7 +2164,7 @@ public class NewspeakParser extends Parser {
 				_localctx = new IntegerLiteralContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(266);
+				setState(290);
 				match(INTEGER);
 				}
 				break;
@@ -2280,7 +2172,7 @@ public class NewspeakParser extends Parser {
 				_localctx = new StringLiteralContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(267);
+				setState(291);
 				match(STRING);
 				}
 				break;
@@ -2316,14 +2208,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_block; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterBlock(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitBlock(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitBlock(this);
 			else return visitor.visitChildren(this);
@@ -2332,35 +2216,35 @@ public class NewspeakParser extends Parser {
 
 	public final BlockContext block() throws RecognitionException {
 		BlockContext _localctx = new BlockContext(_ctx, getState());
-		enterRule(_localctx, 66, RULE_block);
+		enterRule(_localctx, 72, RULE_block);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(270);
+			setState(294);
 			match(LBRACKET);
-			setState(272);
+			setState(296);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,27,_ctx) ) {
+			switch ( getInterpreter().adaptivePredict(_input,30,_ctx) ) {
 			case 1:
 				{
-				setState(271);
+				setState(295);
 				blockArgs();
 				}
 				break;
 			}
-			setState(275);
+			setState(299);
 			_la = _input.LA(1);
 			if (_la==VBAR) {
 				{
-				setState(274);
+				setState(298);
 				blockTemps();
 				}
 			}
 
-			setState(277);
+			setState(301);
 			codeBody();
-			setState(278);
+			setState(302);
 			match(RBRACKET);
 			}
 		}
@@ -2386,14 +2270,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_blockArgs; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterBlockArgs(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitBlockArgs(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitBlockArgs(this);
 			else return visitor.visitChildren(this);
@@ -2402,26 +2278,26 @@ public class NewspeakParser extends Parser {
 
 	public final BlockArgsContext blockArgs() throws RecognitionException {
 		BlockArgsContext _localctx = new BlockArgsContext(_ctx, getState());
-		enterRule(_localctx, 68, RULE_blockArgs);
+		enterRule(_localctx, 74, RULE_blockArgs);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(283);
+			setState(307);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==BLOCK_ARG) {
 				{
 				{
-				setState(280);
+				setState(304);
 				match(BLOCK_ARG);
 				}
 				}
-				setState(285);
+				setState(309);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(286);
+			setState(310);
 			match(VBAR);
 			}
 		}
@@ -2452,14 +2328,6 @@ public class NewspeakParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_blockTemps; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).enterBlockTemps(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof NewspeakListener ) ((NewspeakListener)listener).exitBlockTemps(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitBlockTemps(this);
 			else return visitor.visitChildren(this);
@@ -2468,28 +2336,28 @@ public class NewspeakParser extends Parser {
 
 	public final BlockTempsContext blockTemps() throws RecognitionException {
 		BlockTempsContext _localctx = new BlockTempsContext(_ctx, getState());
-		enterRule(_localctx, 70, RULE_blockTemps);
+		enterRule(_localctx, 76, RULE_blockTemps);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(288);
+			setState(312);
 			match(VBAR);
-			setState(292);
+			setState(316);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__1) | (1L << T__2) | (1L << T__3) | (1L << IDENTIFIER))) != 0)) {
 				{
 				{
-				setState(289);
+				setState(313);
 				slotDecl();
 				}
 				}
-				setState(294);
+				setState(318);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(295);
+			setState(319);
 			match(VBAR);
 			}
 		}
@@ -2505,106 +2373,116 @@ public class NewspeakParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3&\u012c\4\2\t\2\4"+
+		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3&\u0144\4\2\t\2\4"+
 		"\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t"+
 		"\13\4\f\t\f\4\r\t\r\4\16\t\16\4\17\t\17\4\20\t\20\4\21\t\21\4\22\t\22"+
 		"\4\23\t\23\4\24\t\24\4\25\t\25\4\26\t\26\4\27\t\27\4\30\t\30\4\31\t\31"+
 		"\4\32\t\32\4\33\t\33\4\34\t\34\4\35\t\35\4\36\t\36\4\37\t\37\4 \t \4!"+
-		"\t!\4\"\t\"\4#\t#\4$\t$\4%\t%\3\2\3\2\3\2\3\3\3\3\3\3\5\3Q\n\3\3\3\3\3"+
-		"\3\3\5\3V\n\3\3\3\3\3\3\4\3\4\3\4\5\4]\n\4\3\5\3\5\3\5\7\5b\n\5\f\5\16"+
-		"\5e\13\5\3\5\5\5h\n\5\3\5\3\5\3\6\3\6\7\6n\n\6\f\6\16\6q\13\6\3\6\7\6"+
-		"t\n\6\f\6\16\6w\13\6\3\6\3\6\3\7\3\7\3\7\7\7~\n\7\f\7\16\7\u0081\13\7"+
-		"\3\7\3\7\3\b\3\b\7\b\u0087\n\b\f\b\16\b\u008a\13\b\3\t\5\t\u008d\n\t\3"+
-		"\t\3\t\3\t\5\t\u0092\n\t\3\n\3\n\3\n\3\n\3\13\3\13\3\13\3\13\3\f\5\f\u009d"+
-		"\n\f\3\f\3\f\3\f\3\f\3\f\7\f\u00a4\n\f\f\f\16\f\u00a7\13\f\3\f\5\f\u00aa"+
-		"\n\f\3\f\3\f\3\f\3\r\3\r\3\16\3\16\3\16\3\16\3\16\6\16\u00b6\n\16\r\16"+
-		"\16\16\u00b7\5\16\u00ba\n\16\3\17\3\17\3\17\3\17\7\17\u00c0\n\17\f\17"+
-		"\16\17\u00c3\13\17\3\17\5\17\u00c6\n\17\5\17\u00c8\n\17\3\20\3\20\5\20"+
-		"\u00cc\n\20\3\21\3\21\3\21\3\22\3\22\5\22\u00d3\n\22\3\23\3\23\5\23\u00d7"+
-		"\n\23\3\24\3\24\3\25\3\25\3\25\3\26\3\26\3\26\3\26\3\26\3\26\3\26\5\26"+
-		"\u00e5\n\26\3\27\3\27\3\27\5\27\u00ea\n\27\3\30\3\30\3\31\3\31\3\31\3"+
-		"\32\3\32\6\32\u00f3\n\32\r\32\16\32\u00f4\3\33\3\33\3\33\3\33\3\33\3\33"+
-		"\5\33\u00fd\n\33\3\34\3\34\3\35\3\35\3\36\3\36\3\37\3\37\3 \3 \3!\3!\3"+
-		"!\3\"\3\"\3\"\5\"\u010f\n\"\3#\3#\5#\u0113\n#\3#\5#\u0116\n#\3#\3#\3#"+
-		"\3$\7$\u011c\n$\f$\16$\u011f\13$\3$\3$\3%\3%\7%\u0125\n%\f%\16%\u0128"+
-		"\13%\3%\3%\3%\2\2&\2\4\6\b\n\f\16\20\22\24\26\30\32\34\36 \"$&(*,.\60"+
-		"\62\64\668:<>@BDFH\2\3\3\2\4\6\u0130\2J\3\2\2\2\4M\3\2\2\2\6Y\3\2\2\2"+
-		"\b^\3\2\2\2\nk\3\2\2\2\fz\3\2\2\2\16\u0084\3\2\2\2\20\u008c\3\2\2\2\22"+
-		"\u0093\3\2\2\2\24\u0097\3\2\2\2\26\u009c\3\2\2\2\30\u00ae\3\2\2\2\32\u00b9"+
-		"\3\2\2\2\34\u00c7\3\2\2\2\36\u00cb\3\2\2\2 \u00cd\3\2\2\2\"\u00d2\3\2"+
-		"\2\2$\u00d6\3\2\2\2&\u00d8\3\2\2\2(\u00da\3\2\2\2*\u00e4\3\2\2\2,\u00e9"+
-		"\3\2\2\2.\u00eb\3\2\2\2\60\u00ed\3\2\2\2\62\u00f2\3\2\2\2\64\u00fc\3\2"+
-		"\2\2\66\u00fe\3\2\2\28\u0100\3\2\2\2:\u0102\3\2\2\2<\u0104\3\2\2\2>\u0106"+
-		"\3\2\2\2@\u0108\3\2\2\2B\u010e\3\2\2\2D\u0110\3\2\2\2F\u011d\3\2\2\2H"+
-		"\u0122\3\2\2\2JK\5\4\3\2KL\7\2\2\3L\3\3\2\2\2MN\7\3\2\2NP\7\37\2\2OQ\5"+
-		"\32\16\2PO\3\2\2\2PQ\3\2\2\2QR\3\2\2\2RU\7\21\2\2ST\7\37\2\2TV\5\32\16"+
-		"\2US\3\2\2\2UV\3\2\2\2VW\3\2\2\2WX\5\6\4\2X\5\3\2\2\2YZ\5\b\5\2Z\\\5\n"+
-		"\6\2[]\5\f\7\2\\[\3\2\2\2\\]\3\2\2\2]\7\3\2\2\2^g\7\25\2\2_c\7\35\2\2"+
-		"`b\5\20\t\2a`\3\2\2\2be\3\2\2\2ca\3\2\2\2cd\3\2\2\2df\3\2\2\2ec\3\2\2"+
-		"\2fh\7\35\2\2g_\3\2\2\2gh\3\2\2\2hi\3\2\2\2ij\7\33\2\2j\t\3\2\2\2ko\7"+
-		"\25\2\2ln\5\4\3\2ml\3\2\2\2nq\3\2\2\2om\3\2\2\2op\3\2\2\2pu\3\2\2\2qo"+
-		"\3\2\2\2rt\5\16\b\2sr\3\2\2\2tw\3\2\2\2us\3\2\2\2uv\3\2\2\2vx\3\2\2\2"+
-		"wu\3\2\2\2xy\7\33\2\2y\13\3\2\2\2z{\7\16\2\2{\177\7\25\2\2|~\5\16\b\2"+
-		"}|\3\2\2\2~\u0081\3\2\2\2\177}\3\2\2\2\177\u0080\3\2\2\2\u0080\u0082\3"+
-		"\2\2\2\u0081\177\3\2\2\2\u0082\u0083\7\33\2\2\u0083\r\3\2\2\2\u0084\u0088"+
-		"\7#\2\2\u0085\u0087\5\26\f\2\u0086\u0085\3\2\2\2\u0087\u008a\3\2\2\2\u0088"+
-		"\u0086\3\2\2\2\u0088\u0089\3\2\2\2\u0089\17\3\2\2\2\u008a\u0088\3\2\2"+
-		"\2\u008b\u008d\5\30\r\2\u008c\u008b\3\2\2\2\u008c\u008d\3\2\2\2\u008d"+
-		"\u008e\3\2\2\2\u008e\u0091\7\37\2\2\u008f\u0092\5\22\n\2\u0090\u0092\5"+
-		"\24\13\2\u0091\u008f\3\2\2\2\u0091\u0090\3\2\2\2\u0091\u0092\3\2\2\2\u0092"+
-		"\21\3\2\2\2\u0093\u0094\7\22\2\2\u0094\u0095\5\"\22\2\u0095\u0096\7\20"+
-		"\2\2\u0096\23\3\2\2\2\u0097\u0098\7\21\2\2\u0098\u0099\5\"\22\2\u0099"+
-		"\u009a\7\20\2\2\u009a\25\3\2\2\2\u009b\u009d\5\30\r\2\u009c\u009b\3\2"+
-		"\2\2\u009c\u009d\3\2\2\2\u009d\u009e\3\2\2\2\u009e\u009f\5\32\16\2\u009f"+
-		"\u00a0\7\21\2\2\u00a0\u00a9\7\25\2\2\u00a1\u00a5\7\35\2\2\u00a2\u00a4"+
-		"\5\20\t\2\u00a3\u00a2\3\2\2\2\u00a4\u00a7\3\2\2\2\u00a5\u00a3\3\2\2\2"+
-		"\u00a5\u00a6\3\2\2\2\u00a6\u00a8\3\2\2\2\u00a7\u00a5\3\2\2\2\u00a8\u00aa"+
-		"\7\35\2\2\u00a9\u00a1\3\2\2\2\u00a9\u00aa\3\2\2\2\u00aa\u00ab\3\2\2\2"+
-		"\u00ab\u00ac\5\34\17\2\u00ac\u00ad\7\33\2\2\u00ad\27\3\2\2\2\u00ae\u00af"+
-		"\t\2\2\2\u00af\31\3\2\2\2\u00b0\u00ba\7\37\2\2\u00b1\u00b2\7\36\2\2\u00b2"+
-		"\u00ba\7\37\2\2\u00b3\u00b4\7 \2\2\u00b4\u00b6\7\37\2\2\u00b5\u00b3\3"+
-		"\2\2\2\u00b6\u00b7\3\2\2\2\u00b7\u00b5\3\2\2\2\u00b7\u00b8\3\2\2\2\u00b8"+
-		"\u00ba\3\2\2\2\u00b9\u00b0\3\2\2\2\u00b9\u00b1\3\2\2\2\u00b9\u00b5\3\2"+
-		"\2\2\u00ba\33\3\2\2\2\u00bb\u00c8\3\2\2\2\u00bc\u00c1\5\36\20\2\u00bd"+
-		"\u00be\7\20\2\2\u00be\u00c0\5\36\20\2\u00bf\u00bd\3\2\2\2\u00c0\u00c3"+
-		"\3\2\2\2\u00c1\u00bf\3\2\2\2\u00c1\u00c2\3\2\2\2\u00c2\u00c5\3\2\2\2\u00c3"+
-		"\u00c1\3\2\2\2\u00c4\u00c6\7\20\2\2\u00c5\u00c4\3\2\2\2\u00c5\u00c6\3"+
-		"\2\2\2\u00c6\u00c8\3\2\2\2\u00c7\u00bb\3\2\2\2\u00c7\u00bc\3\2\2\2\u00c8"+
-		"\35\3\2\2\2\u00c9\u00cc\5\"\22\2\u00ca\u00cc\5 \21\2\u00cb\u00c9\3\2\2"+
-		"\2\u00cb\u00ca\3\2\2\2\u00cc\37\3\2\2\2\u00cd\u00ce\7\r\2\2\u00ce\u00cf"+
-		"\5\"\22\2\u00cf!\3\2\2\2\u00d0\u00d3\5*\26\2\u00d1\u00d3\5$\23\2\u00d2"+
-		"\u00d0\3\2\2\2\u00d2\u00d1\3\2\2\2\u00d3#\3\2\2\2\u00d4\u00d7\5&\24\2"+
-		"\u00d5\u00d7\5(\25\2\u00d6\u00d4\3\2\2\2\u00d6\u00d5\3\2\2\2\u00d7%\3"+
-		"\2\2\2\u00d8\u00d9\5,\27\2\u00d9\'\3\2\2\2\u00da\u00db\5*\26\2\u00db\u00dc"+
-		"\5,\27\2\u00dc)\3\2\2\2\u00dd\u00e5\5B\"\2\u00de\u00e5\5\64\33\2\u00df"+
-		"\u00e5\5&\24\2\u00e0\u00e1\7\25\2\2\u00e1\u00e2\5\"\22\2\u00e2\u00e3\7"+
-		"\33\2\2\u00e3\u00e5\3\2\2\2\u00e4\u00dd\3\2\2\2\u00e4\u00de\3\2\2\2\u00e4"+
-		"\u00df\3\2\2\2\u00e4\u00e0\3\2\2\2\u00e5+\3\2\2\2\u00e6\u00ea\5.\30\2"+
-		"\u00e7\u00ea\5\60\31\2\u00e8\u00ea\5\62\32\2\u00e9\u00e6\3\2\2\2\u00e9"+
-		"\u00e7\3\2\2\2\u00e9\u00e8\3\2\2\2\u00ea-\3\2\2\2\u00eb\u00ec\7\37\2\2"+
-		"\u00ec/\3\2\2\2\u00ed\u00ee\7\36\2\2\u00ee\u00ef\5\"\22\2\u00ef\61\3\2"+
-		"\2\2\u00f0\u00f1\7 \2\2\u00f1\u00f3\5\"\22\2\u00f2\u00f0\3\2\2\2\u00f3"+
-		"\u00f4\3\2\2\2\u00f4\u00f2\3\2\2\2\u00f4\u00f5\3\2\2\2\u00f5\63\3\2\2"+
-		"\2\u00f6\u00fd\5\66\34\2\u00f7\u00fd\58\35\2\u00f8\u00fd\5:\36\2\u00f9"+
-		"\u00fd\5<\37\2\u00fa\u00fd\5> \2\u00fb\u00fd\5@!\2\u00fc\u00f6\3\2\2\2"+
-		"\u00fc\u00f7\3\2\2\2\u00fc\u00f8\3\2\2\2\u00fc\u00f9\3\2\2\2\u00fc\u00fa"+
-		"\3\2\2\2\u00fc\u00fb\3\2\2\2\u00fd\65\3\2\2\2\u00fe\u00ff\7\7\2\2\u00ff"+
-		"\67\3\2\2\2\u0100\u0101\7\b\2\2\u01019\3\2\2\2\u0102\u0103\7\t\2\2\u0103"+
-		";\3\2\2\2\u0104\u0105\7\n\2\2\u0105=\3\2\2\2\u0106\u0107\7\13\2\2\u0107"+
-		"?\3\2\2\2\u0108\u0109\7\f\2\2\u0109\u010a\7\37\2\2\u010aA\3\2\2\2\u010b"+
-		"\u010f\5D#\2\u010c\u010f\7$\2\2\u010d\u010f\7#\2\2\u010e\u010b\3\2\2\2"+
-		"\u010e\u010c\3\2\2\2\u010e\u010d\3\2\2\2\u010fC\3\2\2\2\u0110\u0112\7"+
-		"\23\2\2\u0111\u0113\5F$\2\u0112\u0111\3\2\2\2\u0112\u0113\3\2\2\2\u0113"+
-		"\u0115\3\2\2\2\u0114\u0116\5H%\2\u0115\u0114\3\2\2\2\u0115\u0116\3\2\2"+
-		"\2\u0116\u0117\3\2\2\2\u0117\u0118\5\34\17\2\u0118\u0119\7\31\2\2\u0119"+
-		"E\3\2\2\2\u011a\u011c\7\"\2\2\u011b\u011a\3\2\2\2\u011c\u011f\3\2\2\2"+
-		"\u011d\u011b\3\2\2\2\u011d\u011e\3\2\2\2\u011e\u0120\3\2\2\2\u011f\u011d"+
-		"\3\2\2\2\u0120\u0121\7\35\2\2\u0121G\3\2\2\2\u0122\u0126\7\35\2\2\u0123"+
-		"\u0125\5\20\t\2\u0124\u0123\3\2\2\2\u0125\u0128\3\2\2\2\u0126\u0124\3"+
-		"\2\2\2\u0126\u0127\3\2\2\2\u0127\u0129\3\2\2\2\u0128\u0126\3\2\2\2\u0129"+
-		"\u012a\7\35\2\2\u012aI\3\2\2\2!PU\\cgou\177\u0088\u008c\u0091\u009c\u00a5"+
-		"\u00a9\u00b7\u00b9\u00c1\u00c5\u00c7\u00cb\u00d2\u00d6\u00e4\u00e9\u00f4"+
-		"\u00fc\u010e\u0112\u0115\u011d\u0126";
+		"\t!\4\"\t\"\4#\t#\4$\t$\4%\t%\4&\t&\4\'\t\'\4(\t(\3\2\3\2\3\2\3\3\3\3"+
+		"\3\3\5\3W\n\3\3\3\3\3\3\3\5\3\\\n\3\3\3\3\3\3\4\3\4\3\4\5\4c\n\4\3\5\3"+
+		"\5\3\5\7\5h\n\5\f\5\16\5k\13\5\3\5\5\5n\n\5\3\5\3\5\3\6\3\6\7\6t\n\6\f"+
+		"\6\16\6w\13\6\3\6\7\6z\n\6\f\6\16\6}\13\6\3\6\3\6\3\7\3\7\3\7\7\7\u0084"+
+		"\n\7\f\7\16\7\u0087\13\7\3\7\3\7\3\b\3\b\7\b\u008d\n\b\f\b\16\b\u0090"+
+		"\13\b\3\t\5\t\u0093\n\t\3\t\3\t\3\t\5\t\u0098\n\t\3\n\3\n\3\n\3\n\3\13"+
+		"\3\13\3\13\3\13\3\f\5\f\u00a3\n\f\3\f\3\f\3\f\3\f\3\f\7\f\u00aa\n\f\f"+
+		"\f\16\f\u00ad\13\f\3\f\5\f\u00b0\n\f\3\f\3\f\3\f\3\r\3\r\3\16\3\16\3\16"+
+		"\3\16\3\16\6\16\u00bc\n\16\r\16\16\16\u00bd\5\16\u00c0\n\16\3\17\3\17"+
+		"\3\17\3\17\7\17\u00c6\n\17\f\17\16\17\u00c9\13\17\3\17\5\17\u00cc\n\17"+
+		"\5\17\u00ce\n\17\3\20\3\20\5\20\u00d2\n\20\3\21\3\21\3\21\3\22\3\22\3"+
+		"\22\3\22\3\22\3\22\3\22\5\22\u00de\n\22\3\23\3\23\3\23\3\23\5\23\u00e4"+
+		"\n\23\3\24\3\24\3\24\5\24\u00e9\n\24\3\25\3\25\5\25\u00ed\n\25\3\26\3"+
+		"\26\3\26\5\26\u00f2\n\26\3\27\3\27\3\27\3\30\3\30\3\30\3\31\3\31\5\31"+
+		"\u00fc\n\31\3\32\3\32\3\32\3\33\3\33\3\33\5\33\u0104\n\33\3\34\3\34\3"+
+		"\34\3\35\3\35\6\35\u010b\n\35\r\35\16\35\u010c\3\36\3\36\3\36\3\36\3\36"+
+		"\3\36\5\36\u0115\n\36\3\37\3\37\3 \3 \3!\3!\3\"\3\"\3#\3#\3$\3$\3$\3%"+
+		"\3%\3%\5%\u0127\n%\3&\3&\5&\u012b\n&\3&\5&\u012e\n&\3&\3&\3&\3\'\7\'\u0134"+
+		"\n\'\f\'\16\'\u0137\13\'\3\'\3\'\3(\3(\7(\u013d\n(\f(\16(\u0140\13(\3"+
+		"(\3(\3(\2\2)\2\4\6\b\n\f\16\20\22\24\26\30\32\34\36 \"$&(*,.\60\62\64"+
+		"\668:<>@BDFHJLN\2\3\3\2\4\6\u014b\2P\3\2\2\2\4S\3\2\2\2\6_\3\2\2\2\bd"+
+		"\3\2\2\2\nq\3\2\2\2\f\u0080\3\2\2\2\16\u008a\3\2\2\2\20\u0092\3\2\2\2"+
+		"\22\u0099\3\2\2\2\24\u009d\3\2\2\2\26\u00a2\3\2\2\2\30\u00b4\3\2\2\2\32"+
+		"\u00bf\3\2\2\2\34\u00cd\3\2\2\2\36\u00d1\3\2\2\2 \u00d3\3\2\2\2\"\u00dd"+
+		"\3\2\2\2$\u00e3\3\2\2\2&\u00e8\3\2\2\2(\u00ec\3\2\2\2*\u00f1\3\2\2\2,"+
+		"\u00f3\3\2\2\2.\u00f6\3\2\2\2\60\u00f9\3\2\2\2\62\u00fd\3\2\2\2\64\u0100"+
+		"\3\2\2\2\66\u0105\3\2\2\28\u010a\3\2\2\2:\u0114\3\2\2\2<\u0116\3\2\2\2"+
+		">\u0118\3\2\2\2@\u011a\3\2\2\2B\u011c\3\2\2\2D\u011e\3\2\2\2F\u0120\3"+
+		"\2\2\2H\u0126\3\2\2\2J\u0128\3\2\2\2L\u0135\3\2\2\2N\u013a\3\2\2\2PQ\5"+
+		"\4\3\2QR\7\2\2\3R\3\3\2\2\2ST\7\3\2\2TV\7\37\2\2UW\5\32\16\2VU\3\2\2\2"+
+		"VW\3\2\2\2WX\3\2\2\2X[\7\21\2\2YZ\7\37\2\2Z\\\5\32\16\2[Y\3\2\2\2[\\\3"+
+		"\2\2\2\\]\3\2\2\2]^\5\6\4\2^\5\3\2\2\2_`\5\b\5\2`b\5\n\6\2ac\5\f\7\2b"+
+		"a\3\2\2\2bc\3\2\2\2c\7\3\2\2\2dm\7\25\2\2ei\7\35\2\2fh\5\20\t\2gf\3\2"+
+		"\2\2hk\3\2\2\2ig\3\2\2\2ij\3\2\2\2jl\3\2\2\2ki\3\2\2\2ln\7\35\2\2me\3"+
+		"\2\2\2mn\3\2\2\2no\3\2\2\2op\7\33\2\2p\t\3\2\2\2qu\7\25\2\2rt\5\4\3\2"+
+		"sr\3\2\2\2tw\3\2\2\2us\3\2\2\2uv\3\2\2\2v{\3\2\2\2wu\3\2\2\2xz\5\16\b"+
+		"\2yx\3\2\2\2z}\3\2\2\2{y\3\2\2\2{|\3\2\2\2|~\3\2\2\2}{\3\2\2\2~\177\7"+
+		"\33\2\2\177\13\3\2\2\2\u0080\u0081\7\16\2\2\u0081\u0085\7\25\2\2\u0082"+
+		"\u0084\5\16\b\2\u0083\u0082\3\2\2\2\u0084\u0087\3\2\2\2\u0085\u0083\3"+
+		"\2\2\2\u0085\u0086\3\2\2\2\u0086\u0088\3\2\2\2\u0087\u0085\3\2\2\2\u0088"+
+		"\u0089\7\33\2\2\u0089\r\3\2\2\2\u008a\u008e\7#\2\2\u008b\u008d\5\26\f"+
+		"\2\u008c\u008b\3\2\2\2\u008d\u0090\3\2\2\2\u008e\u008c\3\2\2\2\u008e\u008f"+
+		"\3\2\2\2\u008f\17\3\2\2\2\u0090\u008e\3\2\2\2\u0091\u0093\5\30\r\2\u0092"+
+		"\u0091\3\2\2\2\u0092\u0093\3\2\2\2\u0093\u0094\3\2\2\2\u0094\u0097\7\37"+
+		"\2\2\u0095\u0098\5\22\n\2\u0096\u0098\5\24\13\2\u0097\u0095\3\2\2\2\u0097"+
+		"\u0096\3\2\2\2\u0097\u0098\3\2\2\2\u0098\21\3\2\2\2\u0099\u009a\7\22\2"+
+		"\2\u009a\u009b\5\"\22\2\u009b\u009c\7\20\2\2\u009c\23\3\2\2\2\u009d\u009e"+
+		"\7\21\2\2\u009e\u009f\5\"\22\2\u009f\u00a0\7\20\2\2\u00a0\25\3\2\2\2\u00a1"+
+		"\u00a3\5\30\r\2\u00a2\u00a1\3\2\2\2\u00a2\u00a3\3\2\2\2\u00a3\u00a4\3"+
+		"\2\2\2\u00a4\u00a5\5\32\16\2\u00a5\u00a6\7\21\2\2\u00a6\u00af\7\25\2\2"+
+		"\u00a7\u00ab\7\35\2\2\u00a8\u00aa\5\20\t\2\u00a9\u00a8\3\2\2\2\u00aa\u00ad"+
+		"\3\2\2\2\u00ab\u00a9\3\2\2\2\u00ab\u00ac\3\2\2\2\u00ac\u00ae\3\2\2\2\u00ad"+
+		"\u00ab\3\2\2\2\u00ae\u00b0\7\35\2\2\u00af\u00a7\3\2\2\2\u00af\u00b0\3"+
+		"\2\2\2\u00b0\u00b1\3\2\2\2\u00b1\u00b2\5\34\17\2\u00b2\u00b3\7\33\2\2"+
+		"\u00b3\27\3\2\2\2\u00b4\u00b5\t\2\2\2\u00b5\31\3\2\2\2\u00b6\u00c0\7\37"+
+		"\2\2\u00b7\u00b8\7\36\2\2\u00b8\u00c0\7\37\2\2\u00b9\u00ba\7 \2\2\u00ba"+
+		"\u00bc\7\37\2\2\u00bb\u00b9\3\2\2\2\u00bc\u00bd\3\2\2\2\u00bd\u00bb\3"+
+		"\2\2\2\u00bd\u00be\3\2\2\2\u00be\u00c0\3\2\2\2\u00bf\u00b6\3\2\2\2\u00bf"+
+		"\u00b7\3\2\2\2\u00bf\u00bb\3\2\2\2\u00c0\33\3\2\2\2\u00c1\u00ce\3\2\2"+
+		"\2\u00c2\u00c7\5\36\20\2\u00c3\u00c4\7\20\2\2\u00c4\u00c6\5\36\20\2\u00c5"+
+		"\u00c3\3\2\2\2\u00c6\u00c9\3\2\2\2\u00c7\u00c5\3\2\2\2\u00c7\u00c8\3\2"+
+		"\2\2\u00c8\u00cb\3\2\2\2\u00c9\u00c7\3\2\2\2\u00ca\u00cc\7\20\2\2\u00cb"+
+		"\u00ca\3\2\2\2\u00cb\u00cc\3\2\2\2\u00cc\u00ce\3\2\2\2\u00cd\u00c1\3\2"+
+		"\2\2\u00cd\u00c2\3\2\2\2\u00ce\35\3\2\2\2\u00cf\u00d2\5\"\22\2\u00d0\u00d2"+
+		"\5 \21\2\u00d1\u00cf\3\2\2\2\u00d1\u00d0\3\2\2\2\u00d2\37\3\2\2\2\u00d3"+
+		"\u00d4\7\r\2\2\u00d4\u00d5\5\"\22\2\u00d5!\3\2\2\2\u00d6\u00de\5&\24\2"+
+		"\u00d7\u00de\5$\23\2\u00d8\u00de\58\35\2\u00d9\u00da\7\25\2\2\u00da\u00db"+
+		"\5\"\22\2\u00db\u00dc\7\33\2\2\u00dc\u00de\3\2\2\2\u00dd\u00d6\3\2\2\2"+
+		"\u00dd\u00d7\3\2\2\2\u00dd\u00d8\3\2\2\2\u00dd\u00d9\3\2\2\2\u00de#\3"+
+		"\2\2\2\u00df\u00e4\5.\30\2\u00e0\u00e4\5\62\32\2\u00e1\u00e4\5\66\34\2"+
+		"\u00e2\u00e4\5,\27\2\u00e3\u00df\3\2\2\2\u00e3\u00e0\3\2\2\2\u00e3\u00e1"+
+		"\3\2\2\2\u00e3\u00e2\3\2\2\2\u00e4%\3\2\2\2\u00e5\u00e9\7\37\2\2\u00e6"+
+		"\u00e9\5:\36\2\u00e7\u00e9\5H%\2\u00e8\u00e5\3\2\2\2\u00e8\u00e6\3\2\2"+
+		"\2\u00e8\u00e7\3\2\2\2\u00e9\'\3\2\2\2\u00ea\u00ed\5&\24\2\u00eb\u00ed"+
+		"\5.\30\2\u00ec\u00ea\3\2\2\2\u00ec\u00eb\3\2\2\2\u00ed)\3\2\2\2\u00ee"+
+		"\u00f2\5&\24\2\u00ef\u00f2\5.\30\2\u00f0\u00f2\5\62\32\2\u00f1\u00ee\3"+
+		"\2\2\2\u00f1\u00ef\3\2\2\2\u00f1\u00f0\3\2\2\2\u00f2+\3\2\2\2\u00f3\u00f4"+
+		"\7!\2\2\u00f4\u00f5\5\"\22\2\u00f5-\3\2\2\2\u00f6\u00f7\5&\24\2\u00f7"+
+		"\u00f8\5\60\31\2\u00f8/\3\2\2\2\u00f9\u00fb\7\37\2\2\u00fa\u00fc\5\60"+
+		"\31\2\u00fb\u00fa\3\2\2\2\u00fb\u00fc\3\2\2\2\u00fc\61\3\2\2\2\u00fd\u00fe"+
+		"\5(\25\2\u00fe\u00ff\5\64\33\2\u00ff\63\3\2\2\2\u0100\u0101\7\36\2\2\u0101"+
+		"\u0103\5\"\22\2\u0102\u0104\5\64\33\2\u0103\u0102\3\2\2\2\u0103\u0104"+
+		"\3\2\2\2\u0104\65\3\2\2\2\u0105\u0106\5*\26\2\u0106\u0107\58\35\2\u0107"+
+		"\67\3\2\2\2\u0108\u0109\7 \2\2\u0109\u010b\5\"\22\2\u010a\u0108\3\2\2"+
+		"\2\u010b\u010c\3\2\2\2\u010c\u010a\3\2\2\2\u010c\u010d\3\2\2\2\u010d9"+
+		"\3\2\2\2\u010e\u0115\5<\37\2\u010f\u0115\5> \2\u0110\u0115\5@!\2\u0111"+
+		"\u0115\5B\"\2\u0112\u0115\5D#\2\u0113\u0115\5F$\2\u0114\u010e\3\2\2\2"+
+		"\u0114\u010f\3\2\2\2\u0114\u0110\3\2\2\2\u0114\u0111\3\2\2\2\u0114\u0112"+
+		"\3\2\2\2\u0114\u0113\3\2\2\2\u0115;\3\2\2\2\u0116\u0117\7\7\2\2\u0117"+
+		"=\3\2\2\2\u0118\u0119\7\b\2\2\u0119?\3\2\2\2\u011a\u011b\7\t\2\2\u011b"+
+		"A\3\2\2\2\u011c\u011d\7\n\2\2\u011dC\3\2\2\2\u011e\u011f\7\13\2\2\u011f"+
+		"E\3\2\2\2\u0120\u0121\7\f\2\2\u0121\u0122\7\37\2\2\u0122G\3\2\2\2\u0123"+
+		"\u0127\5J&\2\u0124\u0127\7$\2\2\u0125\u0127\7#\2\2\u0126\u0123\3\2\2\2"+
+		"\u0126\u0124\3\2\2\2\u0126\u0125\3\2\2\2\u0127I\3\2\2\2\u0128\u012a\7"+
+		"\23\2\2\u0129\u012b\5L\'\2\u012a\u0129\3\2\2\2\u012a\u012b\3\2\2\2\u012b"+
+		"\u012d\3\2\2\2\u012c\u012e\5N(\2\u012d\u012c\3\2\2\2\u012d\u012e\3\2\2"+
+		"\2\u012e\u012f\3\2\2\2\u012f\u0130\5\34\17\2\u0130\u0131\7\31\2\2\u0131"+
+		"K\3\2\2\2\u0132\u0134\7\"\2\2\u0133\u0132\3\2\2\2\u0134\u0137\3\2\2\2"+
+		"\u0135\u0133\3\2\2\2\u0135\u0136\3\2\2\2\u0136\u0138\3\2\2\2\u0137\u0135"+
+		"\3\2\2\2\u0138\u0139\7\35\2\2\u0139M\3\2\2\2\u013a\u013e\7\35\2\2\u013b"+
+		"\u013d\5\20\t\2\u013c\u013b\3\2\2\2\u013d\u0140\3\2\2\2\u013e\u013c\3"+
+		"\2\2\2\u013e\u013f\3\2\2\2\u013f\u0141\3\2\2\2\u0140\u013e\3\2\2\2\u0141"+
+		"\u0142\7\35\2\2\u0142O\3\2\2\2$V[bimu{\u0085\u008e\u0092\u0097\u00a2\u00ab"+
+		"\u00af\u00bd\u00bf\u00c7\u00cb\u00cd\u00d1\u00dd\u00e3\u00e8\u00ec\u00f1"+
+		"\u00fb\u0103\u010c\u0114\u0126\u012a\u012d\u0135\u013e";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

@@ -75,41 +75,55 @@ statement
 returnStatement
 	: CARET expression ;
 
-expression
-	: receiver
-	| messageSend;
 
-// TODO fit setter sends into this somehow
+expression
+    : receiver
+    | messageSend
+    | keywordMessage
+    | '(' expression ')'
+    ;
 
 messageSend
-	: receiverlessSend
-	| receiverfulSend ;
-
-receiverlessSend
-	: message ;
-
-receiverfulSend
-	: receiver message;
+	: unarySend
+	| binarySend
+	| keywordSend
+  | setterSend
+ 	;
 
 receiver
-	: literal
-	| specialReceiver
-	| receiverlessSend
-	| LPAREN expression RPAREN;
+    : IDENTIFIER
+    | specialReceiver
+    | literal
+    ;
 
-message
-	: unaryMessage
-	| binaryMessage
-	| keywordMessage;
+binaryReceiver
+	  : receiver
+	  | unarySend;
+
+keywordReceiver
+    : receiver
+    | unarySend
+    | binarySend;
+
+
+setterSend
+    : SETTER_KEYWORD expression;
+
+unarySend : receiver unaryMessage;
 
 unaryMessage
-	: IDENTIFIER;
+    : IDENTIFIER unaryMessage?;
+
+binarySend : binaryReceiver binaryMessage;
 
 binaryMessage
-	: BINARY_SELECTOR expression;
+	: BINARY_SELECTOR expression binaryMessage?;
+
+keywordSend: keywordReceiver keywordMessage;
 
 keywordMessage
 	: (KEYWORD expression)+ ;
+
 
 specialReceiver
 	: nilReceiver

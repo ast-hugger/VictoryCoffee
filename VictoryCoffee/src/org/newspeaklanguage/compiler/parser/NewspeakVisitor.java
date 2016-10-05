@@ -134,29 +134,35 @@ public interface NewspeakVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitMessageSend(NewspeakParser.MessageSendContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link NewspeakParser#receiverlessSend}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitReceiverlessSend(NewspeakParser.ReceiverlessSendContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link NewspeakParser#receiverfulSend}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitReceiverfulSend(NewspeakParser.ReceiverfulSendContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link NewspeakParser#receiver}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitReceiver(NewspeakParser.ReceiverContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link NewspeakParser#message}.
+	 * Visit a parse tree produced by {@link NewspeakParser#binaryReceiver}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitMessage(NewspeakParser.MessageContext ctx);
+	T visitBinaryReceiver(NewspeakParser.BinaryReceiverContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link NewspeakParser#keywordReceiver}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitKeywordReceiver(NewspeakParser.KeywordReceiverContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link NewspeakParser#setterSend}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSetterSend(NewspeakParser.SetterSendContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link NewspeakParser#unarySend}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitUnarySend(NewspeakParser.UnarySendContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link NewspeakParser#unaryMessage}.
 	 * @param ctx the parse tree
@@ -164,11 +170,23 @@ public interface NewspeakVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitUnaryMessage(NewspeakParser.UnaryMessageContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link NewspeakParser#binarySend}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBinarySend(NewspeakParser.BinarySendContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link NewspeakParser#binaryMessage}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitBinaryMessage(NewspeakParser.BinaryMessageContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link NewspeakParser#keywordSend}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitKeywordSend(NewspeakParser.KeywordSendContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link NewspeakParser#keywordMessage}.
 	 * @param ctx the parse tree
