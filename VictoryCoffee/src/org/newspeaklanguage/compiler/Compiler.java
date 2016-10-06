@@ -9,7 +9,7 @@ import org.newspeaklanguage.compiler.codegen.ClassGenerator;
 import org.newspeaklanguage.compiler.parser.NewspeakLexer;
 import org.newspeaklanguage.compiler.parser.NewspeakParser;
 import org.newspeaklanguage.compiler.parser.NewspeakParser.SourceUnitContext;
-import org.newspeaklanguage.compiler.semantics.NameResolver;
+import org.newspeaklanguage.compiler.semantics.NameAnalyzer;
 import org.newspeaklanguage.compiler.semantics.ScopeBuilder;
 
 public class Compiler {
@@ -68,7 +68,7 @@ public class Compiler {
   
   private void analyze(ClassDecl classDecl) {
     ScopeBuilder.buildScopeForClass(ast);
-    NameResolver.resolveNames(ast);
+    NameAnalyzer.resolveNames(ast);
   }
   
   private byte[] generate(ClassDecl classDecl) {

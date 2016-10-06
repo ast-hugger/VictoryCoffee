@@ -6,15 +6,31 @@ import org.newspeaklanguage.compiler.ast.ClassDecl;
 import org.newspeaklanguage.compiler.ast.MessageSendNoReceiver;
 import org.newspeaklanguage.compiler.ast.Method;
 
-public class NameResolver extends AstNodeVisitorSkeleton {
+/**
+ * A visitor for the AST which populates name references
+ * ({@link MessageSendNoReceiver} nodes) with their meanings. The AST must have
+ * been previously visited by a {@link ScopeBuilder}.
+ *
+ * @author Vassili Bykov <newspeakbigot@gmail.com>
+ *
+ */
+public class NameAnalyzer extends AstNodeVisitorSkeleton {
+  
+  /*
+   * Static main access point
+   */
   
   public static void resolveNames(ClassDecl classDecl) {
-    new NameResolver().visit(classDecl);
+    new NameAnalyzer().visit(classDecl);
   }
+  
+  /*
+   * Instance side
+   */
 
   private Scope currentScope;
   
-  private NameResolver() {
+  private NameAnalyzer() {
   }
   
   @Override
@@ -52,17 +68,30 @@ public class NameResolver extends AstNodeVisitorSkeleton {
   
   @Override
   public void visitMessageSendNoReceiver(MessageSendNoReceiver messageSend) {
-    NameDefinition def = currentScope.lookup(messageSend.selector());
-    if (def != null) {
-      messageSend.setLexicalDefinition(def);
-    }
+    ScopeEntry def = currentScope.lookup(messageSend.selector());
+    messageSend.setLexicalDefinition(def);
     
-    if (messageSend.isName()) {
-      NameMeaning meaning = def == null 
-          ? new NameMeaningSelfSend()
-          : new NameMeaningVariableReference(def);
-      messageSend.setMeaning(meaning);
+    NameMeaning meaning;
+    if (def == null) {
+      meaning = NameMeaning.selfSend();
+    } else {
+      if (def.isLocalVariable()) {
+        meaning = NameMeaning.localVarReference(def);
+      } else if (def.definitionScope() != nearestClassScope()) {
+        meaning = NameMeaning.sendToEnclosingObject(def);
+      } else {
+        meaning = NameMeaning.selfSend();
+      }
     }
+    messageSend.setMeaning(meaning);
+  }
+
+  private Scope nearestClassScope() {
+    Scope here = currentScope;
+    while (here != null && !here.isClassScope()) {
+      here = here.parent();
+    }
+    return here;
   }
   
 }

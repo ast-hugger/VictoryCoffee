@@ -1,0 +1,6 @@
+class Test = ()
+('testing'
+test = (^self foo + self bar)
+foo = (^'foo')
+bar = (^'bar')
+)

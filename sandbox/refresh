@@ -1,0 +1,1 @@
+javac -cp .:/home/vassili/java/antlr-4.5.3-complete.jar:/home/vassili/VictoryCoffee/VictoryCoffee/src -d . /home/vassili/VictoryCoffee/VictoryCoffee/src/org/newspeaklanguage/compiler/parser/Newspeak*.java

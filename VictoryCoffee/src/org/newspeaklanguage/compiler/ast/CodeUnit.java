@@ -2,14 +2,14 @@ package org.newspeaklanguage.compiler.ast;
 
 import java.util.List;
 
-import org.newspeaklanguage.compiler.semantics.BlockScope;
+import org.newspeaklanguage.compiler.semantics.MethodScope;
 
 public abstract class CodeUnit extends AstNode {
   
   private final List<SlotDefinition> temps;
   private final List<AstNode> body;
   
-  private BlockScope scope;
+  private MethodScope scope;
   
   CodeUnit(List<SlotDefinition> temps, List<AstNode> body) {
     this.temps = temps;
@@ -19,7 +19,7 @@ public abstract class CodeUnit extends AstNode {
   public List<SlotDefinition> temps() { return temps; }
   public List<AstNode> body() { return body; }
   
-  public BlockScope scope() { return scope; }
-  public void setScope(BlockScope scope) { this.scope = scope; }
+  public MethodScope scope() { return scope; }
+  public void setScope(MethodScope scope) { this.scope = scope; }
 
 }

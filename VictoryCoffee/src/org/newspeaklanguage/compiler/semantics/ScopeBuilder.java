@@ -55,7 +55,7 @@ public class ScopeBuilder extends AstNodeVisitorSkeleton {
   public void visitMethod(Method method) {
     defineName(method.messagePattern().selector(), method);
     pushBlockScope();
-    method.setScope((BlockScope) currentScope);
+    method.setScope((MethodScope) currentScope);
     try {
       super.visitMethod(method);
     } finally {
@@ -66,7 +66,7 @@ public class ScopeBuilder extends AstNodeVisitorSkeleton {
   @Override
   public void visitBlock(Block block) {
     pushBlockScope();
-    block.setScope((BlockScope) currentScope);
+    block.setScope((MethodScope) currentScope);
     try {
       super.visitBlock(block);
     } finally {
@@ -76,7 +76,7 @@ public class ScopeBuilder extends AstNodeVisitorSkeleton {
 
   @Override
   public void visitArgument(Argument argument) {
-    assert currentScope.isBlockScope();
+    assert currentScope.isMethodScope();
     defineName(argument.name(), argument);
   }
 
@@ -90,7 +90,7 @@ public class ScopeBuilder extends AstNodeVisitorSkeleton {
   }
   
   protected void pushBlockScope() {
-    currentScope = new BlockScope(currentScope);
+    currentScope = new MethodScope(currentScope);
   }
   
   protected void defineName(String name, AstNode definingNode) {

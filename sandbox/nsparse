@@ -1,0 +1,1 @@
+grun org.newspeaklanguage.compiler.parser.Newspeak sourceUnit $*

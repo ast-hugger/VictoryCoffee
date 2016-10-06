@@ -21,21 +21,18 @@ import org.newspeaklanguage.compiler.ast.Return;
 import org.newspeaklanguage.compiler.ast.Self;
 import org.newspeaklanguage.compiler.ast.SlotDefinition;
 import org.newspeaklanguage.compiler.ast.Super;
-import org.newspeaklanguage.compiler.semantics.NameMeaningSelfSend;
-import org.newspeaklanguage.compiler.semantics.NameMeaningVariableReference;
-import org.newspeaklanguage.compiler.semantics.NameMeaningVisitor;
+import org.newspeaklanguage.compiler.semantics.MethodScopeEntry;
+import org.newspeaklanguage.compiler.semantics.NameMeaning;
 import org.newspeaklanguage.runtime.Builtins;
 import org.newspeaklanguage.runtime.MessageDispatcher;
 import org.newspeaklanguage.runtime.Object;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-public class MethodGenerator implements AstNodeVisitor, NameMeaningVisitor {
+public class MethodGenerator implements AstNodeVisitor {
   
   private final Method methodNode;
   private final MethodVisitor methodVisitor;
-  
-  private LocalNameTable localNames;
   
   MethodGenerator(Method methodNode, MethodVisitor methodVisitor) {
     this.methodNode = methodNode;
@@ -51,13 +48,8 @@ public class MethodGenerator implements AstNodeVisitor, NameMeaningVisitor {
 
   @Override
   public void visitMethod(Method method) {
-    if (localNames != null) {
-      throw new IllegalStateException("this generator is already visiting a method");
-    }
-    localNames = new LocalNameTable();
-    method.messagePattern().accept(this);
-    method.temps().stream().forEach(each -> each.accept(this));
-    localNames.close();
+//    method.messagePattern().accept(this);
+//    method.temps().stream().forEach(each -> each.accept(this));
     List<AstNode> body = method.body();
     body.stream().forEach(each -> each.accept(this));
     if (body.isEmpty()) {
@@ -70,17 +62,6 @@ public class MethodGenerator implements AstNodeVisitor, NameMeaningVisitor {
       methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
       methodVisitor.visitInsn(Opcodes.ARETURN);
     }
-  }
-
-  @Override
-  public void visitArgument(Argument argument) {
-    localNames.add(argument);
-  }
-
-  @Override
-  public void visitSlotDefinition(SlotDefinition slotDefinition) {
-    // TODO for now we are ignoring immutability and initializers
-    localNames.add(slotDefinition);
   }
 
   @Override
@@ -115,20 +96,37 @@ public class MethodGenerator implements AstNodeVisitor, NameMeaningVisitor {
   }
 
   @Override
-  public void visitMessageSendNoReceiver(MessageSendNoReceiver messageSendNoReceiver) {
-    messageSendNoReceiver.meaning().accept(this);
+  public void visitMessageSendNoReceiver(MessageSendNoReceiver messageSend) {
+    if (messageSend.meaning().isLocalVarReference()) {
+      generateLocalVarReference(messageSend);
+    } else if (messageSend.meaning().isSendToEnclosingObject()) {
+      generateSendToEnclosingObject(messageSend);
+    } else if (messageSend.meaning().isSelfSend()) {
+      generateSelfSend(messageSend);
+    } else {
+      throw new IllegalArgumentException("unrecognized here send meaning");
+    }
   }
 
-  @Override
-  public void visitVariableReference(NameMeaningVariableReference nameMeaning) {
-    String varName = nameMeaning.definition().name();
-    int offset = localNames.offsetOf(varName);
-    methodVisitor.visitVarInsn(Opcodes.ALOAD, offset);
+  private void generateLocalVarReference(MessageSendNoReceiver messageSend) {
+    NameMeaning.LocalVarReference meaning = (NameMeaning.LocalVarReference) messageSend.meaning();
+    int index = ((MethodScopeEntry) meaning.definition()).index();
+    methodVisitor.visitVarInsn(Opcodes.ALOAD, index);
   }
 
-  @Override
-  public void visitSelfSend(NameMeaningSelfSend nameMeaningSelfSend) {
-    throw new UnsupportedOperationException("not implemented yet");
+  private void generateSendToEnclosingObject(MessageSendNoReceiver messageSend) {
+    unimplemented(messageSend);
+  }
+  
+  private void generateSelfSend(MessageSendNoReceiver messageSend) {
+    methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+    for (AstNode arg : messageSend.arguments()) {
+      arg.accept(this);
+    }
+    methodVisitor.visitInvokeDynamicInsn(
+        messageSend.selector(),
+        callSiteTypeDescriptor(messageSend.arguments().size()),
+        MessageDispatcher.bootstrapHandle());
   }
 
   @Override
@@ -207,8 +205,22 @@ public class MethodGenerator implements AstNodeVisitor, NameMeaningVisitor {
     throw new IllegalArgumentException("Unexpected node in a method AST: " + node);
   }
 
+  private void unexpectedVisit(AstNode node) {
+    throw new IllegalArgumentException("This method AST node should not be visited directly: " + node);
+  }
+
   private void unimplemented(AstNode node) {
     throw new UnsupportedOperationException("Code generation is not yet implemented for " + node);
+  }
+
+  @Override
+  public void visitArgument(Argument argument) {
+    unexpectedVisit(argument);
+  }
+
+  @Override
+  public void visitSlotDefinition(SlotDefinition slotDefinition) {
+    unexpectedVisit(slotDefinition);
   }
 
 }

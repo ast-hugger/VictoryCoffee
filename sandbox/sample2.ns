@@ -1,0 +1,5 @@
+class Test = ()
+('testing'
+test = (boo:: self a b + self c d + self e f)
+test2 = (^self hello: 3 + 4 factorial and: 42 meaning / 7)
+)
