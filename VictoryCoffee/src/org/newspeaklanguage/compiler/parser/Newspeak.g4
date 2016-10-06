@@ -75,20 +75,21 @@ statement
 returnStatement
 	: CARET expression ;
 
+// TODO no cascades yet
 
 expression
     : receiver
     | messageSend
+  	| setterSend
     | keywordMessage
     | '(' expression ')'
     ;
 
 messageSend
-	: unarySend
-	| binarySend
-	| keywordSend
-  | setterSend
- 	;
+		: unarySend
+		| binarySend
+		| keywordSend
+ 		;
 
 receiver
     : IDENTIFIER
@@ -109,20 +110,23 @@ keywordReceiver
 setterSend
     : SETTER_KEYWORD expression;
 
-unarySend : receiver unaryMessage;
+unarySend
+		: receiver unaryMessage;
 
 unaryMessage
     : IDENTIFIER unaryMessage?;
 
-binarySend : binaryReceiver binaryMessage;
+binarySend
+		: binaryReceiver binaryMessage;
 
 binaryMessage
-	: BINARY_SELECTOR expression binaryMessage?;
+		: BINARY_SELECTOR expression binaryMessage?;
 
-keywordSend: keywordReceiver keywordMessage;
+keywordSend
+		: keywordReceiver keywordMessage;
 
 keywordMessage
-	: (KEYWORD expression)+ ;
+		: (KEYWORD expression)+ ;
 
 
 specialReceiver

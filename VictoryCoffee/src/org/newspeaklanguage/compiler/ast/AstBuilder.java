@@ -6,9 +6,39 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ErrorNode;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.newspeaklanguage.compiler.parser.NewspeakBaseVisitor;
 import org.newspeaklanguage.compiler.parser.NewspeakParser;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.AccessModifierContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.BinaryMessageContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.BinaryReceiverContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.BinarySendContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.BlockArgsContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.BlockContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.BlockTempsContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.ClassBodyContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.ClassHeaderContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.ClassSideDeclContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.CodeBodyContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.ExpressionContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.ImmutableSlotInitializerContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.InstanceSideDeclContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.KeywordMessageContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.KeywordReceiverContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.KeywordSendContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.MessageSendContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.MutableSlotInitializerContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.ReceiverContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.SetterSendContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.SpecialReceiverContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.StatementContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.UnaryMessageContext;
+import org.newspeaklanguage.compiler.parser.NewspeakParser.UnarySendContext;
+import org.newspeaklanguage.compiler.parser.NewspeakVisitor;
 
 /**
  * The bridge between our ANTLR grammar and the AST defined in this package.
@@ -16,7 +46,7 @@ import org.newspeaklanguage.compiler.parser.NewspeakParser;
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
  */
-public class AstBuilder extends NewspeakBaseVisitor<AstNode> {
+public class AstBuilder implements NewspeakVisitor<AstNode> {
 
   @Override
   public AstNode visitSourceUnit(NewspeakParser.SourceUnitContext ctx) {
@@ -148,59 +178,59 @@ public class AstBuilder extends NewspeakBaseVisitor<AstNode> {
     return new Outer(ctx.IDENTIFIER().getText());
   }
   
-  @Override
-  public AstNode visitReceiverlessSend(NewspeakParser.ReceiverlessSendContext ctx) {
-    NewspeakParser.UnaryMessageContext unary = ctx.message().unaryMessage();
-    if (unary != null) {
-      String selector = unary.IDENTIFIER().getText();
-      return new MessageSendNoReceiver(selector, Collections.emptyList(), false);
-    }
-    
-    NewspeakParser.BinaryMessageContext binary = ctx.message().binaryMessage();
-    if (binary != null) {
-      String selector = binary.BINARY_SELECTOR().getText();
-      AstNode arg = visit(binary.expression());
-      return new MessageSendNoReceiver(selector, Arrays.asList(arg), false);
-    }
-    
-    NewspeakParser.KeywordMessageContext message = ctx.message().keywordMessage();
-    assert message != null;
-    Optional<String> keyword = message.KEYWORD().stream()
-        .map(each -> each.getText())
-        .reduce(String::concat);
-    List<AstNode> args = message.expression().stream()
-        .map(this::visit)
-        .collect(Collectors.toList());
-    return new MessageSendNoReceiver(keyword.get(), args, false);
-  }
+//  @Override
+//  public AstNode visitReceiverlessSend(NewspeakParser.ReceiverlessSendContext ctx) {
+//    NewspeakParser.UnaryMessageContext unary = ctx.message().unaryMessage();
+//    if (unary != null) {
+//      String selector = unary.IDENTIFIER().getText();
+//      return new MessageSendNoReceiver(selector, Collections.emptyList(), false);
+//    }
+//    
+//    NewspeakParser.BinaryMessageContext binary = ctx.message().binaryMessage();
+//    if (binary != null) {
+//      String selector = binary.BINARY_SELECTOR().getText();
+//      AstNode arg = visit(binary.expression());
+//      return new MessageSendNoReceiver(selector, Arrays.asList(arg), false);
+//    }
+//    
+//    NewspeakParser.KeywordMessageContext message = ctx.message().keywordMessage();
+//    assert message != null;
+//    Optional<String> keyword = message.KEYWORD().stream()
+//        .map(each -> each.getText())
+//        .reduce(String::concat);
+//    List<AstNode> args = message.expression().stream()
+//        .map(this::visit)
+//        .collect(Collectors.toList());
+//    return new MessageSendNoReceiver(keyword.get(), args, false);
+//  }
   
-  @Override
-  public AstNode visitReceiverfulSend(NewspeakParser.ReceiverfulSendContext ctx) {
-    AstNode receiver = visit(ctx.receiver());
-    
-    NewspeakParser.UnaryMessageContext unary = ctx.message().unaryMessage();
-    if (unary != null) {
-      String selector = unary.IDENTIFIER().getText();
-      return new MessageSendWithReceiver(receiver, selector, Collections.emptyList());
-    }
-    
-    NewspeakParser.BinaryMessageContext binary = ctx.message().binaryMessage();
-    if (binary != null) {
-      String selector = binary.BINARY_SELECTOR().getText();
-      AstNode arg = visit(binary.expression());
-      return new MessageSendWithReceiver(receiver, selector, Arrays.asList(arg));
-    }
-    
-    NewspeakParser.KeywordMessageContext message = ctx.message().keywordMessage();
-    assert message != null;
-    Optional<String> keyword = message.KEYWORD().stream()
-        .map(each -> each.getText())
-        .reduce(String::concat);
-    List<AstNode> args = message.expression().stream()
-        .map(this::visit)
-        .collect(Collectors.toList());
-    return new MessageSendWithReceiver(receiver, keyword.get(), args);
-  }
+//  @Override
+//  public AstNode visitReceiverfulSend(NewspeakParser.ReceiverfulSendContext ctx) {
+//    AstNode receiver = visit(ctx.receiver());
+//    
+//    NewspeakParser.UnaryMessageContext unary = ctx.message().unaryMessage();
+//    if (unary != null) {
+//      String selector = unary.IDENTIFIER().getText();
+//      return new MessageSendWithReceiver(receiver, selector, Collections.emptyList());
+//    }
+//    
+//    NewspeakParser.BinaryMessageContext binary = ctx.message().binaryMessage();
+//    if (binary != null) {
+//      String selector = binary.BINARY_SELECTOR().getText();
+//      AstNode arg = visit(binary.expression());
+//      return new MessageSendWithReceiver(receiver, selector, Arrays.asList(arg));
+//    }
+//    
+//    NewspeakParser.KeywordMessageContext message = ctx.message().keywordMessage();
+//    assert message != null;
+//    Optional<String> keyword = message.KEYWORD().stream()
+//        .map(each -> each.getText())
+//        .reduce(String::concat);
+//    List<AstNode> args = message.expression().stream()
+//        .map(this::visit)
+//        .collect(Collectors.toList());
+//    return new MessageSendWithReceiver(receiver, keyword.get(), args);
+//  }
   
   @Override
   public AstNode visitIntegerLiteral(NewspeakParser.IntegerLiteralContext ctx) {
@@ -224,5 +254,158 @@ public class AstBuilder extends NewspeakBaseVisitor<AstNode> {
     AstNode expr = visit(ctx.expression());
     return new Return(expr);
   }
+
+  @Override
+  public AstNode visit(ParseTree tree) {
+    return tree.accept(this);
+  }
+
+  @Override
+  public AstNode visitChildren(RuleNode node) {
+    throw new UnsupportedOperationException("this should not be necessary");
+  }
+
+  @Override
+  public AstNode visitTerminal(TerminalNode node) {
+    throw new IllegalStateException("this node should never be visited");
+  }
+
+  @Override
+  public AstNode visitErrorNode(ErrorNode node) {
+    throw new IllegalStateException("this node should never be visited");
+  }
+
+  @Override
+  public AstNode visitClassBody(ClassBodyContext ctx) {
+    throw new IllegalStateException("this node should never be visited");
+  }
+
+  @Override
+  public AstNode visitClassHeader(ClassHeaderContext ctx) {
+    throw new IllegalStateException("this node should never be visited");
+  }
+
+  @Override
+  public AstNode visitInstanceSideDecl(InstanceSideDeclContext ctx) {
+    throw new IllegalStateException("this node should never be visited");
+  }
+
+  @Override
+  public AstNode visitClassSideDecl(ClassSideDeclContext ctx) {
+    throw new IllegalStateException("this node should never be visited");
+  }
+
+  @Override
+  public AstNode visitMutableSlotInitializer(MutableSlotInitializerContext ctx) {
+    throw new IllegalStateException("this node should never be visited");
+  }
+
+  @Override
+  public AstNode visitImmutableSlotInitializer(ImmutableSlotInitializerContext ctx) {
+    throw new IllegalStateException("this node should never be visited");
+  }
+
+  @Override
+  public AstNode visitAccessModifier(AccessModifierContext ctx) {
+    throw new IllegalStateException("this node should never be visited");
+  }
+
+  @Override
+  public AstNode visitCodeBody(CodeBodyContext ctx) {
+    throw new IllegalStateException("this node should never be visited");
+  }
+
+  @Override
+  public AstNode visitStatement(StatementContext ctx) {
+    return visitFirstNonterminal(ctx);
+  }
+
+  @Override
+  public AstNode visitExpression(ExpressionContext ctx) {
+    return visitFirstNonterminal(ctx);
+   }
+
+  @Override
+  public AstNode visitMessageSend(MessageSendContext ctx) {
+    return visitFirstNonterminal(ctx);
+  }
+
+  @Override
+  public AstNode visitReceiver(ReceiverContext ctx) {
+    return visitFirstNonterminal(ctx);
+ }
+
+  @Override
+  public AstNode visitBinaryReceiver(BinaryReceiverContext ctx) {
+    return visitFirstNonterminal(ctx);
+  }
+
+  @Override
+  public AstNode visitKeywordReceiver(KeywordReceiverContext ctx) {
+    return visitFirstNonterminal(ctx);
+  }
+
+  @Override
+  public AstNode visitSetterSend(SetterSendContext ctx) {
+    throw new UnsupportedOperationException("not implemented yet");
+  }
+
+  @Override
+  public AstNode visitUnarySend(UnarySendContext ctx) {
+    throw new UnsupportedOperationException("not implemented yet");
+  }
+
+  @Override
+  public AstNode visitUnaryMessage(UnaryMessageContext ctx) {
+    throw new UnsupportedOperationException("not implemented yet");
+  }
+
+  @Override
+  public AstNode visitBinarySend(BinarySendContext ctx) {
+    throw new UnsupportedOperationException("not implemented yet");
+  }
+
+  @Override
+  public AstNode visitBinaryMessage(BinaryMessageContext ctx) {
+    throw new UnsupportedOperationException("not implemented yet");
+  }
+
+  @Override
+  public AstNode visitKeywordSend(KeywordSendContext ctx) {
+    throw new UnsupportedOperationException("not implemented yet");
+  }
+
+  @Override
+  public AstNode visitKeywordMessage(KeywordMessageContext ctx) {
+    throw new UnsupportedOperationException("not implemented yet");
+  }
+
+  @Override
+  public AstNode visitSpecialReceiver(SpecialReceiverContext ctx) {
+    return visitFirstNonterminal(ctx);
+  }
+
+  @Override
+  public AstNode visitBlock(BlockContext ctx) {
+    throw new UnsupportedOperationException("not implemented yet");
+  }
+
+  @Override
+  public AstNode visitBlockArgs(BlockArgsContext ctx) {
+    throw new UnsupportedOperationException("not implemented yet");
+  }
+
+  @Override
+  public AstNode visitBlockTemps(BlockTempsContext ctx) {
+    throw new UnsupportedOperationException("not implemented yet");
+  }
   
+  private AstNode visitFirstNonterminal(ParserRuleContext ctx) {
+    for (ParseTree node : ctx.children) {
+      if (!(node instanceof TerminalNode)) {
+        return node.accept(this);
+      }
+    }
+    throw new IllegalStateException("a required nonterminal is missing");
+  }
 }

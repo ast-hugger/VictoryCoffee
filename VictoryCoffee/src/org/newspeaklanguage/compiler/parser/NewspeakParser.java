@@ -1157,6 +1157,9 @@ public class NewspeakParser extends Parser {
 		public MessageSendContext messageSend() {
 			return getRuleContext(MessageSendContext.class,0);
 		}
+		public SetterSendContext setterSend() {
+			return getRuleContext(SetterSendContext.class,0);
+		}
 		public KeywordMessageContext keywordMessage() {
 			return getRuleContext(KeywordMessageContext.class,0);
 		}
@@ -1178,7 +1181,7 @@ public class NewspeakParser extends Parser {
 		ExpressionContext _localctx = new ExpressionContext(_ctx, getState());
 		enterRule(_localctx, 32, RULE_expression);
 		try {
-			setState(219);
+			setState(220);
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,20,_ctx) ) {
 			case 1:
@@ -1199,17 +1202,24 @@ public class NewspeakParser extends Parser {
 				enterOuterAlt(_localctx, 3);
 				{
 				setState(214);
-				keywordMessage();
+				setterSend();
 				}
 				break;
 			case 4:
 				enterOuterAlt(_localctx, 4);
 				{
 				setState(215);
-				match(LPAREN);
+				keywordMessage();
+				}
+				break;
+			case 5:
+				enterOuterAlt(_localctx, 5);
+				{
 				setState(216);
-				expression();
+				match(LPAREN);
 				setState(217);
+				expression();
+				setState(218);
 				match(RPAREN);
 				}
 				break;
@@ -1236,9 +1246,6 @@ public class NewspeakParser extends Parser {
 		public KeywordSendContext keywordSend() {
 			return getRuleContext(KeywordSendContext.class,0);
 		}
-		public SetterSendContext setterSend() {
-			return getRuleContext(SetterSendContext.class,0);
-		}
 		public MessageSendContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -1260,29 +1267,22 @@ public class NewspeakParser extends Parser {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(221);
+				setState(222);
 				unarySend();
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(222);
+				setState(223);
 				binarySend();
 				}
 				break;
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(223);
-				keywordSend();
-				}
-				break;
-			case 4:
-				enterOuterAlt(_localctx, 4);
-				{
 				setState(224);
-				setterSend();
+				keywordSend();
 				}
 				break;
 			}
@@ -2389,7 +2389,7 @@ public class NewspeakParser extends Parser {
 		"\3\16\3\16\6\16\u00bc\n\16\r\16\16\16\u00bd\5\16\u00c0\n\16\3\17\3\17"+
 		"\3\17\3\17\7\17\u00c6\n\17\f\17\16\17\u00c9\13\17\3\17\5\17\u00cc\n\17"+
 		"\5\17\u00ce\n\17\3\20\3\20\5\20\u00d2\n\20\3\21\3\21\3\21\3\22\3\22\3"+
-		"\22\3\22\3\22\3\22\3\22\5\22\u00de\n\22\3\23\3\23\3\23\3\23\5\23\u00e4"+
+		"\22\3\22\3\22\3\22\3\22\3\22\5\22\u00df\n\22\3\23\3\23\3\23\5\23\u00e4"+
 		"\n\23\3\24\3\24\3\24\5\24\u00e9\n\24\3\25\3\25\5\25\u00ed\n\25\3\26\3"+
 		"\26\3\26\5\26\u00f2\n\26\3\27\3\27\3\27\3\30\3\30\3\30\3\31\3\31\5\31"+
 		"\u00fc\n\31\3\32\3\32\3\32\3\33\3\33\3\33\5\33\u0104\n\33\3\34\3\34\3"+
@@ -2401,7 +2401,7 @@ public class NewspeakParser extends Parser {
 		"\668:<>@BDFHJLN\2\3\3\2\4\6\u014b\2P\3\2\2\2\4S\3\2\2\2\6_\3\2\2\2\bd"+
 		"\3\2\2\2\nq\3\2\2\2\f\u0080\3\2\2\2\16\u008a\3\2\2\2\20\u0092\3\2\2\2"+
 		"\22\u0099\3\2\2\2\24\u009d\3\2\2\2\26\u00a2\3\2\2\2\30\u00b4\3\2\2\2\32"+
-		"\u00bf\3\2\2\2\34\u00cd\3\2\2\2\36\u00d1\3\2\2\2 \u00d3\3\2\2\2\"\u00dd"+
+		"\u00bf\3\2\2\2\34\u00cd\3\2\2\2\36\u00d1\3\2\2\2 \u00d3\3\2\2\2\"\u00de"+
 		"\3\2\2\2$\u00e3\3\2\2\2&\u00e8\3\2\2\2(\u00ec\3\2\2\2*\u00f1\3\2\2\2,"+
 		"\u00f3\3\2\2\2.\u00f6\3\2\2\2\60\u00f9\3\2\2\2\62\u00fd\3\2\2\2\64\u0100"+
 		"\3\2\2\2\66\u0105\3\2\2\28\u010a\3\2\2\2:\u0114\3\2\2\2<\u0116\3\2\2\2"+
@@ -2443,12 +2443,12 @@ public class NewspeakParser extends Parser {
 		"\u00ca\3\2\2\2\u00cb\u00cc\3\2\2\2\u00cc\u00ce\3\2\2\2\u00cd\u00c1\3\2"+
 		"\2\2\u00cd\u00c2\3\2\2\2\u00ce\35\3\2\2\2\u00cf\u00d2\5\"\22\2\u00d0\u00d2"+
 		"\5 \21\2\u00d1\u00cf\3\2\2\2\u00d1\u00d0\3\2\2\2\u00d2\37\3\2\2\2\u00d3"+
-		"\u00d4\7\r\2\2\u00d4\u00d5\5\"\22\2\u00d5!\3\2\2\2\u00d6\u00de\5&\24\2"+
-		"\u00d7\u00de\5$\23\2\u00d8\u00de\58\35\2\u00d9\u00da\7\25\2\2\u00da\u00db"+
-		"\5\"\22\2\u00db\u00dc\7\33\2\2\u00dc\u00de\3\2\2\2\u00dd\u00d6\3\2\2\2"+
-		"\u00dd\u00d7\3\2\2\2\u00dd\u00d8\3\2\2\2\u00dd\u00d9\3\2\2\2\u00de#\3"+
-		"\2\2\2\u00df\u00e4\5.\30\2\u00e0\u00e4\5\62\32\2\u00e1\u00e4\5\66\34\2"+
-		"\u00e2\u00e4\5,\27\2\u00e3\u00df\3\2\2\2\u00e3\u00e0\3\2\2\2\u00e3\u00e1"+
+		"\u00d4\7\r\2\2\u00d4\u00d5\5\"\22\2\u00d5!\3\2\2\2\u00d6\u00df\5&\24\2"+
+		"\u00d7\u00df\5$\23\2\u00d8\u00df\5,\27\2\u00d9\u00df\58\35\2\u00da\u00db"+
+		"\7\25\2\2\u00db\u00dc\5\"\22\2\u00dc\u00dd\7\33\2\2\u00dd\u00df\3\2\2"+
+		"\2\u00de\u00d6\3\2\2\2\u00de\u00d7\3\2\2\2\u00de\u00d8\3\2\2\2\u00de\u00d9"+
+		"\3\2\2\2\u00de\u00da\3\2\2\2\u00df#\3\2\2\2\u00e0\u00e4\5.\30\2\u00e1"+
+		"\u00e4\5\62\32\2\u00e2\u00e4\5\66\34\2\u00e3\u00e0\3\2\2\2\u00e3\u00e1"+
 		"\3\2\2\2\u00e3\u00e2\3\2\2\2\u00e4%\3\2\2\2\u00e5\u00e9\7\37\2\2\u00e6"+
 		"\u00e9\5:\36\2\u00e7\u00e9\5H%\2\u00e8\u00e5\3\2\2\2\u00e8\u00e6\3\2\2"+
 		"\2\u00e8\u00e7\3\2\2\2\u00e9\'\3\2\2\2\u00ea\u00ed\5&\24\2\u00eb\u00ed"+
@@ -2481,7 +2481,7 @@ public class NewspeakParser extends Parser {
 		"\u013d\5\20\t\2\u013c\u013b\3\2\2\2\u013d\u0140\3\2\2\2\u013e\u013c\3"+
 		"\2\2\2\u013e\u013f\3\2\2\2\u013f\u0141\3\2\2\2\u0140\u013e\3\2\2\2\u0141"+
 		"\u0142\7\35\2\2\u0142O\3\2\2\2$V[bimu{\u0085\u008e\u0092\u0097\u00a2\u00ab"+
-		"\u00af\u00bd\u00bf\u00c7\u00cb\u00cd\u00d1\u00dd\u00e3\u00e8\u00ec\u00f1"+
+		"\u00af\u00bd\u00bf\u00c7\u00cb\u00cd\u00d1\u00de\u00e3\u00e8\u00ec\u00f1"+
 		"\u00fb\u0103\u010c\u0114\u0126\u012a\u012d\u0135\u013e";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
