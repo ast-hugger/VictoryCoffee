@@ -9,19 +9,19 @@ import org.newspeaklanguage.compiler.ast.Method;
 /**
  * A visitor for the AST which populates name references
  * ({@link MessageSendNoReceiver} nodes) with their meanings. The AST must have
- * been previously visited by a {@link ScopeBuilder}.
+ * been previously visited by a {@link Stage1Analyzer}.
  *
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
  */
-public class NameAnalyzer extends AstNodeVisitorSkeleton {
+public class Stage2Analyzer extends AstNodeVisitorSkeleton {
   
   /*
    * Static main access point
    */
   
-  public static void resolveNames(ClassDecl classDecl) {
-    new NameAnalyzer().visit(classDecl);
+  public static void analyze(ClassDecl classDecl) {
+    new Stage2Analyzer().visit(classDecl);
   }
   
   /*
@@ -30,7 +30,7 @@ public class NameAnalyzer extends AstNodeVisitorSkeleton {
 
   private Scope currentScope;
   
-  private NameAnalyzer() {
+  private Stage2Analyzer() {
   }
   
   @Override

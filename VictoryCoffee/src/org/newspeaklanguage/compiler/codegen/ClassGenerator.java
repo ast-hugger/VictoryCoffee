@@ -1,5 +1,8 @@
 package org.newspeaklanguage.compiler.codegen;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.newspeaklanguage.compiler.NamingPolicy;
 import org.newspeaklanguage.compiler.ast.Category;
 import org.newspeaklanguage.compiler.ast.ClassDecl;
@@ -22,9 +25,15 @@ public class ClassGenerator {
     return generator.generate();
   }
   
+  /*
+   * Instance side
+   */
+  
   private final ClassDecl classNode;
   private final ClassWriter classWriter = new ClassWriter(
       ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+  private final Map<java.lang.Object, LiteralValue> literals = 
+      new HashMap<java.lang.Object, LiteralValue>(); 
   
   private ClassGenerator(ClassDecl classNode) {
     this.classNode = classNode;
@@ -33,9 +42,25 @@ public class ClassGenerator {
   public byte[] generate() {
     start();
     processSlots();
+    processNestedClasses();
     generateConstructor();
     processMethods();
+    processLiterals();
     return finish();
+  }
+  
+  public LiteralValue lookupLiteral(java.lang.Object key) {
+    return literals.get(key);
+  }
+  
+  public void addLiteral(LiteralValue literal) {
+    literal.setClassName(classNode.implementationClassName());;
+    literal.setFieldName(allocateLiteralFieldName());
+    literals.put(literal.key(), literal);
+  }
+  
+  private String allocateLiteralFieldName() {
+    return "Literal$" + literals.size();
   }
   
   private void start() {
@@ -43,7 +68,7 @@ public class ClassGenerator {
     classWriter.visit(
         52,
         Opcodes.ACC_PUBLIC | Opcodes.ACC_SUPER,
-        className(),
+        toInternalFormat(classNode.implementationClassName()),
         null,
         StandardObject.INTERNAL_CLASS_NAME,
         null);
@@ -64,6 +89,27 @@ public class ClassGenerator {
     }
   }
   
+  /**
+   * Generate accessors for nested classes.
+   */
+  private void processNestedClasses() {
+    classNode.nestedClasses().forEach(this::generateNestedClassGetter);
+  }
+  
+  private void generateNestedClassGetter(ClassDecl classNode) {
+    String selector = NamingPolicy.getterSelectorForSlot(classNode.name());
+    MethodVisitor methodVisitor = classWriter.visitMethod(
+        Opcodes.ACC_PUBLIC,
+        selector,
+        GETTER_DESCRIPTOR,
+        null, null);
+    methodVisitor.visitCode();
+    
+    
+    methodVisitor.visitMaxs(0, 0); // args ignored
+    methodVisitor.visitEnd();
+  }
+  
   private void generateSlotGetter(SlotDefinition slot) {
     MethodVisitor methodVisitor = classWriter.visitMethod(
         Opcodes.ACC_PUBLIC,
@@ -74,7 +120,7 @@ public class ClassGenerator {
     methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
     methodVisitor.visitFieldInsn(
         Opcodes.GETFIELD, 
-        className(), 
+        toInternalFormat(classNode.implementationClassName()), 
         NamingPolicy.fieldNameForSlot(slot.name()),
         Object.TYPE_DESCRIPTOR);
     methodVisitor.visitInsn(Opcodes.ARETURN);
@@ -93,7 +139,7 @@ public class ClassGenerator {
     methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
     methodVisitor.visitFieldInsn(
         Opcodes.PUTFIELD, 
-        className(), 
+        toInternalFormat(classNode.implementationClassName()), 
         NamingPolicy.fieldNameForSlot(slot.name()),
         Object.TYPE_DESCRIPTOR);
     methodVisitor.visitInsn(Opcodes.RETURN);
@@ -130,10 +176,30 @@ public class ClassGenerator {
             NamingPolicy.methodNameForSelector(method.messagePattern().selector()),
             methodTypeDescriptor(method.messagePattern().arity()),
             null, null);
-        MethodGenerator methodGenerator = new MethodGenerator(method, methodVisitor);
+        MethodGenerator methodGenerator = new MethodGenerator(this, method, methodVisitor);
         methodGenerator.generate();
       }
     }
+  }
+  
+  private void processLiterals() {
+    if (!literals.isEmpty()) {
+      literals.values().forEach(each -> each.generateFieldDefinition(classWriter));
+      generateClassInitializer();
+    }
+  }
+  
+  private void generateClassInitializer() {
+    MethodVisitor methodWriter = classWriter.visitMethod(
+        Opcodes.ACC_STATIC,
+        "<clinit>",
+        "()V",
+        null, null);
+    methodWriter.visitCode();
+    literals.values().forEach(each -> each.generateInitializer(methodWriter));
+    methodWriter.visitInsn(Opcodes.RETURN);
+    methodWriter.visitMaxs(0, 0); // args ignored
+    methodWriter.visitEnd();
   }
   
   private byte[] finish() {
@@ -141,11 +207,6 @@ public class ClassGenerator {
     return classWriter.toByteArray();
   }
   
-  private String className() {
-    // TODO should do the right thing for nested classes here
-    return classNode.name();
-  }
-
   private String methodTypeDescriptor(int arity) {
     StringBuilder result = new StringBuilder();
     result.append("(");
@@ -156,4 +217,8 @@ public class ClassGenerator {
     result.append(Object.TYPE_DESCRIPTOR);
     return result.toString();
   }
-}
+  
+  private String toInternalFormat(String className) {
+    return className.replace('.', '/');
+  }
+} 

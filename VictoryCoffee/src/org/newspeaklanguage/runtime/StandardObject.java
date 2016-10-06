@@ -25,7 +25,7 @@ public class StandardObject extends Object {
   public static final String TYPE_DESCRIPTOR = "L" + INTERNAL_CLASS_NAME + ";";
   public static final String CONSTRUCTOR_DESCRIPTOR = "(" + ObjectFactory.TYPE_DESCRIPTOR + ")V";
 
-  private final ObjectFactory nsClass;
+  public final ObjectFactory nsClass;
   
   /**
    * Any generated subclass must provide a constructor with this signature.

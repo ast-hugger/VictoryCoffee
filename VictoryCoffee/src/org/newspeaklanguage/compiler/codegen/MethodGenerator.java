@@ -26,15 +26,22 @@ import org.newspeaklanguage.compiler.semantics.NameMeaning;
 import org.newspeaklanguage.runtime.Builtins;
 import org.newspeaklanguage.runtime.MessageDispatcher;
 import org.newspeaklanguage.runtime.Object;
+import org.newspeaklanguage.runtime.ObjectFactory;
+import org.newspeaklanguage.runtime.StandardObject;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+// TODO I think we are leaving each method statement result on the stack,
+// so look into popping it, except after a last expression of a block.
+
 public class MethodGenerator implements AstNodeVisitor {
   
+  private final ClassGenerator classGenerator;
   private final Method methodNode;
   private final MethodVisitor methodVisitor;
   
-  MethodGenerator(Method methodNode, MethodVisitor methodVisitor) {
+  MethodGenerator(ClassGenerator classGenerator, Method methodNode, MethodVisitor methodVisitor) {
+    this.classGenerator = classGenerator;
     this.methodNode = methodNode;
     this.methodVisitor = methodVisitor;
   }
@@ -46,18 +53,20 @@ public class MethodGenerator implements AstNodeVisitor {
     methodVisitor.visitEnd();
   }
 
+  public void visit(AstNode node) {
+    node.accept(this);
+  }
+  
   @Override
   public void visitMethod(Method method) {
-//    method.messagePattern().accept(this);
-//    method.temps().stream().forEach(each -> each.accept(this));
     List<AstNode> body = method.body();
-    body.stream().forEach(each -> each.accept(this));
+    body.forEach(this::visit);
     if (body.isEmpty()) {
       // Empty method or no explicit return: return self
       methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
       methodVisitor.visitInsn(Opcodes.ARETURN);
     } else if (!(body.get(body.size() - 1) instanceof Return)) {
-      // Empty method or no explicit return: return self
+      // Non-empty method and last expression is not an explicit return: return self
       methodVisitor.visitInsn(Opcodes.POP);
       methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
       methodVisitor.visitInsn(Opcodes.ARETURN);
@@ -76,23 +85,18 @@ public class MethodGenerator implements AstNodeVisitor {
 
   @Override
   public void visitLiteralString(LiteralString literalString) {
-    // TODO the literal is implemented as instantiation on the spot.
-    // It would be better to implement is as a static class field, returned
-    // by the use site.
-    methodVisitor.visitTypeInsn(Opcodes.NEW, Builtins.StringObject.INTERNAL_CLASS_NAME);
-    methodVisitor.visitInsn(Opcodes.DUP);
-    methodVisitor.visitLdcInsn(literalString.value());
-    methodVisitor.visitMethodInsn(
-        Opcodes.INVOKESPECIAL,
-        Builtins.StringObject.INTERNAL_CLASS_NAME,
-        "<init>",
-        "(Ljava/lang/String;)V",
-        false);
+    String string = literalString.value();
+    LiteralValue literal = classGenerator.lookupLiteral(string);
+    if (literal == null) {
+      literal = LiteralValue.forString(string);
+      classGenerator.addLiteral(literal);
+    }
+    literal.generateLoad(methodVisitor);
   }
 
   @Override
   public void visitMessagePattern(MessagePattern messagePattern) {
-    messagePattern.arguments().stream().forEach(each -> each.accept(this));
+    messagePattern.arguments().forEach(this::visit);
   }
 
   @Override
@@ -115,7 +119,30 @@ public class MethodGenerator implements AstNodeVisitor {
   }
 
   private void generateSendToEnclosingObject(MessageSendNoReceiver messageSend) {
-    unimplemented(messageSend);
+    NameMeaning.SendToEnclosingObject meaning = (NameMeaning.SendToEnclosingObject) messageSend.meaning();
+    int scopeLevel = meaning.targetDefinition().definitionScope().level();
+    // get the enclosing receiver on the stack with the equivalent of:
+    // this.nsClass.enclosingObjects[scopeLevel]
+    // 'this' is a subclass of StandardClass, so no CHECKCAST is needed prior to getting 'nsClass'.
+    methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+    methodVisitor.visitFieldInsn(
+        Opcodes.GETFIELD, 
+        StandardObject.INTERNAL_CLASS_NAME,
+        "nsClass",
+        ObjectFactory.TYPE_DESCRIPTOR);
+    methodVisitor.visitFieldInsn(
+        Opcodes.GETFIELD, 
+        ObjectFactory.INTERNAL_CLASS_NAME, 
+        "enclosingObjects", 
+        "[" + StandardObject.TYPE_DESCRIPTOR);
+    generateLoadInt(scopeLevel);
+    methodVisitor.visitInsn(Opcodes.AALOAD);
+    // now emit the usual message send stuff
+    messageSend.arguments().forEach(this::visit);
+    methodVisitor.visitInvokeDynamicInsn(
+        messageSend.selector(),
+        callSiteTypeDescriptor(messageSend.arity()),
+        MessageDispatcher.bootstrapHandle());  
   }
   
   private void generateSelfSend(MessageSendNoReceiver messageSend) {
@@ -213,6 +240,19 @@ public class MethodGenerator implements AstNodeVisitor {
     throw new UnsupportedOperationException("Code generation is not yet implemented for " + node);
   }
 
+  private static final int[] specialOpcodes = new int[]
+      {Opcodes.ICONST_0, Opcodes.ICONST_1, Opcodes.ICONST_2, Opcodes.ICONST_3, Opcodes.ICONST_4, Opcodes.ICONST_5};
+ 
+  public void generateLoadInt(int value) {
+    if (0 <= value && value <= 5) {
+      methodVisitor.visitInsn(specialOpcodes[value]);
+    } else if (-128 <= value && value <= 127) {
+      methodVisitor.visitIntInsn(Opcodes.BIPUSH, value);
+    } else {
+      methodVisitor.visitIntInsn(Opcodes.SIPUSH, value);
+    }
+  }
+  
   @Override
   public void visitArgument(Argument argument) {
     unexpectedVisit(argument);

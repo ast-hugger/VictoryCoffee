@@ -15,7 +15,21 @@ public class ClassDecl extends AstNode {
   private final List<Category> categories;
   private final List<Category> classCategories;
   
+  /*
+   * Information assigned by the analyzer.
+   */
+  /**
+   * The scope defined by this class. The scope where the class itself is defined is its parent.
+   */
   private ClassScope scope;
+  /**
+   * The enclosing class, if the class is nested.
+   */
+  private ClassDecl enclosingClass;
+  /**
+   * The name of the Java class this class should be compiled to.
+   */
+  private String implementationClassName;
   
   ClassDecl(String name, MessagePattern initMessage, String superclassName, MessagePattern superInitMessage,
       List<SlotDefinition> slots, List<ClassDecl> nestedClasses, List<Category> categories, List<Category> classCategories)
@@ -39,8 +53,15 @@ public class ClassDecl extends AstNode {
   public List<Category> categories() { return categories; }
   public List<Category> classCategories() { return classCategories; }
  
+  /*
+   * Analysis results
+   */
   public ClassScope scope() { return scope; }
   public void setScope(ClassScope scope) { this.scope = scope; }
+  public ClassDecl enclosingClass() { return enclosingClass; }
+  public void setEnclosingClass(ClassDecl enclosingClass) { this.enclosingClass = enclosingClass; }
+  public String implementationClassName() { return implementationClassName; }
+  public void setImplementationClassName(String name) { this.implementationClassName = name; }
   
   @Override
   public void accept(AstNodeVisitor visitor) {

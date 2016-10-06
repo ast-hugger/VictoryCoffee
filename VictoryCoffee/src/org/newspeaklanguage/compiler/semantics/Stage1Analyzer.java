@@ -16,15 +16,15 @@ import org.newspeaklanguage.compiler.ast.SlotDefinition;
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
  */
-public class ScopeBuilder extends AstNodeVisitorSkeleton {
+public class Stage1Analyzer extends AstNodeVisitorSkeleton {
 
-  public static Scope buildScopeForClass(ClassDecl classDecl) {
-    return new ScopeBuilder().build(classDecl);
+  public static Scope analyze(ClassDecl classDecl) {
+    return new Stage1Analyzer().build(classDecl);
   }
 
   private Scope currentScope;
 
-  private ScopeBuilder() {
+  private Stage1Analyzer() {
   }
 
   public Scope build(ClassDecl classDecl) {
@@ -38,13 +38,17 @@ public class ScopeBuilder extends AstNodeVisitorSkeleton {
   @Override
   public void visitClassDecl(ClassDecl classDecl) {
     if (currentScope == null) {
-      currentScope = new ClassScope(null, 0);
+      currentScope = new ClassScope(classDecl, null, 0);
     } else {
-      pushClassScope();
+      // Nested class; its containing scope needs a getter
+      assert currentScope.isClassScope();
+      defineName(classDecl.name(), classDecl);
+      classDecl.setEnclosingClass(((ClassScope) currentScope).classNode());
+      pushClassScope(classDecl);
     }
     classDecl.setScope((ClassScope) currentScope);
+    classDecl.setImplementationClassName(computeImplementationName(classDecl));
     try {
-      defineName(classDecl.name(), classDecl);
       super.visitClassDecl(classDecl);
     } finally {
       popScope();
@@ -85,8 +89,8 @@ public class ScopeBuilder extends AstNodeVisitorSkeleton {
     defineName(slot.name(), slot);
   }
   
-  protected void pushClassScope() {
-    currentScope = new ClassScope(currentScope);
+  protected void pushClassScope(ClassDecl classNode) {
+    currentScope = new ClassScope(classNode, currentScope);
   }
   
   protected void pushBlockScope() {
@@ -102,4 +106,21 @@ public class ScopeBuilder extends AstNodeVisitorSkeleton {
       currentScope = currentScope.parent();
     }
   }
+  
+  private String computeImplementationName(ClassDecl classNode) {
+    StringBuilder result = new StringBuilder();
+    printClassNamesToBuilder(result, classNode, true);
+    return result.toString();
+  }
+  
+  private void printClassNamesToBuilder(StringBuilder builder, ClassDecl node, boolean innermost) {
+    if (node.enclosingClass() != null) {
+      printClassNamesToBuilder(builder, node.enclosingClass(), false);
+    }
+    builder.append(node.name());
+    if (!innermost) {
+      builder.append('$');
+    }
+  }
+
 }

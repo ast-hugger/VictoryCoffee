@@ -29,7 +29,7 @@ public class ObjectFactory extends Object {
       ObjectFactory.class.getName().replace('.', '/');
   public static final String TYPE_DESCRIPTOR = "L" + INTERNAL_CLASS_NAME + ";";
 
-  public static ObjectFactory create(ClassDefinition classDef, Object container) {
+  public static ObjectFactory create(ClassDefinition classDef, StandardObject container) {
     return new ObjectFactory(null, classDef, container);
   }
   
@@ -40,7 +40,7 @@ public class ObjectFactory extends Object {
   private final ObjectFactory nsClass;
   private final ClassDefinition classDefinition;
   // Public so call sites for outer sends can read this directly as a field
-  public final Object[] enclosingObjects;
+  public final StandardObject[] enclosingObjects;
 
   /**
    * Produces a bogus instance which is an instance of itself. 
@@ -66,18 +66,18 @@ public class ObjectFactory extends Object {
    * @throws NoSuchMethodException
    * @throws IllegalAccessException
    */
-  ObjectFactory(ObjectFactory nsClass, ClassDefinition classDefinition, Object container) {
+  ObjectFactory(ObjectFactory nsClass, ClassDefinition classDefinition, StandardObject container) {
     this.nsClass = nsClass;
     this.classDefinition = classDefinition;
     
     // Capture the enclosing objects
     if (container == null) {
-      this.enclosingObjects = new Object[0];
+      this.enclosingObjects = new StandardObject[0];
       return;
     }
-    Object[] higherObjects = container.nsClass().enclosingObjects;
+    StandardObject[] higherObjects = container.nsClass().enclosingObjects;
     int higherLength = higherObjects.length;
-    this.enclosingObjects = new Object[higherLength + 1];
+    this.enclosingObjects = new StandardObject[higherLength + 1];
     for (int i = 0; i < higherLength; i++) {
       this.enclosingObjects[i] = higherObjects[i];
     }
@@ -99,5 +99,9 @@ public class ObjectFactory extends Object {
       e.printStackTrace();
       throw new IllegalStateException("object creation failed");
     }
+  }
+  
+  public Object $new() {
+    return makeInstance();
   }
 }

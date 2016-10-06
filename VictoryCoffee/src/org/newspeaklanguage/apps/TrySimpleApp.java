@@ -1,6 +1,7 @@
 package org.newspeaklanguage.apps;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
 import org.newspeaklanguage.compiler.Compiler;
 import org.newspeaklanguage.runtime.ClassDefinition;
@@ -22,19 +23,20 @@ public class TrySimpleApp {
   @SuppressWarnings("unchecked")
   public static void main(String[] args) {
     say("Compiling...");
-    Compiler.Result result = Compiler.compile(source);
+    List<Compiler.Result> results = Compiler.compile(source);
     say("Loading...");
     NewspeakClassLoader classLoader = new NewspeakClassLoader(TrySimpleApp.class.getClassLoader());
-    classLoader.addBytecode(result.className, result.bytecode);
+    results.forEach(each 
+        -> classLoader.addBytecode(each.implementationClassName(), each.bytecode()));
     classLoader.dumpClassFiles();
-    Class<? extends Object> mainClass;
+    Class<? extends Object> topClass;
     try {
-      mainClass = (Class<? extends Object>) classLoader.loadClass(result.className);
+      topClass = (Class<? extends Object>) classLoader.loadClass(results.get(0).implementationClassName());
     } catch (ClassNotFoundException e) {
       throw new IllegalStateException("failure loading the compiled Newspeak class");
     }
     say("Setting up...");
-    ClassDefinition classDef = ClassDefinition.create(mainClass);
+    ClassDefinition classDef = ClassDefinition.create(topClass);
     ObjectFactory factory = ObjectFactory.create(classDef, null);
     say("Running...");
     Object module = factory.makeInstance();

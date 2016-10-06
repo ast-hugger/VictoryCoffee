@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
 import org.junit.Test;
 import org.newspeaklanguage.runtime.Builtins;
@@ -22,7 +23,7 @@ public class CompilerTests {
         "class Test = () ('testing'"
         + "test = ()"
         + ")");
-    assertEquals(lastCompilerResult.className, result.getClass().getName());
+    assertEquals(lastCompilerResult.implementationClassName(), result.getClass().getName());
   }
 
   @Test
@@ -31,7 +32,7 @@ public class CompilerTests {
         "class Test = () ('testing'"
         + "test = (nil)"
         + ")");
-    assertEquals(lastCompilerResult.className, result.getClass().getName());
+    assertEquals(lastCompilerResult.implementationClassName(), result.getClass().getName());
   }
 
   @Test
@@ -49,7 +50,7 @@ public class CompilerTests {
         "class Test = () ('testing'"
         + "test = (^self)"
         + ")");
-    assertEquals(lastCompilerResult.className, result.getClass().getName());
+    assertEquals(lastCompilerResult.implementationClassName(), result.getClass().getName());
   }
 
   @Test
@@ -125,18 +126,34 @@ public class CompilerTests {
     assertEquals("foobar", ((Builtins.StringObject) result).value());
   }
 
+  @Test
+  public void testNestedClass() {
+    Object result = compileAndRunTestMethod(
+        "class Test = () ("
+        + "class Nested = () ("
+        + "  'accessing'"
+        + "  foo = (^'foo')"
+        + "  )"
+        + "'testing'"
+        + "test = (^Nested new foo)"
+        + ")");
+    assertTrue(result instanceof Builtins.StringObject);
+    assertEquals("foo", ((Builtins.StringObject) result).value());
+  }
+
 
   @SuppressWarnings("unchecked")
   private Object compileAndRunTestMethod(String classSource) {
-    Compiler.Result result = Compiler.compile(classSource);
-    lastCompilerResult = result;
+    List<Compiler.Result> results = Compiler.compile(classSource);
+    lastCompilerResult = results.get(0);
     NewspeakClassLoader classLoader = new NewspeakClassLoader();
-    classLoader.addBytecode(result.className, result.bytecode);
+    results.forEach(each 
+        -> classLoader.addBytecode(each.implementationClassName(), each.bytecode()));
     classLoader.dumpClassFiles();
 
     Class<? extends Object> mainClass;
     try {
-      mainClass = (Class<? extends Object>) classLoader.loadClass(result.className);
+      mainClass = (Class<? extends Object>) classLoader.loadClass(results.get(0).implementationClassName());
     } catch (ClassNotFoundException e) {
       throw new IllegalStateException("failure loading the compiled Newspeak class");
     }
