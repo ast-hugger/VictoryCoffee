@@ -6,9 +6,9 @@ import static org.junit.Assert.assertTrue;
 import java.lang.reflect.Method;
 
 import org.junit.Test;
-import org.newspeaklanguage.infrastructure.NewspeakClassLoader;
 import org.newspeaklanguage.runtime.Builtins;
 import org.newspeaklanguage.runtime.ClassDefinition;
+import org.newspeaklanguage.runtime.NewspeakClassLoader;
 import org.newspeaklanguage.runtime.Object;
 import org.newspeaklanguage.runtime.ObjectFactory;
 
@@ -90,6 +90,39 @@ public class CompilerTests {
         + ")");
     assertTrue(result instanceof Builtins.StringObject);
     assertEquals("foo1bar2", ((Builtins.StringObject) result).value());
+  }
+
+  @Test
+  public void testKeywordMessageSend() {
+    Object result = compileAndRunTestMethod(
+        "class Test = () ('testing'"
+        + "test = (^self concat: 'foo' and: 'bar')"
+        + "concat: a and: b = (^ a + b)"
+        + ")");
+    assertTrue(result instanceof Builtins.StringObject);
+    assertEquals("foobar", ((Builtins.StringObject) result).value());
+  }
+
+  @Test
+  public void testImplicitSelfSendUnary() {
+    Object result = compileAndRunTestMethod(
+        "class Test = () ('testing'"
+        + "test = (^foobar)"
+        + "foobar = (^'Hello')"
+        + ")");
+    assertTrue(result instanceof Builtins.StringObject);
+    assertEquals("Hello", ((Builtins.StringObject) result).value());
+  }
+
+  @Test
+  public void testImplicitSelfSendKeyword() {
+    Object result = compileAndRunTestMethod(
+        "class Test = () ('testing'"
+            + "test = (^concat: 'foo' and: 'bar')"
+            + "concat: a and: b = (^ a + b)"
+        + ")");
+    assertTrue(result instanceof Builtins.StringObject);
+    assertEquals("foobar", ((Builtins.StringObject) result).value());
   }
 
 

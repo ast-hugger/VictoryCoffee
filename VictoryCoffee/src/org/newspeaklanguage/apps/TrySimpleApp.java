@@ -3,8 +3,8 @@ package org.newspeaklanguage.apps;
 import java.lang.reflect.Method;
 
 import org.newspeaklanguage.compiler.Compiler;
-import org.newspeaklanguage.infrastructure.NewspeakClassLoader;
 import org.newspeaklanguage.runtime.ClassDefinition;
+import org.newspeaklanguage.runtime.NewspeakClassLoader;
 import org.newspeaklanguage.runtime.Object;
 import org.newspeaklanguage.runtime.ObjectFactory;
 

@@ -21,14 +21,16 @@ import org.newspeaklanguage.compiler.ast.Return;
 import org.newspeaklanguage.compiler.ast.Self;
 import org.newspeaklanguage.compiler.ast.SlotDefinition;
 import org.newspeaklanguage.compiler.ast.Super;
-import org.newspeaklanguage.infrastructure.MessageDispatch;
-import org.newspeaklanguage.infrastructure.MessageSendSite;
+import org.newspeaklanguage.compiler.semantics.NameMeaningSelfSend;
+import org.newspeaklanguage.compiler.semantics.NameMeaningVariableReference;
+import org.newspeaklanguage.compiler.semantics.NameMeaningVisitor;
 import org.newspeaklanguage.runtime.Builtins;
+import org.newspeaklanguage.runtime.MessageDispatcher;
 import org.newspeaklanguage.runtime.Object;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-public class MethodGenerator implements AstNodeVisitor {
+public class MethodGenerator implements AstNodeVisitor, NameMeaningVisitor {
   
   private final Method methodNode;
   private final MethodVisitor methodVisitor;
@@ -114,7 +116,19 @@ public class MethodGenerator implements AstNodeVisitor {
 
   @Override
   public void visitMessageSendNoReceiver(MessageSendNoReceiver messageSendNoReceiver) {
-    unimplemented(messageSendNoReceiver);
+    messageSendNoReceiver.meaning().accept(this);
+  }
+
+  @Override
+  public void visitVariableReference(NameMeaningVariableReference nameMeaning) {
+    String varName = nameMeaning.definition().name();
+    int offset = localNames.offsetOf(varName);
+    methodVisitor.visitVarInsn(Opcodes.ALOAD, offset);
+  }
+
+  @Override
+  public void visitSelfSend(NameMeaningSelfSend nameMeaningSelfSend) {
+    throw new UnsupportedOperationException("not implemented yet");
   }
 
   @Override
@@ -126,7 +140,7 @@ public class MethodGenerator implements AstNodeVisitor {
     methodVisitor.visitInvokeDynamicInsn(
         sendNode.selector(),
         callSiteTypeDescriptor(sendNode.arguments().size()),
-        MessageSendSite.bootstrappedUsing(MessageDispatch.class, "bootstrap"));
+        MessageDispatcher.bootstrapHandle());
   }
 
   @Override
@@ -194,7 +208,7 @@ public class MethodGenerator implements AstNodeVisitor {
   }
 
   private void unimplemented(AstNode node) {
-    throw new IllegalArgumentException("Code generation is not yet implemented for " + node);
+    throw new UnsupportedOperationException("Code generation is not yet implemented for " + node);
   }
 
 }

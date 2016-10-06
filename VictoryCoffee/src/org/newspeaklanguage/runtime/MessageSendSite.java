@@ -1,31 +1,14 @@
-package org.newspeaklanguage.infrastructure;
+package org.newspeaklanguage.runtime;
 
-import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.MutableCallSite;
 
-import org.objectweb.asm.Handle;
-import org.objectweb.asm.Opcodes;
-
 
 public final class MessageSendSite extends MutableCallSite {
 
-  private static final String BOOTSTRAP_METHOD_DESCRIPTOR = MethodType.methodType(
-      CallSite.class, Lookup.class, String.class, MethodType.class)
-        .toMethodDescriptorString();
-  
-  public static Handle bootstrappedUsing(Class<?> hostClass, String methodName) {
-    return new Handle(
-        Opcodes.H_INVOKESTATIC,
-        hostClass.getName().replace('.', '/'),
-        methodName,
-        BOOTSTRAP_METHOD_DESCRIPTOR,
-        false);
-  }
-  
   public static MessageSendSite create(
       Lookup lookupAtCallSite,
       Lookup lookupAtImplementor,

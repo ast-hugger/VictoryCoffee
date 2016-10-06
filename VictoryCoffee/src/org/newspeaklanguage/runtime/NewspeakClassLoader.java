@@ -1,11 +1,10 @@
-package org.newspeaklanguage.infrastructure;
+package org.newspeaklanguage.runtime;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import org.newspeaklanguage.runtime.Object;
 
 public class NewspeakClassLoader extends ClassLoader {
   
