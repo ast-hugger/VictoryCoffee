@@ -28,6 +28,12 @@ public class ObjectFactory extends Object {
   public static final String INTERNAL_CLASS_NAME =
       ObjectFactory.class.getName().replace('.', '/');
   public static final String TYPE_DESCRIPTOR = "L" + INTERNAL_CLASS_NAME + ";";
+  public static final String CONSTRUCTOR_DESCRIPTOR =
+      "(" 
+      + ObjectFactory.TYPE_DESCRIPTOR 
+      + ClassDefinition.TYPE_DESCRIPTOR 
+      + StandardObject.TYPE_DESCRIPTOR 
+      + ")V";
 
   public static ObjectFactory create(ClassDefinition classDef, StandardObject container) {
     return new ObjectFactory(null, classDef, container);
@@ -66,7 +72,7 @@ public class ObjectFactory extends Object {
    * @throws NoSuchMethodException
    * @throws IllegalAccessException
    */
-  ObjectFactory(ObjectFactory nsClass, ClassDefinition classDefinition, StandardObject container) {
+  public ObjectFactory(ObjectFactory nsClass, ClassDefinition classDefinition, StandardObject container) {
     this.nsClass = nsClass;
     this.classDefinition = classDefinition;
     

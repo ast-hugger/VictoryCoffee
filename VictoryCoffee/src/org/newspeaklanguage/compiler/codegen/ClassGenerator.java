@@ -12,13 +12,19 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.newspeaklanguage.runtime.ClassDefinition;
 import org.newspeaklanguage.runtime.Object;
+import org.newspeaklanguage.runtime.ObjectFactory;
 import org.newspeaklanguage.runtime.StandardObject;
 
 public class ClassGenerator {
   
   public static final String GETTER_DESCRIPTOR = "()" + Object.TYPE_DESCRIPTOR;
   public static final String SETTER_DESCRIPTOR = "(" + Object.TYPE_DESCRIPTOR + ")V";
+  public static final String CLASS_DEF_FIELD_NAME = "$classDefinition$";
+  
+  // TODO take out class def as a literal implementation, handle it specially
 
   public static byte[] generate(ClassDecl classNode) {
     ClassGenerator generator = new ClassGenerator(classNode);
@@ -33,7 +39,8 @@ public class ClassGenerator {
   private final ClassWriter classWriter = new ClassWriter(
       ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
   private final Map<java.lang.Object, LiteralValue> literals = 
-      new HashMap<java.lang.Object, LiteralValue>(); 
+      new HashMap<java.lang.Object, LiteralValue>();
+  protected LiteralValue classDefLiteral;
   
   private ClassGenerator(ClassDecl classNode) {
     this.classNode = classNode;
@@ -41,11 +48,13 @@ public class ClassGenerator {
   
   public byte[] generate() {
     start();
+    generateClassDefField();
     processSlots();
     processNestedClasses();
     generateConstructor();
     processMethods();
     processLiterals();
+    generateClassInitializer();
     return finish();
   }
   
@@ -54,13 +63,15 @@ public class ClassGenerator {
   }
   
   public void addLiteral(LiteralValue literal) {
-    literal.setClassName(classNode.implementationClassName());;
-    literal.setFieldName(allocateLiteralFieldName());
+    literal.setClassName(classNode.implementationClassName());
+    if (literal.fieldName == null) {
+      literal.setFieldName(allocateLiteralFieldName(literal));
+    }
     literals.put(literal.key(), literal);
   }
   
-  private String allocateLiteralFieldName() {
-    return "Literal$" + literals.size();
+  private String allocateLiteralFieldName(LiteralValue literal) {
+    return "$literal" + literals.size() + "$";
   }
   
   private void start() {
@@ -72,6 +83,15 @@ public class ClassGenerator {
         null,
         StandardObject.INTERNAL_CLASS_NAME,
         null);
+  }
+  
+  private void generateClassDefField() {
+    FieldVisitor fieldWriter = classWriter.visitField(
+        Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
+        CLASS_DEF_FIELD_NAME,
+        ClassDefinition.TYPE_DESCRIPTOR,
+        null, null);
+    fieldWriter.visitEnd();
   }
   
   private void processSlots() {
@@ -96,18 +116,37 @@ public class ClassGenerator {
     classNode.nestedClasses().forEach(this::generateNestedClassGetter);
   }
   
-  private void generateNestedClassGetter(ClassDecl classNode) {
-    String selector = NamingPolicy.getterSelectorForSlot(classNode.name());
-    MethodVisitor methodVisitor = classWriter.visitMethod(
+  private void generateNestedClassGetter(ClassDecl nestedClassDecl) {
+    String selector = NamingPolicy.getterSelectorForSlot(nestedClassDecl.name());
+    MethodVisitor methodWriter = classWriter.visitMethod(
         Opcodes.ACC_PUBLIC,
         selector,
         GETTER_DESCRIPTOR,
         null, null);
-    methodVisitor.visitCode();
+    methodWriter.visitCode();
     
+    methodWriter.visitTypeInsn(Opcodes.NEW, ObjectFactory.INTERNAL_CLASS_NAME);
+    methodWriter.visitInsn(Opcodes.DUP);
+    // The first argument: the object factory (of this factory). Just use null for now
+    methodWriter.visitInsn(Opcodes.ACONST_NULL);
+    // The second argument: the class definition.
+    methodWriter.visitFieldInsn(
+        Opcodes.GETSTATIC, 
+        nestedClassDecl.implementationClassName(),
+        CLASS_DEF_FIELD_NAME,
+        ClassDefinition.TYPE_DESCRIPTOR);
+    // The third argument: the containing object of the class--the receiver.
+    methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
+    methodWriter.visitMethodInsn(
+        Opcodes.INVOKESPECIAL, 
+        ObjectFactory.INTERNAL_CLASS_NAME, 
+        "<init>", 
+        ObjectFactory.CONSTRUCTOR_DESCRIPTOR, 
+        false);
     
-    methodVisitor.visitMaxs(0, 0); // args ignored
-    methodVisitor.visitEnd();
+    methodWriter.visitInsn(Opcodes.ARETURN);
+    methodWriter.visitMaxs(0, 0); // args ignored
+    methodWriter.visitEnd();
   }
   
   private void generateSlotGetter(SlotDefinition slot) {
@@ -183,10 +222,7 @@ public class ClassGenerator {
   }
   
   private void processLiterals() {
-    if (!literals.isEmpty()) {
-      literals.values().forEach(each -> each.generateFieldDefinition(classWriter));
-      generateClassInitializer();
-    }
+    literals.values().forEach(each -> each.generateFieldDefinition(classWriter));
   }
   
   private void generateClassInitializer() {
@@ -196,10 +232,30 @@ public class ClassGenerator {
         "()V",
         null, null);
     methodWriter.visitCode();
-    literals.values().forEach(each -> each.generateInitializer(methodWriter));
+    generateClassDefInitializer(methodWriter);
+    literals.values().stream()
+      .sorted((a, b) -> a.fieldName.compareTo(b.fieldName))
+      .forEach(each -> each.generateInitializer(methodWriter));
     methodWriter.visitInsn(Opcodes.RETURN);
     methodWriter.visitMaxs(0, 0); // args ignored
     methodWriter.visitEnd();
+  }
+  
+  private void generateClassDefInitializer(MethodVisitor methodWriter) {
+    methodWriter.visitTypeInsn(Opcodes.NEW, ClassDefinition.INTERNAL_CLASS_NAME);
+    methodWriter.visitInsn(Opcodes.DUP);
+    methodWriter.visitLdcInsn(Type.getType("L" + classNode.implementationClassName() + ";"));
+    methodWriter.visitMethodInsn(
+        Opcodes.INVOKESPECIAL, 
+        ClassDefinition.INTERNAL_CLASS_NAME, 
+        "<init>", 
+        ClassDefinition.CONSTRUCTOR_DESCRIPTOR, 
+        false);
+    methodWriter.visitFieldInsn(
+        Opcodes.PUTSTATIC,
+        classNode.implementationClassName(), 
+        CLASS_DEF_FIELD_NAME,
+        ClassDefinition.TYPE_DESCRIPTOR);
   }
   
   private byte[] finish() {

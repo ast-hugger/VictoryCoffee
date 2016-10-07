@@ -23,6 +23,10 @@ import java.lang.invoke.MethodType;
  *
  */
 public class ClassDefinition {
+  
+  public static final String INTERNAL_CLASS_NAME = ClassDefinition.class.getName().replace('.', '/');
+  public static final String TYPE_DESCRIPTOR = "L" + INTERNAL_CLASS_NAME + ";";
+  public static final String CONSTRUCTOR_DESCRIPTOR = "(Ljava/lang/Class;)V";
 
   public static ClassDefinition create(java.lang.Class<? extends Object> implClass) {
     return new ClassDefinition(implClass);
@@ -36,7 +40,7 @@ public class ClassDefinition {
   
   private final MethodHandle constructor;
   
-  ClassDefinition(java.lang.Class<? extends Object> implementation)
+  public ClassDefinition(java.lang.Class<? extends Object> implementation)
   {
     this.implementation = implementation;
     try {

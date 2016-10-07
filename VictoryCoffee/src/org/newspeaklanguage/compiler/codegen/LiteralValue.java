@@ -4,7 +4,9 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.newspeaklanguage.runtime.Builtins;
+import org.newspeaklanguage.runtime.ClassDefinition;
 import org.newspeaklanguage.runtime.Object;
 
 public abstract class LiteralValue {
@@ -32,7 +34,10 @@ public abstract class LiteralValue {
     public java.lang.Object key() { return value; }
     
     @Override
-    public void generateInitializer(MethodVisitor visitor) {
+    public String typeName() { return "String"; }
+    
+    @Override
+    protected void generateValueCreation(MethodVisitor visitor) {
       visitor.visitTypeInsn(Opcodes.NEW, Builtins.StringObject.INTERNAL_CLASS_NAME);
       visitor.visitInsn(Opcodes.DUP);
       visitor.visitLdcInsn(value);
@@ -42,11 +47,6 @@ public abstract class LiteralValue {
           "<init>",
           "(Ljava/lang/String;)V",
           false);
-      visitor.visitFieldInsn(
-          Opcodes.PUTSTATIC,
-          className, 
-          fieldName,
-          Object.TYPE_DESCRIPTOR);
     }
   }
   
@@ -58,7 +58,7 @@ public abstract class LiteralValue {
   protected String className;
   /** The name of the field with the literal. */
   protected String fieldName;
-  
+    
   // package access for ClassGenerator
   void setClassName(String name) {
     this.className = name;
@@ -76,7 +76,8 @@ public abstract class LiteralValue {
         && ((LiteralValue) another).key().equals(key());
   }
   
-  public abstract java.lang.Object key(); 
+  public abstract java.lang.Object key();
+  public abstract String typeName();
   
   public void generateFieldDefinition(ClassVisitor classVisitor) {
     FieldVisitor fieldVisitor = classVisitor.visitField(
@@ -87,7 +88,16 @@ public abstract class LiteralValue {
     fieldVisitor.visitEnd();
   }
   
-  public abstract void generateInitializer(MethodVisitor methodVisitor);
+  public void generateInitializer(MethodVisitor visitor) {
+    generateValueCreation(visitor);
+    visitor.visitFieldInsn(
+        Opcodes.PUTSTATIC,
+        className, 
+        fieldName,
+        Object.TYPE_DESCRIPTOR);
+  }
+  
+  protected abstract void generateValueCreation(MethodVisitor methodVisitor);
   
   public void generateLoad(MethodVisitor visitor) {
     visitor.visitFieldInsn(
