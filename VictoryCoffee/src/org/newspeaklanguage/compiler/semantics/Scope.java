@@ -5,9 +5,9 @@ import java.util.Map;
 
 public abstract class Scope {
   
-  private final Scope parent;
-  private final int level;
-  private final Map<String, ScopeEntry> names = new HashMap<String, ScopeEntry>();
+  protected final Scope parent;
+  protected final int level;
+  protected final Map<String, ScopeEntry> names = new HashMap<String, ScopeEntry>();
   
   Scope(Scope parent, int level) {
     this.parent = parent;
@@ -30,6 +30,8 @@ public abstract class Scope {
         ? local 
         : parent != null ? parent.lookup(name) : null;
   }
+  
+  public abstract ClassScope lookupClass(String name);
   
   public ScopeEntry define(String name) {
     ScopeEntry def = createScopeEntry(name);

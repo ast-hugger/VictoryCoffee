@@ -5,6 +5,7 @@ import org.newspeaklanguage.compiler.ast.Block;
 import org.newspeaklanguage.compiler.ast.ClassDecl;
 import org.newspeaklanguage.compiler.ast.MessageSendNoReceiver;
 import org.newspeaklanguage.compiler.ast.Method;
+import org.newspeaklanguage.compiler.ast.Outer;
 
 /**
  * A visitor for the AST which populates name references
@@ -64,6 +65,15 @@ public class Stage2Analyzer extends AstNodeVisitorSkeleton {
     } finally {
       currentScope = original;
     }
+  }
+  
+  @Override
+  public void visitOuter(Outer outerNode) {
+    ClassScope target = currentScope.lookupClass(outerNode.name());
+    if (target == null) {
+      throw new IllegalArgumentException("no such outer class");
+    }
+    outerNode.setTargetClassScope(target);
   }
   
   @Override

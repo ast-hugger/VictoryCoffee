@@ -1,0 +1,12 @@
+class Test = ()
+(
+    class Nested = ()
+    ('accessing'
+        foo = (^inner + outer)
+	inner = (^'inner')
+    )
+	
+    'testing'
+    test = (^Nested new foo)
+    outer = (^'outer')
+)

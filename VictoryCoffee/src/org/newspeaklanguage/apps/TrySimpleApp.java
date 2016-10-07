@@ -36,7 +36,7 @@ public class TrySimpleApp {
       throw new IllegalStateException("failure loading the compiled Newspeak class");
     }
     say("Setting up...");
-    ClassDefinition classDef = ClassDefinition.create(topClass);
+    ClassDefinition classDef = ClassDefinition.create("App", topClass);
     ObjectFactory factory = ObjectFactory.create(classDef, null);
     say("Running...");
     Object module = factory.makeInstance();

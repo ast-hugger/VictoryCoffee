@@ -1,0 +1,5 @@
+class Test = ()
+('testing'
+    test = (^concat: 'foo' and: 'bar')
+    concat: a and: b = (^ a + b)
+)

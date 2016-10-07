@@ -26,22 +26,23 @@ public class ClassDefinition {
   
   public static final String INTERNAL_CLASS_NAME = ClassDefinition.class.getName().replace('.', '/');
   public static final String TYPE_DESCRIPTOR = "L" + INTERNAL_CLASS_NAME + ";";
-  public static final String CONSTRUCTOR_DESCRIPTOR = "(Ljava/lang/Class;)V";
+  public static final String CONSTRUCTOR_DESCRIPTOR = "(Ljava/lang/String;Ljava/lang/Class;)V";
 
-  public static ClassDefinition create(java.lang.Class<? extends Object> implClass) {
-    return new ClassDefinition(implClass);
+  public static ClassDefinition create(String name, java.lang.Class<? extends Object> implClass) {
+    return new ClassDefinition(name, implClass);
   }
   
-  /**
-   * The subclass of Newspeak {@link Object} instances of which represent
-   * instances of one of the Classes produced from this ClassDefinition.
+  /*
+   * Instance side
    */
-  private final java.lang.Class<? extends Object> implementation;
   
+  private final String name;
+  private final java.lang.Class<? extends Object> implementation;
   private final MethodHandle constructor;
   
-  public ClassDefinition(java.lang.Class<? extends Object> implementation)
+  public ClassDefinition(String name, java.lang.Class<? extends Object> implementation)
   {
+    this.name = name;
     this.implementation = implementation;
     try {
       this.constructor = MethodHandles.lookup().findConstructor(
@@ -50,6 +51,10 @@ public class ClassDefinition {
     } catch (NoSuchMethodException | IllegalAccessException e) {
       throw new IllegalStateException("Failure initializing a class definition");
     }
+  }
+  
+  public String name() {
+    return name;
   }
   
   public java.lang.Class<? extends Object> implementation() {

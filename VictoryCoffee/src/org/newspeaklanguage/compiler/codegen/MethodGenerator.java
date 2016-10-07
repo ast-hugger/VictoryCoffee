@@ -34,23 +34,27 @@ import org.objectweb.asm.Opcodes;
 // TODO I think we are leaving each method statement result on the stack,
 // so look into popping it, except after a last expression of a block.
 
+// TODO blocks are not implemented
+
+// TODO super sends are not implemented
+
 public class MethodGenerator implements AstNodeVisitor {
   
   private final ClassGenerator classGenerator;
   private final Method methodNode;
-  private final MethodVisitor methodVisitor;
+  private final MethodVisitor methodWriter;
   
   MethodGenerator(ClassGenerator classGenerator, Method methodNode, MethodVisitor methodVisitor) {
     this.classGenerator = classGenerator;
     this.methodNode = methodNode;
-    this.methodVisitor = methodVisitor;
+    this.methodWriter = methodVisitor;
   }
   
   public void generate() {
-    methodVisitor.visitCode();
+    methodWriter.visitCode();
     methodNode.accept(this);
-    methodVisitor.visitMaxs(0, 0); // args ignored; writer is set to compute these 
-    methodVisitor.visitEnd();
+    methodWriter.visitMaxs(0, 0); // args ignored; writer is set to compute these 
+    methodWriter.visitEnd();
   }
 
   public void visit(AstNode node) {
@@ -60,16 +64,14 @@ public class MethodGenerator implements AstNodeVisitor {
   @Override
   public void visitMethod(Method method) {
     List<AstNode> body = method.body();
-    body.forEach(this::visit);
-    if (body.isEmpty()) {
-      // Empty method or no explicit return: return self
-      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-      methodVisitor.visitInsn(Opcodes.ARETURN);
-    } else if (!(body.get(body.size() - 1) instanceof Return)) {
-      // Non-empty method and last expression is not an explicit return: return self
-      methodVisitor.visitInsn(Opcodes.POP);
-      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-      methodVisitor.visitInsn(Opcodes.ARETURN);
+    body.forEach(each -> {
+      visit(each);
+      methodWriter.visitInsn(Opcodes.POP);
+    });
+    if (body.isEmpty() || !(body.get(body.size() - 1) instanceof Return)) {
+      // Empty method or last expression not an explicit return: return the receiver.
+      methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
+      methodWriter.visitInsn(Opcodes.ARETURN);
     }
   }
 
@@ -91,7 +93,7 @@ public class MethodGenerator implements AstNodeVisitor {
       literal = LiteralValue.forString(string);
       classGenerator.addLiteral(literal);
     }
-    literal.generateLoad(methodVisitor);
+    literal.generateLoad(methodWriter);
   }
 
   @Override
@@ -115,42 +117,45 @@ public class MethodGenerator implements AstNodeVisitor {
   private void generateLocalVarReference(MessageSendNoReceiver messageSend) {
     NameMeaning.LocalVarReference meaning = (NameMeaning.LocalVarReference) messageSend.meaning();
     int index = ((MethodScopeEntry) meaning.definition()).index();
-    methodVisitor.visitVarInsn(Opcodes.ALOAD, index);
+    methodWriter.visitVarInsn(Opcodes.ALOAD, index);
   }
 
   private void generateSendToEnclosingObject(MessageSendNoReceiver messageSend) {
     NameMeaning.SendToEnclosingObject meaning = (NameMeaning.SendToEnclosingObject) messageSend.meaning();
     int scopeLevel = meaning.targetDefinition().definitionScope().level();
-    // get the enclosing receiver on the stack with the equivalent of:
-    // this.nsClass.enclosingObjects[scopeLevel]
-    // 'this' is a subclass of StandardClass, so no CHECKCAST is needed prior to getting 'nsClass'.
-    methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-    methodVisitor.visitFieldInsn(
-        Opcodes.GETFIELD, 
-        StandardObject.INTERNAL_CLASS_NAME,
-        "nsClass",
-        ObjectFactory.TYPE_DESCRIPTOR);
-    methodVisitor.visitFieldInsn(
-        Opcodes.GETFIELD, 
-        ObjectFactory.INTERNAL_CLASS_NAME, 
-        "enclosingObjects", 
-        "[" + StandardObject.TYPE_DESCRIPTOR);
-    generateLoadInt(scopeLevel);
-    methodVisitor.visitInsn(Opcodes.AALOAD);
-    // now emit the usual message send stuff
+    generateLoadOfEnclosingObject(scopeLevel);
     messageSend.arguments().forEach(this::visit);
-    methodVisitor.visitInvokeDynamicInsn(
+    methodWriter.visitInvokeDynamicInsn(
         messageSend.selector(),
         callSiteTypeDescriptor(messageSend.arity()),
         MessageDispatcher.bootstrapHandle());  
   }
   
+  private void generateLoadOfEnclosingObject(int level) {
+    // get the enclosing receiver on the stack with the equivalent of:
+    // this.nsClass.enclosingObjects[scopeLevel]
+    // 'this' is a subclass of StandardClass, so no CHECKCAST is needed prior to getting 'nsClass'.
+    methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
+    methodWriter.visitFieldInsn(
+        Opcodes.GETFIELD, 
+        StandardObject.INTERNAL_CLASS_NAME,
+        "nsClass",
+        ObjectFactory.TYPE_DESCRIPTOR);
+    methodWriter.visitFieldInsn(
+        Opcodes.GETFIELD, 
+        ObjectFactory.INTERNAL_CLASS_NAME, 
+        "enclosingObjects", 
+        "[" + StandardObject.TYPE_DESCRIPTOR);
+    generateLoadInt(level);
+    methodWriter.visitInsn(Opcodes.AALOAD);
+  }
+  
   private void generateSelfSend(MessageSendNoReceiver messageSend) {
-    methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+    methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
     for (AstNode arg : messageSend.arguments()) {
       arg.accept(this);
     }
-    methodVisitor.visitInvokeDynamicInsn(
+    methodWriter.visitInvokeDynamicInsn(
         messageSend.selector(),
         callSiteTypeDescriptor(messageSend.arguments().size()),
         MessageDispatcher.bootstrapHandle());
@@ -162,7 +167,7 @@ public class MethodGenerator implements AstNodeVisitor {
     for (AstNode arg : sendNode.arguments()) {
       arg.accept(this);
     }
-    methodVisitor.visitInvokeDynamicInsn(
+    methodWriter.visitInvokeDynamicInsn(
         sendNode.selector(),
         callSiteTypeDescriptor(sendNode.arguments().size()),
         MessageDispatcher.bootstrapHandle());
@@ -170,7 +175,7 @@ public class MethodGenerator implements AstNodeVisitor {
 
   @Override
   public void visitLiteralNil(LiteralNil literalNil) {
-    methodVisitor.visitFieldInsn(
+    methodWriter.visitFieldInsn(
         Opcodes.GETSTATIC, 
         Builtins.INTERNAL_CLASS_NAME, 
         "NIL", 
@@ -179,7 +184,7 @@ public class MethodGenerator implements AstNodeVisitor {
 
   @Override
   public void visitLiteralBoolean(LiteralBoolean literalBoolean) {
-    methodVisitor.visitFieldInsn(
+    methodWriter.visitFieldInsn(
         Opcodes.GETSTATIC, 
         Builtins.INTERNAL_CLASS_NAME, 
         literalBoolean.value() ? "TRUE" : "FALSE", 
@@ -188,7 +193,7 @@ public class MethodGenerator implements AstNodeVisitor {
 
   @Override
   public void visitSelf(Self self) {
-    methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+    methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
   }
 
   @Override
@@ -198,13 +203,14 @@ public class MethodGenerator implements AstNodeVisitor {
 
   @Override
   public void visitOuter(Outer outer) {
-    unimplemented(outer); 
+    int scopeLevel = outer.targetClassScope().level();
+    generateLoadOfEnclosingObject(scopeLevel);
   }
   
   @Override
   public void visitReturn(Return returnNode) {
     returnNode.expression().accept(this);
-    methodVisitor.visitInsn(Opcodes.ARETURN);
+    methodWriter.visitInsn(Opcodes.ARETURN);
   }
   
   @Override
@@ -245,11 +251,11 @@ public class MethodGenerator implements AstNodeVisitor {
  
   public void generateLoadInt(int value) {
     if (0 <= value && value <= 5) {
-      methodVisitor.visitInsn(specialOpcodes[value]);
+      methodWriter.visitInsn(specialOpcodes[value]);
     } else if (-128 <= value && value <= 127) {
-      methodVisitor.visitIntInsn(Opcodes.BIPUSH, value);
+      methodWriter.visitIntInsn(Opcodes.BIPUSH, value);
     } else {
-      methodVisitor.visitIntInsn(Opcodes.SIPUSH, value);
+      methodWriter.visitIntInsn(Opcodes.SIPUSH, value);
     }
   }
   

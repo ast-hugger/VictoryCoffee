@@ -76,6 +76,10 @@ public class Compiler {
     CommonTokenStream tokens = new CommonTokenStream(lexer);
     NewspeakParser parser = new NewspeakParser(tokens);
     SourceUnitContext sourceContext = parser.sourceUnit();
+    if (parser.getNumberOfSyntaxErrors() > 0) {
+      // just a dirty hack for now
+      throw new IllegalStateException("parsing failed");
+    }
     AstBuilder builder = new AstBuilder();
     return builder.visit(sourceContext);
   }

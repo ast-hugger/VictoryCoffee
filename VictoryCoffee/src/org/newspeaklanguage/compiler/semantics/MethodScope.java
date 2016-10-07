@@ -9,6 +9,11 @@ public class MethodScope extends Scope {
   }
   
   @Override
+  public ClassScope lookupClass(String name) {
+    return parent == null ? null : parent.lookupClass(name);
+  }
+  
+  @Override
   public boolean isMethodScope() { return true; }
   
   @Override

@@ -94,6 +94,10 @@ public class ObjectFactory extends Object {
     return nsClass;
   }
   
+  public String name() {
+    return classDefinition.name();
+  }
+  
   public ClassDefinition classDefinition() {
     return classDefinition;
   }

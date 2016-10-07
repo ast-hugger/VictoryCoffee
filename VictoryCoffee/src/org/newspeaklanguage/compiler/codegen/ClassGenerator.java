@@ -244,6 +244,8 @@ public class ClassGenerator {
   private void generateClassDefInitializer(MethodVisitor methodWriter) {
     methodWriter.visitTypeInsn(Opcodes.NEW, ClassDefinition.INTERNAL_CLASS_NAME);
     methodWriter.visitInsn(Opcodes.DUP);
+    // ClassDefinition(String name, Class implementationClass)
+    methodWriter.visitLdcInsn(classNode.name());
     methodWriter.visitLdcInsn(Type.getType("L" + classNode.implementationClassName() + ";"));
     methodWriter.visitMethodInsn(
         Opcodes.INVOKESPECIAL, 
