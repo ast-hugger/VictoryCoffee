@@ -1,9 +1,20 @@
 package org.newspeaklanguage.runtime;
 
+import java.lang.invoke.MethodHandle;
+
 public final class Builtins {
   
   public static final String INTERNAL_CLASS_NAME =
       Builtins.class.getName().replace('.', '/');
+  
+  public static StringObject string(String contents) {
+    return new StringObject(contents);
+  }
+  
+  public static ClosureLiteral closure(Class<? extends StandardObject> implementationClass, String methodName) {
+    return new ClosureLiteral(implementationClass, methodName);
+  }
+  
   
   public abstract static class BuiltinObject extends Object {
     @Override
@@ -18,7 +29,7 @@ public final class Builtins {
     public Object $printString() {
       String className = this.getClass().getSimpleName();
       String article = isVowel(className.charAt(0)) ? "an " : "a ";
-      return new StringObject(article + this.getClass().getSimpleName());
+      return Builtins.string(article + this.getClass().getSimpleName());
     }
     
     private boolean isVowel(char c) {
@@ -38,13 +49,13 @@ public final class Builtins {
   
   public static final class TrueObject extends BooleanObject {
     public Object $printString() {
-      return new StringObject("<true>");
+      return Builtins.string("<true>");
     }
   }
 
   public static final class FalseObject extends BooleanObject {
     public Object $printString() {
-      return new StringObject("<false>");
+      return Builtins.string("<false>");
     }
   }
 
@@ -70,11 +81,38 @@ public final class Builtins {
       this.value = value;
     }
     public String value() { return value; }
-    public String toString() { return "<\"" + value + "\">"; }
+    public String toString() { return "<'" + value + "'>"; }
     
     public Object $$plus(Object another) {
       // TODO for now just assuming another is also a string
-      return new StringObject(value + ((StringObject) another).value());
+      return Builtins.string(value + ((StringObject) another).value());
+    }
+    
+    public Object $printString() {
+      return Builtins.string("'" + value + "'");
+    }
+  }
+  
+  public static final class Closure extends BuiltinObject {
+    
+    public static final String INTERNAL_CLASS_NAME = Descriptors.internalClassName(Closure.class);
+    public static final String CONSTRUCTOR_DESCRIPTOR = 
+        Descriptors.methodTypeDescriptor(void.class, ClosureLiteral.class, StandardObject.class);
+    
+    private final MethodHandle bodyMethodHandle;
+    private final StandardObject copiedSelf;
+    
+    public Closure(ClosureLiteral closureLiteral, StandardObject copiedSelf) {
+      this.bodyMethodHandle = closureLiteral.methodHandle();
+      this.copiedSelf = copiedSelf;
+    }
+    
+    public Object $value() {
+      try {
+        return (Object) bodyMethodHandle.invoke(copiedSelf);
+      } catch (Throwable e) {
+        throw new RuntimeError("closure invocation error", e);
+      }
     }
   }
   
@@ -85,8 +123,7 @@ public final class Builtins {
 //    }
 //  }
 
-  public static final class ClosureObject extends BuiltinObject {
-  }
+  
   
 //  public static final ClassDefinition undefinedObjectClassDef = 
 //      new ClassDefinition(UndefinedObject.class); 
@@ -107,16 +144,42 @@ public final class Builtins {
   
 //  public static final ObjectFactory objectMetafactory = new ObjectFactory();
 //  public static final ObjectFactory undefinedObjectFactory =
-//      new ObjectFactory(objectMetafactory, undefinedObjectClassDef, null);
+//      new ObjectFactory(objectMetafactory, undefinedObjectClassDef, null);s
 //  public static final ObjectFactory trueFactory =
 //      new ObjectFactory(objectMetafactory, trueClassDef, null);
 //  public static final ObjectFactory falseFactory =
 //      new ObjectFactory(objectMetafactory, falseClassDef, null);
+//new ObjectFactory(objectMetafactory, falseCl
+//public static final ObjectFactory integerFactory =
+//new ObjectFactory(objectMetafactory, integerClassDef, null);
+//public static final ObjectFactory stringFactory =
+//new ObjectFactory(objectMetafactory, stringClassDef, null
+//public static final ObjectFactory falseFactory =
+//new ObjectFactory(objectMetafactory, falseClassDef, null);
+//public static final ObjectFactory integerFactory =
+//new ObjectFactory(objectMetafactory, integerClassDef, nulassDef, null);
+//public static final ObjectFactory integerFactory =
+//new ObjectFactory(objectMetafactory, integerClassDef, null);
+//public static final ObjectFactory stringFactory =
+//new ObjectFactory(objectMetafactory, stringClassDef, null
 //  public static final ObjectFactory integerFactory =
 //      new ObjectFactory(objectMetafactory, integerClassDef, null);
 //  public static final ObjectFactory stringFactory =
 //      new ObjectFactory(objectMetafactory, stringClassDef, null);
 //  public static final ObjectFactory closureFactory =
+//public static final ObjectFactory trueFactory =
+//new ObjectFactory(objectMetafactory, trueClassDef, null);
+//new ObjectFactory(objectMetafactory, falseClassDef, null);
+//public static final ObjectFactory integerFactory =
+//new ObjectFactory(objectMetafactory, integerClassDef, null);
+//public static final ObjectFactory stringFactory =
+//new ObjectFactory(objectMetafactory, stringClassDef, null
+//public static final ObjectFactory falseFactory =
+//new ObjectFactory(objectMetafactory, falseClassDef, null);
+//public static final ObjectFactory integerFactory =
+//new ObjectFactory(objectMetafactory, integerClassDef, null);
+//public static final ObjectFactory stringFactory =
+//new ObjectFactory(objectMetafactory, stringClassDef, null
 //      new ObjectFactory(objectMetafactory, closureClassDef, null);
 
   public static final Object NIL = new UndefinedObject();

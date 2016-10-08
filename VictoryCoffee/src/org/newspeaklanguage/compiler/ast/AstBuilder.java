@@ -11,7 +11,6 @@ import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.newspeaklanguage.compiler.parser.NewspeakBaseVisitor;
 import org.newspeaklanguage.compiler.parser.NewspeakParser;
 import org.newspeaklanguage.compiler.parser.NewspeakParser.AccessModifierContext;
 import org.newspeaklanguage.compiler.parser.NewspeakParser.BinaryMessageContext;
@@ -190,7 +189,10 @@ public class AstBuilder implements NewspeakVisitor<AstNode> {
 
   @Override
   public AstNode visitBlockLiteral(NewspeakParser.BlockLiteralContext ctx) {
-    throw new IllegalArgumentException("Unsupported literal");
+    List<AstNode> statements = ctx.block().codeBody().statement().stream()
+        .map(this::visit)
+        .collect(Collectors.toList());
+    return new Block(Collections.emptyList(), Collections.emptyList(), statements);
   }
 
   @Override
@@ -278,7 +280,12 @@ public class AstBuilder implements NewspeakVisitor<AstNode> {
   public AstNode visitReceiver(ReceiverContext ctx) {
     TerminalNode name = ctx.IDENTIFIER();
     if (name != null) {
+      // The IDENTIFIER option
       return new MessageSendNoReceiver(name.getText(), Collections.emptyList(), false);
+    }
+    if (ctx.expression() != null) {
+      // The '(' expression ')' option
+      return visit(ctx.expression());
     }
     return visitFirstChild(ctx);
  }
@@ -295,7 +302,11 @@ public class AstBuilder implements NewspeakVisitor<AstNode> {
 
   @Override
   public AstNode visitSetterSend(SetterSendContext ctx) {
-    throw new UnsupportedOperationException("not implemented yet");
+    String keyword = ctx.SETTER_KEYWORD().getText();
+    // A setter keyword has two colons at the end; we only need one. 
+    String selector = keyword.substring(0, keyword.length() - 1);
+    AstNode arg = visit(ctx.expression());
+    return new MessageSendNoReceiver(selector, Arrays.asList(arg), true);
   }
 
   @Override

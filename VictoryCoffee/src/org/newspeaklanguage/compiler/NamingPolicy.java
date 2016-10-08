@@ -1,14 +1,22 @@
 package org.newspeaklanguage.compiler;
 
-import java.util.Arrays;
-
 public final class NamingPolicy {
 
+  public static final String CLASS_DEF_FIELD_NAME = "$classDefinition$";
+
   public static String getterSelectorForSlot(String slotName) {
+    return slotName;
+  }
+  
+  public static String setterSelectorForSlot(String slotName) {
+    return slotName + ":";
+  }
+  
+  public static String getterMethodNameForSlot(String slotName) {
     return "$" + slotName;
   }
 
-  public static String setterSelectorForSlot(String slotName) {
+  public static String setterMethodNameForSlot(String slotName) {
     return "$" + slotName + "$";
   }
 
@@ -16,6 +24,18 @@ public final class NamingPolicy {
     return "$" + slotName;
   }
 
+  /**
+   * Given a Newspeak selector assumed to be a slot getter or setter, return the
+   * name of the actual slot. The name is in the original unmangled form.
+   */
+  public static String slotNameForSelector(String selector) {
+    int lastCharIndex = selector.length() - 1;
+    char last = selector.charAt(lastCharIndex);
+    return last == ':'
+        ? selector.substring(0, lastCharIndex)
+        : selector;
+  }
+  
   /**
    * Given a Newspeak selector, return a method name to be used for a method
    * implementing that selector.
@@ -43,6 +63,10 @@ public final class NamingPolicy {
       }
     }
     return name.toString();
+  }
+  
+  public static String methodNameForClosure(String hostMethodSelector, int closureIndex) {
+    return methodNameForSelector(hostMethodSelector) + "$closure" + closureIndex;
   }
 
   private static String binarySelectorCharToToken(char character) {

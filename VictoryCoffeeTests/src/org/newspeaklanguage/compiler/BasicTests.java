@@ -5,128 +5,59 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.newspeaklanguage.runtime.Builtins;
+import org.newspeaklanguage.testsupport.Example;
 
 public class BasicTests {
   
   @Test
   public void testEmptyMethodReturnsSelf() {
-    Runner.Result result = Runner.run(
-        "class Test = () ('testing'"
-        + "test = ()"
-        + ")");
-    assertEquals("Test", result.resultClassName());
+    Example test = Example.testBody("");
+    assertEquals(test.module(), test.result());
   }
 
   @Test
   public void testReceiverImplicitlyReturned() {
-    Runner.Result result = Runner.run(
-        "class Test = () ('testing'"
-        + "test = (nil)"
-        + ")");
-    assertEquals("Test", result.resultClassName());
+    Example test = Example.testBody("nil");
+    assertEquals(test.module(), test.result());
   }
 
   @Test
   public void testReturnNil() {
-    Runner.Result result = Runner.run(
-        "class Test = () ('testing'"
-        + "test = (^nil)"
-        + ")");
-    assertEquals(Builtins.NIL, result.testResult);
+    Example test = Example.testBody("^nil");
+    assertEquals(Builtins.NIL, test.result());
   }
 
   @Test
-  public void testReturnSelf() {
-    Runner.Result result = Runner.run(
-        "class Test = () ('testing'"
-        + "test = (^self)"
-        + ")");
-    assertEquals("Test", result.resultClassName());
+  public void testExplicitReturnSelf() {
+    Example test = Example.testBody("^self");
+    assertEquals("Test", test.resultClassName());
   }
 
   @Test
   public void testReturnTrue() {
-    Runner.Result result = Runner.run(
-       "class Test = () ('testing'"
-        + "test = (^true)"
-        + ")");
-    assertEquals(Builtins.TRUE, result.testResult);
+    Example test = Example.testBody("^true");
+    assertEquals(Builtins.TRUE, test.result());
   }
 
   @Test
   public void testReturnFalse() {
-    Runner.Result result = Runner.run(
-        "class Test = () ('testing'"
-        + "test = (^false)"
-        + ")");
-    assertEquals(Builtins.FALSE, result.testResult);
+    Example test = Example.testBody("^false");
+    assertEquals(Builtins.FALSE, test.result());
   }
   
   @Test
   public void testReturnLiteralString() {
-    Runner.Result result = Runner.run(
-        "class Test = () ('testing'"
-        + "test = (^'foobar')"
-        + ")");
-    assertTrue(result.testResult instanceof Builtins.StringObject);
-    assertEquals("foobar", ((Builtins.StringObject) result.testResult).value());
-  }
-
-  @Test
-  public void testBinaryMessageSend() {
-    Runner.Result result = Runner.run(
-        "class Test = () ('testing'"
-        + "test = (^self foo + self bar)"
-        + "foo = (^'foo1')"
-        + "bar = (^'bar2')"
-        + ")");
-    assertTrue(result.testResult instanceof Builtins.StringObject);
-    assertEquals("foo1bar2", ((Builtins.StringObject) result.testResult).value());
-  }
-
-  @Test
-  public void testKeywordMessageSend() {
-    Runner.Result result = Runner.run(
-        "class Test = () ('testing'"
-        + "test = (^self concat: 'foo' and: 'bar')"
-        + "concat: a and: b = (^ a + b)"
-        + ")");
-    assertTrue(result.testResult instanceof Builtins.StringObject);
-    assertEquals("foobar", ((Builtins.StringObject) result.testResult).value());
-  }
-
-  @Test
-  public void testImplicitSelfSendUnary() {
-    Runner.Result result = Runner.run(
-        "class Test = () ('testing'"
-        + "test = (^foobar)"
-        + "foobar = (^'Hello')"
-        + ")");
-    assertTrue(result.testResult instanceof Builtins.StringObject);
-    assertEquals("Hello", ((Builtins.StringObject) result.testResult).value());
-  }
-
-  @Test
-  public void testImplicitSelfSendKeyword() {
-    Runner.Result result = Runner.run(
-        "class Test = () ('testing'"
-            + "test = (^concat: 'foo' and: 'bar')"
-            + "concat: a and: b = (^ a + b)"
-        + ")");
-    assertTrue(result.testResult instanceof Builtins.StringObject);
-    assertEquals("foobar", ((Builtins.StringObject) result.testResult).value());
+    Example test = Example.testBody("^'foobar'");
+    assertTrue(test.isResult("foobar"));
   }
 
   @Test
   public void testSequence() {
-    Runner.Result result = Runner.run(
-        "class Test = () ('testing'"
-            + "test = ('foo'."
+    Example test = Example.testMethod(
+            "test = ('foo'."
             + "        'bar'."
-            + "        ^'baz')"
-        + ")");
-    assertTrue(result.testResult instanceof Builtins.StringObject);
-    assertEquals("baz", ((Builtins.StringObject) result.testResult).value());
+            + "        ^'baz')");
+    assertTrue(test.isResult("baz"));
   }
 
 

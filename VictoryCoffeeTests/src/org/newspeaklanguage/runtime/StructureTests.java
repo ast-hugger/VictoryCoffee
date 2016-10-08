@@ -1,6 +1,6 @@
 package org.newspeaklanguage.runtime;
 
-import org.junit.Test;
+// import org.junit.Test;
 
 import junit.framework.TestCase;
 

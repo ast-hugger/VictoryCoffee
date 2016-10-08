@@ -15,7 +15,7 @@ public class MessageSendNoReceiver extends AstNode {
 
   protected final String selector;
   protected final List<AstNode> arguments;
-  protected final boolean isSetter;
+  protected final boolean isSetterSend;
   
   /**
    * For selectors with a lexically visible method (perhaps a slot accessor)
@@ -24,14 +24,15 @@ public class MessageSendNoReceiver extends AstNode {
   private ScopeEntry lexicalDefinition;
   private NameMeaning meaning;
 
-  public MessageSendNoReceiver(String selector, List<AstNode> arguments, boolean isSetter) {
+  public MessageSendNoReceiver(String selector, List<AstNode> arguments, boolean isSetterSend) {
     this.selector = selector;
     this.arguments = arguments;
-    this.isSetter = isSetter;
+    this.isSetterSend = isSetterSend;
   }
 
   public String selector() { return selector; }
   public List<AstNode> arguments() { return arguments; }
+  public boolean isSetterSend() { return isSetterSend; }
 
   public int arity() {
     return arguments.size();
@@ -60,5 +61,10 @@ public class MessageSendNoReceiver extends AstNode {
   @Override
   public void accept(AstNodeVisitor visitor) {
     visitor.visitMessageSendNoReceiver(this);
+  }
+  
+  @Override
+  public String toString() {
+    return this.getClass().getSimpleName() + "(" + selector + ")";
   }
 }

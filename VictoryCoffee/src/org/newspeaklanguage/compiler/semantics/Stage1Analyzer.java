@@ -1,5 +1,6 @@
 package org.newspeaklanguage.compiler.semantics;
 
+import org.newspeaklanguage.compiler.NamingPolicy;
 import org.newspeaklanguage.compiler.ast.Argument;
 import org.newspeaklanguage.compiler.ast.AstNode;
 import org.newspeaklanguage.compiler.ast.AstNodeVisitorSkeleton;
@@ -86,7 +87,10 @@ public class Stage1Analyzer extends AstNodeVisitorSkeleton {
 
   @Override
   public void visitSlotDefinition(SlotDefinition slot) {
-    defineName(slot.name(), slot);
+    defineName(NamingPolicy.setterSelectorForSlot(slot.name()), slot);
+    if (slot.isMutable()) {
+      defineName(NamingPolicy.getterSelectorForSlot(slot.name()), slot);
+    }
   }
   
   protected void pushClassScope(ClassDecl classNode) {

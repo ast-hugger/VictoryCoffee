@@ -31,4 +31,9 @@ public class ScopeEntry {
   public boolean isLocalVariable() {
     return definitionScope.isMethodScope();
   }
+  
+  @Override
+  public String toString() {
+    return this.getClass().getSimpleName() + "(" + name + ")";
+  }
 }

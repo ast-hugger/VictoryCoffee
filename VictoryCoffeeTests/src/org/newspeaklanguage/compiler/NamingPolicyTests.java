@@ -7,18 +7,34 @@ import org.junit.Test;
 public class NamingPolicyTests {
   
   @Test
+  public void testGetterSelector() {
+    assertEquals("foo", NamingPolicy.getterSelectorForSlot("foo"));
+  }  
+  
+  @Test
+  public void testSetterSelector() {
+    assertEquals("foo:", NamingPolicy.setterSelectorForSlot("foo"));
+  }  
+  
+  @Test
   public void testFieldName() {
     assertEquals("$foo", NamingPolicy.fieldNameForSlot("foo"));
   }
   
   @Test
-  public void testGetterSelector() {
-    assertEquals("$foo", NamingPolicy.getterSelectorForSlot("foo"));
+  public void testGetterMethodName() {
+    assertEquals("$foo", NamingPolicy.getterMethodNameForSlot("foo"));
   }
   
   @Test
-  public void testSetterSelector() {
-    assertEquals("$foo$", NamingPolicy.setterSelectorForSlot("foo"));
+  public void testSetterMethodName() {
+    assertEquals("$foo$", NamingPolicy.setterMethodNameForSlot("foo"));
+  }
+  
+  @Test
+  public void testSlotNameForSelector() {
+    assertEquals("foo", NamingPolicy.slotNameForSelector("foo"));
+    assertEquals("foo", NamingPolicy.slotNameForSelector("foo:"));
   }
 
   @Test

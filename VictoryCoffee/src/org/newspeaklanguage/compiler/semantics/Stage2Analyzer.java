@@ -94,6 +94,7 @@ public class Stage2Analyzer extends AstNodeVisitorSkeleton {
       }
     }
     messageSend.setMeaning(meaning);
+    super.visitMessageSendNoReceiver(messageSend);
   }
 
   private Scope nearestClassScope() {

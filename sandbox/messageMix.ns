@@ -1,0 +1,1 @@
+test = (^self concat: ('foo' + 'boo') printString and: 'bar' + 'baz' printString)

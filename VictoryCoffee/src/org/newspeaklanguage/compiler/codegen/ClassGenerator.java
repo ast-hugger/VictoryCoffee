@@ -1,6 +1,8 @@
 package org.newspeaklanguage.compiler.codegen;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.newspeaklanguage.compiler.NamingPolicy;
@@ -8,24 +10,20 @@ import org.newspeaklanguage.compiler.ast.Category;
 import org.newspeaklanguage.compiler.ast.ClassDecl;
 import org.newspeaklanguage.compiler.ast.Method;
 import org.newspeaklanguage.compiler.ast.SlotDefinition;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.FieldVisitor;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.newspeaklanguage.runtime.ClassDefinition;
 import org.newspeaklanguage.runtime.Object;
 import org.newspeaklanguage.runtime.ObjectFactory;
 import org.newspeaklanguage.runtime.StandardObject;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 public class ClassGenerator {
   
   public static final String GETTER_DESCRIPTOR = "()" + Object.TYPE_DESCRIPTOR;
-  public static final String SETTER_DESCRIPTOR = "(" + Object.TYPE_DESCRIPTOR + ")V";
-  public static final String CLASS_DEF_FIELD_NAME = "$classDefinition$";
+  public static final String SETTER_DESCRIPTOR = "(" + Object.TYPE_DESCRIPTOR + ")" + Object.TYPE_DESCRIPTOR;
   
-  // TODO take out class def as a literal implementation, handle it specially
-
   public static byte[] generate(ClassDecl classNode) {
     ClassGenerator generator = new ClassGenerator(classNode);
     return generator.generate();
@@ -36,14 +34,27 @@ public class ClassGenerator {
    */
   
   private final ClassDecl classNode;
+  private final String internalClassName;
   private final ClassWriter classWriter = new ClassWriter(
       ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
   private final Map<java.lang.Object, LiteralValue> literals = 
       new HashMap<java.lang.Object, LiteralValue>();
-  protected LiteralValue classDefLiteral;
+  private final List<ClassInitializerSnippet> classInitializerSnippets = 
+      new LinkedList<ClassInitializerSnippet>();
+  private final List<FutureClosureBodyMethod> futureClosureBodyMethods =
+      new LinkedList<FutureClosureBodyMethod>();
   
   private ClassGenerator(ClassDecl classNode) {
     this.classNode = classNode;
+    this.internalClassName = toInternalFormat(classNode.implementationClassName());
+  }
+  
+  public String internalClassName() {
+    return internalClassName;
+  }
+  
+  public ClassWriter classWriter() {
+    return classWriter;
   }
   
   public byte[] generate() {
@@ -53,6 +64,7 @@ public class ClassGenerator {
     processNestedClasses();
     generateConstructor();
     processMethods();
+    generateClosureBodies();
     processLiterals();
     generateClassInitializer();
     return finish();
@@ -68,6 +80,11 @@ public class ClassGenerator {
       literal.setFieldName(allocateLiteralFieldName(literal));
     }
     literals.put(literal.key(), literal);
+    classInitializerSnippets.add(literal);
+  }
+  
+  public void addClosureBodyMethodGenerator(FutureClosureBodyMethod generator) {
+    futureClosureBodyMethods.add(generator);
   }
   
   private String allocateLiteralFieldName(LiteralValue literal) {
@@ -79,7 +96,7 @@ public class ClassGenerator {
     classWriter.visit(
         52,
         Opcodes.ACC_PUBLIC | Opcodes.ACC_SUPER,
-        toInternalFormat(classNode.implementationClassName()),
+        internalClassName,
         null,
         StandardObject.INTERNAL_CLASS_NAME,
         null);
@@ -88,10 +105,11 @@ public class ClassGenerator {
   private void generateClassDefField() {
     FieldVisitor fieldWriter = classWriter.visitField(
         Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
-        CLASS_DEF_FIELD_NAME,
+        NamingPolicy.CLASS_DEF_FIELD_NAME,
         ClassDefinition.TYPE_DESCRIPTOR,
         null, null);
     fieldWriter.visitEnd();
+    classInitializerSnippets.add(new ClassDefFieldInitializerSnippet(classNode));
   }
   
   private void processSlots() {
@@ -117,7 +135,7 @@ public class ClassGenerator {
   }
   
   private void generateNestedClassGetter(ClassDecl nestedClassDecl) {
-    String selector = NamingPolicy.getterSelectorForSlot(nestedClassDecl.name());
+    String selector = NamingPolicy.getterMethodNameForSlot(nestedClassDecl.name());
     MethodVisitor methodWriter = classWriter.visitMethod(
         Opcodes.ACC_PUBLIC,
         selector,
@@ -133,7 +151,7 @@ public class ClassGenerator {
     methodWriter.visitFieldInsn(
         Opcodes.GETSTATIC, 
         nestedClassDecl.implementationClassName(),
-        CLASS_DEF_FIELD_NAME,
+        NamingPolicy.CLASS_DEF_FIELD_NAME,
         ClassDefinition.TYPE_DESCRIPTOR);
     // The third argument: the containing object of the class--the receiver.
     methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
@@ -152,7 +170,7 @@ public class ClassGenerator {
   private void generateSlotGetter(SlotDefinition slot) {
     MethodVisitor methodVisitor = classWriter.visitMethod(
         Opcodes.ACC_PUBLIC,
-        NamingPolicy.getterSelectorForSlot(slot.name()),
+        NamingPolicy.getterMethodNameForSlot(slot.name()),
         GETTER_DESCRIPTOR,
         null, null);
     methodVisitor.visitCode();
@@ -170,7 +188,7 @@ public class ClassGenerator {
   private void generateSlotSetter(SlotDefinition slot) {
     MethodVisitor methodVisitor = classWriter.visitMethod(
         Opcodes.ACC_PUBLIC,
-        NamingPolicy.setterSelectorForSlot(slot.name()),
+        NamingPolicy.setterMethodNameForSlot(slot.name()),
         SETTER_DESCRIPTOR,
         null, null);
     methodVisitor.visitCode();
@@ -181,7 +199,8 @@ public class ClassGenerator {
         toInternalFormat(classNode.implementationClassName()), 
         NamingPolicy.fieldNameForSlot(slot.name()),
         Object.TYPE_DESCRIPTOR);
-    methodVisitor.visitInsn(Opcodes.RETURN);
+    methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+    methodVisitor.visitInsn(Opcodes.ARETURN);
     methodVisitor.visitMaxs(2, 2); // args correct but ignored
     methodVisitor.visitEnd();    
   }
@@ -221,6 +240,10 @@ public class ClassGenerator {
     }
   }
   
+  private void generateClosureBodies() {
+    futureClosureBodyMethods.forEach(each -> each.generate());
+  }
+  
   private void processLiterals() {
     literals.values().forEach(each -> each.generateFieldDefinition(classWriter));
   }
@@ -232,32 +255,10 @@ public class ClassGenerator {
         "()V",
         null, null);
     methodWriter.visitCode();
-    generateClassDefInitializer(methodWriter);
-    literals.values().stream()
-      .sorted((a, b) -> a.fieldName.compareTo(b.fieldName))
-      .forEach(each -> each.generateInitializer(methodWriter));
+    classInitializerSnippets.forEach(each -> each.generateInitializerCode(methodWriter));
     methodWriter.visitInsn(Opcodes.RETURN);
     methodWriter.visitMaxs(0, 0); // args ignored
     methodWriter.visitEnd();
-  }
-  
-  private void generateClassDefInitializer(MethodVisitor methodWriter) {
-    methodWriter.visitTypeInsn(Opcodes.NEW, ClassDefinition.INTERNAL_CLASS_NAME);
-    methodWriter.visitInsn(Opcodes.DUP);
-    // ClassDefinition(String name, Class implementationClass)
-    methodWriter.visitLdcInsn(classNode.name());
-    methodWriter.visitLdcInsn(Type.getType("L" + classNode.implementationClassName() + ";"));
-    methodWriter.visitMethodInsn(
-        Opcodes.INVOKESPECIAL, 
-        ClassDefinition.INTERNAL_CLASS_NAME, 
-        "<init>", 
-        ClassDefinition.CONSTRUCTOR_DESCRIPTOR, 
-        false);
-    methodWriter.visitFieldInsn(
-        Opcodes.PUTSTATIC,
-        classNode.implementationClassName(), 
-        CLASS_DEF_FIELD_NAME,
-        ClassDefinition.TYPE_DESCRIPTOR);
   }
   
   private byte[] finish() {

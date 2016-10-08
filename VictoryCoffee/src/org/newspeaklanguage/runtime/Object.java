@@ -21,7 +21,7 @@ public abstract class Object {
   public Object $printString() {
     String name = this.nsClass().name();
     String article = isVowel(name.charAt(0)) ? "an" : "a";
-    return new Builtins.StringObject("<" + article + " " + name + ">");
+    return Builtins.string("<" + article + " " + name + ">");
   }
   
   private boolean isVowel(char c) {

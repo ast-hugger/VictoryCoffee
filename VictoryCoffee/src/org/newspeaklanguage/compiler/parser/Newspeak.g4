@@ -82,7 +82,7 @@ expression
     | messageSend
   	| setterSend
     | keywordMessage
-    | '(' expression ')'
+    | LPAREN expression RPAREN
     ;
 
 messageSend
@@ -95,6 +95,7 @@ receiver
     : IDENTIFIER
     | specialReceiver
     | literal
+    | LPAREN expression RPAREN
     ;
 
 binaryReceiver
