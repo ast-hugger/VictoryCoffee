@@ -23,6 +23,9 @@ public abstract class Scope<E extends ScopeEntry> {
   
   public boolean isClassScope() { return false; }
   public boolean isMethodScope() { return false; }
+  public boolean isBlockScope() { return false; }
+  
+  public abstract CodeScope enclosingMethodScope();
   
   public ScopeEntry lookup(String name) {
     E local = names.get(name);

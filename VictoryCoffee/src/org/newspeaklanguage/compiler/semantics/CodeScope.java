@@ -3,7 +3,7 @@ package org.newspeaklanguage.compiler.semantics;
 import org.newspeaklanguage.compiler.NamingPolicy;
 
 /**
- * A scope established by a method. The names defined by this scope are accessor
+ * A scope established by a method or a block. The names defined by this scope are accessor
  * selectors to the method's arguments and temps. The scope, together with the
  * entries, keeps track of the index of those variables. The index used in the
  * local var instructions to address them in the frame.
@@ -23,12 +23,14 @@ import org.newspeaklanguage.compiler.NamingPolicy;
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
  */
-public class MethodScope extends Scope<MethodScopeEntry> {
+public class CodeScope extends Scope<CodeScopeEntry> {
   
+  private final boolean isMethod;
   protected int lastVarIndex = 0;
   
-  MethodScope(Scope<? extends ScopeEntry> parent) {
+  CodeScope(Scope<? extends ScopeEntry> parent, boolean isMethod) {
     super(parent);
+    this.isMethod = isMethod;
   }
   
   @Override
@@ -37,14 +39,22 @@ public class MethodScope extends Scope<MethodScopeEntry> {
   }
   
   @Override
-  public boolean isMethodScope() { return true; }
+  public boolean isMethodScope() { return isMethod; }
+
+  @Override
+  public boolean isBlockScope() { return !isMethod; }
+
+  @Override
+  public CodeScope enclosingMethodScope() {
+    return isMethod ? this : parent.enclosingMethodScope();
+  }
   
   @Override
-  public MethodScopeEntry define(String name) {
+  public CodeScopeEntry define(String name) {
     if (NamingPolicy.isSetterSelector(name)) {
-      MethodScopeEntry getterEntry = lookupLocally(NamingPolicy.getterForSetter(name));
+      CodeScopeEntry getterEntry = lookupLocally(NamingPolicy.getterForSetter(name));
       assert getterEntry != null;
-      MethodScopeEntry newEntry = new MethodScopeEntry(name, this, getterEntry.index());
+      CodeScopeEntry newEntry = new CodeScopeEntry(name, this, getterEntry.index());
       names.put(name, newEntry);
       return newEntry;
     } else {
@@ -53,7 +63,7 @@ public class MethodScope extends Scope<MethodScopeEntry> {
   }
   
   @Override
-  protected MethodScopeEntry createScopeEntry(String name) {
-    return new MethodScopeEntry(name, this, ++lastVarIndex);
+  protected CodeScopeEntry createScopeEntry(String name) {
+    return new CodeScopeEntry(name, this, ++lastVarIndex);
   }
 }

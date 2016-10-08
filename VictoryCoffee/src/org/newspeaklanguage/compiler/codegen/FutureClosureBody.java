@@ -5,16 +5,15 @@ import org.newspeaklanguage.runtime.Object;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-class FutureClosureBodyMethod {
+class FutureClosureBody {
   
   public static final String BOGUS_CLOSURE_CALL_TYPE_DESCRIPTOR = "()" + Object.TYPE_DESCRIPTOR;
-      
   
   private final MethodGenerator hostMethodGenerator;
   private final Block blockNode;
   private final String methodName;
   
-  FutureClosureBodyMethod(MethodGenerator hostMethodGenerator, Block blockNode, String methodName) {
+  FutureClosureBody(MethodGenerator hostMethodGenerator, Block blockNode, String methodName) {
     this.hostMethodGenerator = hostMethodGenerator;
     this.blockNode = blockNode;
     this.methodName = methodName;

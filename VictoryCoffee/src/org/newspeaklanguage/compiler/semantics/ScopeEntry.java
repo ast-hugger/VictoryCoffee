@@ -12,16 +12,16 @@ import org.newspeaklanguage.compiler.ast.AstNode;
 public class ScopeEntry {
   
   protected final String name;
-  protected final Scope definitionScope;
+  protected final Scope<? extends ScopeEntry> definitionScope;
   protected AstNode definingNode;
   
-  ScopeEntry(String name, Scope definitionScope) {
+  ScopeEntry(String name, Scope<? extends ScopeEntry> definitionScope) {
     this.name = name;
     this.definitionScope = definitionScope;
   }
 
   public String name() { return name; }
-  public Scope definitionScope() { return definitionScope; }
+  public Scope<? extends ScopeEntry> definitionScope() { return definitionScope; }
   public AstNode definingNode() { return definingNode; }
   public void setDefiningNode(AstNode node) { definingNode = node; }
   

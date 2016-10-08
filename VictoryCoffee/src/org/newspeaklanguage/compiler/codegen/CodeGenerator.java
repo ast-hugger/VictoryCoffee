@@ -23,7 +23,7 @@ import org.newspeaklanguage.compiler.ast.Return;
 import org.newspeaklanguage.compiler.ast.Self;
 import org.newspeaklanguage.compiler.ast.SlotDefinition;
 import org.newspeaklanguage.compiler.ast.Super;
-import org.newspeaklanguage.compiler.semantics.MethodScopeEntry;
+import org.newspeaklanguage.compiler.semantics.CodeScopeEntry;
 import org.newspeaklanguage.compiler.semantics.NameMeaning;
 import org.newspeaklanguage.runtime.Builtins;
 import org.newspeaklanguage.runtime.MessageDispatcher;
@@ -94,7 +94,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
         classGenerator.internalClassName(), closureMethodName);
     classGenerator.addLiteral(literal);
     classGenerator.addClosureBodyMethodGenerator(
-        new FutureClosureBodyMethod(hostMethodGenerator(), block, closureMethodName));
+        new FutureClosureBody(hostMethodGenerator(), block, closureMethodName));
     literal.generateLoad(methodWriter);
   }
 
@@ -134,7 +134,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
 
   private void generateLocalVarReference(MessageSendNoReceiver messageSend) {
     NameMeaning.LocalVarReference meaning = (NameMeaning.LocalVarReference) messageSend.meaning();
-    int index = ((MethodScopeEntry) meaning.definition()).index();
+    int index = ((CodeScopeEntry) meaning.definition()).index();
     if (NamingPolicy.isSetterSelector(messageSend.selector())) {
       assert messageSend.arity() == 1;
       visit(messageSend.arguments().get(0));

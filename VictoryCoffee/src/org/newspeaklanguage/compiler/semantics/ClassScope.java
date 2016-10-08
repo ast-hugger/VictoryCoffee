@@ -30,6 +30,11 @@ public class ClassScope extends Scope<ScopeEntry> {
   
   @Override
   public boolean isClassScope() { return true; }
+  
+  @Override
+  public CodeScope enclosingMethodScope() {
+    return null;
+  }
 
   @Override
   protected ScopeEntry createScopeEntry(String name) {

@@ -41,8 +41,8 @@ public class ClassGenerator {
       new HashMap<java.lang.Object, LiteralValue>();
   private final List<ClassInitializerSnippet> classInitializerSnippets = 
       new LinkedList<ClassInitializerSnippet>();
-  private final List<FutureClosureBodyMethod> futureClosureBodyMethods =
-      new LinkedList<FutureClosureBodyMethod>();
+  private final List<FutureClosureBody> futureClosureBodies =
+      new LinkedList<FutureClosureBody>();
   
   private ClassGenerator(ClassDecl classNode) {
     this.classNode = classNode;
@@ -83,8 +83,8 @@ public class ClassGenerator {
     classInitializerSnippets.add(literal);
   }
   
-  public void addClosureBodyMethodGenerator(FutureClosureBodyMethod generator) {
-    futureClosureBodyMethods.add(generator);
+  public void addClosureBodyMethodGenerator(FutureClosureBody generator) {
+    futureClosureBodies.add(generator);
   }
   
   private String allocateLiteralFieldName(LiteralValue literal) {
@@ -241,7 +241,7 @@ public class ClassGenerator {
   }
   
   private void generateClosureBodies() {
-    futureClosureBodyMethods.forEach(each -> each.generate());
+    futureClosureBodies.forEach(each -> each.generate());
   }
   
   private void processLiterals() {

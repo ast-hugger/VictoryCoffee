@@ -10,9 +10,18 @@ import org.newspeaklanguage.compiler.ast.Method;
 import org.newspeaklanguage.compiler.ast.SlotDefinition;
 
 /**
- * An AST visitor which walks the tree and creates and populates the associated
- * scopes. Nodes that establish scopes such as classes and methods get annotated
- * with the scopes they establish.
+ * An AST visitor for the first stage of semantic analysis. AST nodes are
+ * annotated with additional information to aid future code generation.
+ * <p>
+ * This stage of analysis involves the following:
+ * <ul>
+ * <li>Scope objects are created for all nodes that establish scopes. Those are
+ * class, method, and block nodes. The scopes are stored in the defining nodes.
+ * <li>The scopes are populated with the names defined in them. Names are
+ * defined by class definitions, class slots, method selectors, method
+ * arguments, method temporaries, block arguments, and block temporaries.
+ * <li>Implementation names of classes are computed.
+ * <li>Each method gets a list of all blocks that appear in the method.
  * 
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
@@ -24,6 +33,7 @@ public class Stage1Analyzer extends AstNodeVisitorSkeleton {
   }
 
   private Scope<? extends ScopeEntry> currentScope;
+  private Method currentMethod;
 
   private Stage1Analyzer() {
   }
@@ -45,14 +55,14 @@ public class Stage1Analyzer extends AstNodeVisitorSkeleton {
       assert currentScope.isClassScope();
       defineName(classDecl.name(), classDecl);
       classDecl.setEnclosingClass(((ClassScope) currentScope).classNode());
-      pushClassScope(classDecl);
+      enterClassScope(classDecl);
     }
     classDecl.setScope((ClassScope) currentScope);
     classDecl.setImplementationClassName(computeImplementationName(classDecl));
     try {
       super.visitClassDecl(classDecl);
     } finally {
-      popScope();
+      exitScope();
     }
   }
 
@@ -60,24 +70,28 @@ public class Stage1Analyzer extends AstNodeVisitorSkeleton {
   public void visitMethod(Method method) {
     // Define the method's selector in the current scope
     // (the one for the class containing the method).
+    assert currentMethod == null;
+    currentMethod = method;
     defineName(method.messagePattern().selector(), method);
-    pushMethodScope();
-    method.setScope((MethodScope) currentScope);
+    enterMethodScope();
+    method.setScope((CodeScope) currentScope);
     try {
       super.visitMethod(method);
     } finally {
-      popScope();
+      exitScope();
+      currentMethod = null;
     }
   }
 
   @Override
   public void visitBlock(Block block) {
-    pushMethodScope();
-    block.setScope((MethodScope) currentScope);
+    enterBlockScope();
+    block.setScope((CodeScope) currentScope);
+    currentMethod.addBlock(block);
     try {
       super.visitBlock(block);
     } finally {
-      popScope();
+      exitScope();
     }
   }
 
@@ -95,19 +109,23 @@ public class Stage1Analyzer extends AstNodeVisitorSkeleton {
     }
   }
   
-  protected void pushClassScope(ClassDecl classNode) {
+  protected void enterClassScope(ClassDecl classNode) {
     currentScope = new ClassScope(classNode, currentScope);
   }
   
-  protected void pushMethodScope() {
-    currentScope = new MethodScope(currentScope);
+  protected void enterMethodScope() {
+    currentScope = new CodeScope(currentScope, true);
+  }
+  
+  protected void enterBlockScope() {
+    currentScope = new CodeScope(currentScope, false);
   }
   
   protected void defineName(String name, AstNode definingNode) {
     currentScope.define(name).setDefiningNode(definingNode);
   }
 
-  protected void popScope() {
+  protected void exitScope() {
     if (currentScope.parent() != null) {
       currentScope = currentScope.parent();
     }
