@@ -12,6 +12,7 @@ public class Method extends CodeUnit {
   }
   
   public MessagePattern messagePattern() { return messagePattern; }
+  public List<Argument> arguments() { return messagePattern.arguments(); }
 
   @Override
   public void accept(AstNodeVisitor visitor) {

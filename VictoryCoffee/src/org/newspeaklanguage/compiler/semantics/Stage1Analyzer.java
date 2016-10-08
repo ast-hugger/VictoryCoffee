@@ -19,16 +19,16 @@ import org.newspeaklanguage.compiler.ast.SlotDefinition;
  */
 public class Stage1Analyzer extends AstNodeVisitorSkeleton {
 
-  public static Scope analyze(ClassDecl classDecl) {
+  public static Scope<? extends ScopeEntry> analyze(ClassDecl classDecl) {
     return new Stage1Analyzer().build(classDecl);
   }
 
-  private Scope currentScope;
+  private Scope<? extends ScopeEntry> currentScope;
 
   private Stage1Analyzer() {
   }
 
-  public Scope build(ClassDecl classDecl) {
+  public Scope<? extends ScopeEntry> build(ClassDecl classDecl) {
     currentScope = null;
     visit(classDecl);
     // Visiting a ClassDecl does not pop the last scope it created,
@@ -58,8 +58,10 @@ public class Stage1Analyzer extends AstNodeVisitorSkeleton {
 
   @Override
   public void visitMethod(Method method) {
+    // Define the method's selector in the current scope
+    // (the one for the class containing the method).
     defineName(method.messagePattern().selector(), method);
-    pushBlockScope();
+    pushMethodScope();
     method.setScope((MethodScope) currentScope);
     try {
       super.visitMethod(method);
@@ -70,7 +72,7 @@ public class Stage1Analyzer extends AstNodeVisitorSkeleton {
 
   @Override
   public void visitBlock(Block block) {
-    pushBlockScope();
+    pushMethodScope();
     block.setScope((MethodScope) currentScope);
     try {
       super.visitBlock(block);
@@ -82,14 +84,14 @@ public class Stage1Analyzer extends AstNodeVisitorSkeleton {
   @Override
   public void visitArgument(Argument argument) {
     assert currentScope.isMethodScope();
-    defineName(argument.name(), argument);
+    defineName(NamingPolicy.getterForSlot(argument.name()), argument);
   }
 
   @Override
   public void visitSlotDefinition(SlotDefinition slot) {
-    defineName(NamingPolicy.setterSelectorForSlot(slot.name()), slot);
+    defineName(NamingPolicy.getterForSlot(slot.name()), slot);
     if (slot.isMutable()) {
-      defineName(NamingPolicy.getterSelectorForSlot(slot.name()), slot);
+      defineName(NamingPolicy.setterForSlot(slot.name()), slot);
     }
   }
   
@@ -97,7 +99,7 @@ public class Stage1Analyzer extends AstNodeVisitorSkeleton {
     currentScope = new ClassScope(classNode, currentScope);
   }
   
-  protected void pushBlockScope() {
+  protected void pushMethodScope() {
     currentScope = new MethodScope(currentScope);
   }
   

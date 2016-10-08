@@ -2,19 +2,19 @@ package org.newspeaklanguage.compiler.semantics;
 
 import org.newspeaklanguage.compiler.ast.ClassDecl;
 
-public class ClassScope extends Scope {
+public class ClassScope extends Scope<ScopeEntry> {
   
   /**
    * The class this scope is associated with.
    */
   protected final ClassDecl classNode;
   
-  ClassScope(ClassDecl classNode, Scope parent, int level) {
+  ClassScope(ClassDecl classNode, Scope<? extends ScopeEntry> parent, int level) {
     super(parent, level);
     this.classNode = classNode;
   }
   
-  ClassScope(ClassDecl classNode, Scope parent) {
+  ClassScope(ClassDecl classNode, Scope<? extends ScopeEntry> parent) {
     super(parent);
     this.classNode = classNode;
   }
@@ -31,4 +31,8 @@ public class ClassScope extends Scope {
   @Override
   public boolean isClassScope() { return true; }
 
+  @Override
+  protected ScopeEntry createScopeEntry(String name) {
+    return new ScopeEntry(name, this);
+  }
 }

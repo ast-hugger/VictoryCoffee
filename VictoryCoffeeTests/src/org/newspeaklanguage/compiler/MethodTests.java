@@ -7,7 +7,7 @@ import org.junit.Test;
 import org.newspeaklanguage.runtime.Builtins;
 import org.newspeaklanguage.testsupport.Example;
 
-public class BasicTests {
+public class MethodTests {
   
   @Test
   public void testEmptyMethodReturnsSelf() {
@@ -54,11 +54,22 @@ public class BasicTests {
   @Test
   public void testSequence() {
     Example test = Example.testMethod(
-            "test = ('foo'."
-            + "        'bar'."
-            + "        ^'baz')");
+            "test = ("
+            + "  'foo'."
+            + "  'bar'."
+            + "   ^'baz')");
     assertTrue(test.isResult("baz"));
   }
-
+  
+  @Test
+  public void testTemps() {
+    Example test = Example.testMethod(
+        "test = ("
+        + "  | foo bar |"
+        + "  foo:: 'foo'."
+        + "  bar: 'bar'."
+        + "  ^foo + bar)");
+    assertTrue(test.isResult("foobar"));
+  }
 
 }

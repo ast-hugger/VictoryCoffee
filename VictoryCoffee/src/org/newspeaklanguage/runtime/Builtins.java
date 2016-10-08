@@ -2,6 +2,8 @@ package org.newspeaklanguage.runtime;
 
 import java.lang.invoke.MethodHandle;
 
+import org.newspeaklanguage.compiler.Descriptor;
+
 public final class Builtins {
   
   public static final String INTERNAL_CLASS_NAME =
@@ -95,9 +97,9 @@ public final class Builtins {
   
   public static final class Closure extends BuiltinObject {
     
-    public static final String INTERNAL_CLASS_NAME = Descriptors.internalClassName(Closure.class);
+    public static final String INTERNAL_CLASS_NAME = Descriptor.internalClassName(Closure.class);
     public static final String CONSTRUCTOR_DESCRIPTOR = 
-        Descriptors.methodTypeDescriptor(void.class, ClosureLiteral.class, StandardObject.class);
+        Descriptor.ofMethod(void.class, ClosureLiteral.class, StandardObject.class);
     
     private final MethodHandle bodyMethodHandle;
     private final StandardObject copiedSelf;

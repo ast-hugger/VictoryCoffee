@@ -2,6 +2,7 @@ package org.newspeaklanguage.compiler.codegen;
 
 import java.util.List;
 
+import org.newspeaklanguage.compiler.NamingPolicy;
 import org.newspeaklanguage.compiler.ast.Argument;
 import org.newspeaklanguage.compiler.ast.AstNode;
 import org.newspeaklanguage.compiler.ast.AstNodeVisitor;
@@ -134,7 +135,23 @@ abstract class CodeGenerator implements AstNodeVisitor {
   private void generateLocalVarReference(MessageSendNoReceiver messageSend) {
     NameMeaning.LocalVarReference meaning = (NameMeaning.LocalVarReference) messageSend.meaning();
     int index = ((MethodScopeEntry) meaning.definition()).index();
-    methodWriter.visitVarInsn(Opcodes.ALOAD, index);
+    if (NamingPolicy.isSetterSelector(messageSend.selector())) {
+      assert messageSend.arity() == 1;
+      visit(messageSend.arguments().get(0));
+      // TODO we can do some peephole optimization here to avoid the moves
+      // to have the result on the stack if the send is a statement and the
+      // result is going to be discarded anyway.
+      if (messageSend.isSetterSend()) {
+        methodWriter.visitInsn(Opcodes.DUP); // the copy will be the result
+      }
+      methodWriter.visitVarInsn(Opcodes.ASTORE, index);
+      if (!messageSend.isSetterSend()) {
+        methodWriter.visitVarInsn(Opcodes.ALOAD, 0); // the result is the receiver
+      }
+    } else {
+      assert messageSend.arity() == 0;
+      methodWriter.visitVarInsn(Opcodes.ALOAD, index);
+    }
   }
 
   private void generateSendToEnclosingObject(MessageSendNoReceiver messageSend) {
@@ -142,7 +159,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
     int scopeLevel = meaning.targetDefinition().definitionScope().level();
     if (messageSend.isSetterSend()) {
       // A setter send should leave the message argument on the stack
-      assert messageSend.arguments().size() == 1;
+      assert messageSend.arity() == 1;
       visit(messageSend.arguments().get(0));
       methodWriter.visitInsn(Opcodes.DUP);
       generateLoadOfEnclosingObject(scopeLevel);

@@ -49,7 +49,7 @@ public class ClassDefinition {
           implementation,
           MethodType.methodType(void.class, ObjectFactory.class));
     } catch (NoSuchMethodException | IllegalAccessException e) {
-      throw new IllegalStateException("Failure initializing a class definition");
+      throw new RuntimeError("Failure initializing a class definition");
     }
   }
   

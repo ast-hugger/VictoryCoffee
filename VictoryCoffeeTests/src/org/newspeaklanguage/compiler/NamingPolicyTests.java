@@ -7,18 +7,24 @@ import org.junit.Test;
 public class NamingPolicyTests {
   
   @Test
-  public void testGetterSelector() {
-    assertEquals("foo", NamingPolicy.getterSelectorForSlot("foo"));
-  }  
-  
-  @Test
-  public void testSetterSelector() {
-    assertEquals("foo:", NamingPolicy.setterSelectorForSlot("foo"));
-  }  
-  
-  @Test
   public void testFieldName() {
     assertEquals("$foo", NamingPolicy.fieldNameForSlot("foo"));
+  }
+
+  @Test
+  public void testGetterSelectorForSlot() {
+    assertEquals("foo", NamingPolicy.getterForSlot("foo"));
+  }  
+  
+  @Test
+  public void testSetterSelectorForSlot() {
+    assertEquals("foo:", NamingPolicy.setterForSlot("foo"));
+  }  
+  
+  @Test
+  public void testConversionBetweenGetterAndSetterSelectors() {
+    assertEquals("foo:", NamingPolicy.setterForGetter("foo"));
+    assertEquals("foo", NamingPolicy.getterForSetter("foo:"));
   }
   
   @Test
@@ -29,6 +35,16 @@ public class NamingPolicyTests {
   @Test
   public void testSetterMethodName() {
     assertEquals("$foo$", NamingPolicy.setterMethodNameForSlot("foo"));
+  }
+  
+  @Test
+  public void testCommutativityOfSlotRelatedThings() {
+    assertEquals(
+        NamingPolicy.getterMethodNameForSlot("foo"),
+        NamingPolicy.methodNameForSelector(NamingPolicy.getterForSlot("foo")));
+    assertEquals(
+        NamingPolicy.setterMethodNameForSlot("foo"),
+        NamingPolicy.methodNameForSelector(NamingPolicy.setterForSlot("foo")));
   }
   
   @Test

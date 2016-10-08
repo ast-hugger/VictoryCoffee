@@ -29,14 +29,14 @@ public class Stage2Analyzer extends AstNodeVisitorSkeleton {
    * Instance side
    */
 
-  private Scope currentScope;
+  private Scope<? extends ScopeEntry> currentScope;
   
   private Stage2Analyzer() {
   }
   
   @Override
   public void visitClassDecl(ClassDecl classDecl) {
-    Scope original = currentScope;
+    Scope<? extends ScopeEntry> original = currentScope;
     currentScope = classDecl.scope();
     try {
       super.visitClassDecl(classDecl);
@@ -47,7 +47,7 @@ public class Stage2Analyzer extends AstNodeVisitorSkeleton {
   
   @Override
   public void visitBlock(Block classDecl) {
-    Scope original = currentScope;
+    Scope<? extends ScopeEntry> original = currentScope;
     currentScope = classDecl.scope();
     try {
       super.visitBlock(classDecl);
@@ -58,7 +58,7 @@ public class Stage2Analyzer extends AstNodeVisitorSkeleton {
   
   @Override
   public void visitMethod(Method classDecl) {
-    Scope original = currentScope;
+    Scope<? extends ScopeEntry> original = currentScope;
     currentScope = classDecl.scope();
     try {
       super.visitMethod(classDecl);
@@ -97,12 +97,12 @@ public class Stage2Analyzer extends AstNodeVisitorSkeleton {
     super.visitMessageSendNoReceiver(messageSend);
   }
 
-  private Scope nearestClassScope() {
-    Scope here = currentScope;
+  private ClassScope nearestClassScope() {
+    Scope<? extends ScopeEntry> here = currentScope;
     while (here != null && !here.isClassScope()) {
       here = here.parent();
     }
-    return here;
+    return (ClassScope) here;
   }
   
 }

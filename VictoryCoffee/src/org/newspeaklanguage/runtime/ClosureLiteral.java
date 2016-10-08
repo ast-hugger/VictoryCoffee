@@ -4,6 +4,8 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
+import org.newspeaklanguage.compiler.Descriptor;
+
 /**
  * Stored in a static field of an implementation class; caches a direct pointer
  * to the closure body method. This is not the actual closure object produced by
@@ -14,10 +16,10 @@ import java.lang.invoke.MethodType;
  */
 public final class ClosureLiteral {
   
-  public static final String INTERNAL_CLASS_NAME = Descriptors.internalClassName(ClosureLiteral.class);
-  public static final String TYPE_DESCRIPTOR = Descriptors.valueTypeDescriptor(ClosureLiteral.class);
+  public static final String INTERNAL_CLASS_NAME = Descriptor.internalClassName(ClosureLiteral.class);
+  public static final String TYPE_DESCRIPTOR = Descriptor.ofType(ClosureLiteral.class);
   public static final String CONSTRUCTOR_DESCRIPTOR = 
-      Descriptors.methodTypeDescriptor(void.class, Class.class, String.class);
+      Descriptor.ofMethod(void.class, Class.class, String.class);
   
   private final Class<? extends StandardObject> implementationClass;
   private final String methodName;

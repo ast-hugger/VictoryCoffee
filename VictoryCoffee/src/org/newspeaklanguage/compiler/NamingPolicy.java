@@ -1,15 +1,34 @@
 package org.newspeaklanguage.compiler;
 
+/**
+ * A utility class for the various field, method, and selector-related
+ * translation, mangling, and unmangling.
+ *
+ * @author Vassili Bykov <newspeakbigot@gmail.com>
+ *
+ */
 public final class NamingPolicy {
 
   public static final String CLASS_DEF_FIELD_NAME = "$classDefinition$";
 
-  public static String getterSelectorForSlot(String slotName) {
+  public static String getterForSlot(String slotName) {
     return slotName;
   }
   
-  public static String setterSelectorForSlot(String slotName) {
+  public static String setterForSlot(String slotName) {
     return slotName + ":";
+  }
+  
+  public static boolean isSetterSelector(String selector) {
+    return selector.charAt(selector.length() - 1) == ':';
+  }
+  
+  public static String getterForSetter(String setterSelector) {
+    return setterSelector.substring(0, setterSelector.length() - 1);
+  }
+  
+  public static String setterForGetter(String getterSelector) {
+    return getterSelector + ":";
   }
   
   public static String getterMethodNameForSlot(String slotName) {
