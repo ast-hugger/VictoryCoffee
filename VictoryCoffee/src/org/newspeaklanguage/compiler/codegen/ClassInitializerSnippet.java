@@ -4,6 +4,6 @@ import org.objectweb.asm.MethodVisitor;
 
 interface ClassInitializerSnippet {
   
-  public void generateInitializerCode(MethodVisitor methodWriter);
+  public void generateClinitFragment(MethodVisitor methodWriter);
 
 }

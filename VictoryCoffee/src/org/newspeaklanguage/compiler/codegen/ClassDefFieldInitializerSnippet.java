@@ -17,7 +17,7 @@ class ClassDefFieldInitializerSnippet implements ClassInitializerSnippet {
   }
 
   @Override
-  public void generateInitializerCode(MethodVisitor methodWriter) {
+  public void generateClinitFragment(MethodVisitor methodWriter) {
     methodWriter.visitTypeInsn(Opcodes.NEW, ClassDefinition.INTERNAL_CLASS_NAME);
     methodWriter.visitInsn(Opcodes.DUP);
     // ClassDefinition(String name, Class implementationClass)

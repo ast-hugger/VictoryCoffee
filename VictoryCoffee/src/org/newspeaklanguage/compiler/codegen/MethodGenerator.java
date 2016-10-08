@@ -1,24 +1,34 @@
 package org.newspeaklanguage.compiler.codegen;
 
-import org.newspeaklanguage.compiler.NamingPolicy;
+import java.util.List;
+
+import org.newspeaklanguage.compiler.ast.AstNode;
 import org.newspeaklanguage.compiler.ast.Method;
+import org.newspeaklanguage.compiler.ast.Return;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 public class MethodGenerator extends CodeGenerator {
 
-  private int nextClosureIndex = 0;
-  
   MethodGenerator(ClassGenerator classGenerator, Method methodNode, MethodVisitor methodVisitor) {
     super(classGenerator, methodNode, methodVisitor);
   }
 
-  public String nextClosureBodyMethodName() {
-    return NamingPolicy.methodNameForClosure(
-        ((Method) rootNode).messagePattern().selector(), nextClosureIndex++);
-  }
-  
+  /**
+   * The method-specific version of generating the method body. The value
+   * returned by the generated method is self if there is no explicit return.
+   */
   @Override
-  protected MethodGenerator hostMethodGenerator() {
-    return this;
+  protected void visitStatements() {
+    List<AstNode> body = rootNode.body();
+    body.forEach(each -> {
+      visit(each);
+      methodWriter.visitInsn(Opcodes.POP);
+    });
+    if (body.isEmpty() || !(body.get(body.size() - 1) instanceof Return)) {
+      methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
+      methodWriter.visitInsn(Opcodes.ARETURN);
+    }
   }
+
 }

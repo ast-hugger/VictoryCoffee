@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.newspeaklanguage.compiler.NamingPolicy;
+import org.newspeaklanguage.compiler.ast.Block;
 import org.newspeaklanguage.compiler.ast.Category;
 import org.newspeaklanguage.compiler.ast.ClassDecl;
 import org.newspeaklanguage.compiler.ast.Method;
@@ -41,8 +42,6 @@ public class ClassGenerator {
       new HashMap<java.lang.Object, LiteralValue>();
   private final List<ClassInitializerSnippet> classInitializerSnippets = 
       new LinkedList<ClassInitializerSnippet>();
-  private final List<FutureClosureBody> futureClosureBodies =
-      new LinkedList<FutureClosureBody>();
   
   private ClassGenerator(ClassDecl classNode) {
     this.classNode = classNode;
@@ -64,7 +63,6 @@ public class ClassGenerator {
     processNestedClasses();
     generateConstructor();
     processMethods();
-    generateClosureBodies();
     processLiterals();
     generateClassInitializer();
     return finish();
@@ -81,10 +79,6 @@ public class ClassGenerator {
     }
     literals.put(literal.key(), literal);
     classInitializerSnippets.add(literal);
-  }
-  
-  public void addClosureBodyMethodGenerator(FutureClosureBody generator) {
-    futureClosureBodies.add(generator);
   }
   
   private String allocateLiteralFieldName(LiteralValue literal) {
@@ -229,6 +223,7 @@ public class ClassGenerator {
   private void processMethods() {
     for (Category category : classNode.categories()) {
       for (Method method : category.methods()) {
+        preprocessBlocksInMethod(method);
         MethodVisitor methodVisitor = classWriter.visitMethod(
             Opcodes.ACC_PUBLIC,
             NamingPolicy.methodNameForSelector(method.messagePattern().selector()),
@@ -240,12 +235,32 @@ public class ClassGenerator {
     }
   }
   
-  private void generateClosureBodies() {
-    futureClosureBodies.forEach(each -> each.generate());
+  private void preprocessBlocksInMethod(Method method) {
+    int i = 0;
+    for (Block block : method.allBlocks()) {
+      String implMethodName = NamingPolicy.methodNameForClosure(method.selector(), i++);
+      BlockDescriptor descriptor = new BlockDescriptor(
+          block, method, internalClassName, implMethodName);
+      block.setDescriptor(descriptor);
+      descriptor.generateField(classWriter);
+      generateBlockImplementation(descriptor);
+      classInitializerSnippets.add(descriptor);
+    }
+  }
+  
+  private void generateBlockImplementation(BlockDescriptor descriptor) {
+    MethodVisitor writer = classWriter.visitMethod(
+        Opcodes.ACC_PUBLIC, 
+        descriptor.methodName(), 
+        // TODO the type descriptor should be computed based on the closure arity
+        "()" + Object.TYPE_DESCRIPTOR, 
+        null, null);
+    CodeGenerator generator = new BlockGenerator(this, descriptor.blockNode(), writer);
+    generator.generate();
   }
   
   private void processLiterals() {
-    literals.values().forEach(each -> each.generateFieldDefinition(classWriter));
+    literals.values().forEach(each -> each.generateField(classWriter));
   }
   
   private void generateClassInitializer() {
@@ -255,7 +270,7 @@ public class ClassGenerator {
         "()V",
         null, null);
     methodWriter.visitCode();
-    classInitializerSnippets.forEach(each -> each.generateInitializerCode(methodWriter));
+    classInitializerSnippets.forEach(each -> each.generateClinitFragment(methodWriter));
     methodWriter.visitInsn(Opcodes.RETURN);
     methodWriter.visitMaxs(0, 0); // args ignored
     methodWriter.visitEnd();

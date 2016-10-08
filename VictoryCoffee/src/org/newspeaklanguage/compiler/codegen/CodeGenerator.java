@@ -1,7 +1,5 @@
 package org.newspeaklanguage.compiler.codegen;
 
-import java.util.List;
-
 import org.newspeaklanguage.compiler.NamingPolicy;
 import org.newspeaklanguage.compiler.ast.Argument;
 import org.newspeaklanguage.compiler.ast.AstNode;
@@ -26,6 +24,7 @@ import org.newspeaklanguage.compiler.ast.Super;
 import org.newspeaklanguage.compiler.semantics.CodeScopeEntry;
 import org.newspeaklanguage.compiler.semantics.NameMeaning;
 import org.newspeaklanguage.runtime.Builtins;
+import org.newspeaklanguage.runtime.ClosureLiteral;
 import org.newspeaklanguage.runtime.MessageDispatcher;
 import org.newspeaklanguage.runtime.Object;
 import org.newspeaklanguage.runtime.ObjectFactory;
@@ -63,8 +62,6 @@ abstract class CodeGenerator implements AstNodeVisitor {
     methodWriter.visitEnd();
   }
   
-  protected abstract MethodGenerator hostMethodGenerator();
-  
   @Override
   public void visitMethod(Method method) {
     throw new IllegalStateException("this node should not be visited directly");
@@ -74,28 +71,31 @@ abstract class CodeGenerator implements AstNodeVisitor {
     node.accept(this);
   }
   
-  protected void visitStatements() {
-    List<AstNode> body = rootNode.body();
-    body.forEach(each -> {
-      visit(each);
-      methodWriter.visitInsn(Opcodes.POP);
-    });
-    if (body.isEmpty() || !(body.get(body.size() - 1) instanceof Return)) {
-      // Empty method or last expression not an explicit return: return the receiver.
-      methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
-      methodWriter.visitInsn(Opcodes.ARETURN);
-    }
-  }
-
+  /**
+   * The manner of visiting statements is different between methods and blocks
+   * because the default return value is different.
+   */
+  protected abstract void visitStatements();
+  
   @Override
   public void visitBlock(Block block) {
-    String closureMethodName = hostMethodGenerator().nextClosureBodyMethodName();
-    LiteralValue literal = LiteralValue.forClosureBody(
-        classGenerator.internalClassName(), closureMethodName);
-    classGenerator.addLiteral(literal);
-    classGenerator.addClosureBodyMethodGenerator(
-        new FutureClosureBody(hostMethodGenerator(), block, closureMethodName));
-    literal.generateLoad(methodWriter);
+    BlockDescriptor descriptor = block.descriptor();
+    // new Builtins.Closure
+    methodWriter.visitTypeInsn(Opcodes.NEW, Builtins.Closure.INTERNAL_CLASS_NAME);
+    methodWriter.visitInsn(Opcodes.DUP);
+    // Builtins.Closure.<init>(ClosureLiteral closureLiteral, StandardObject self)
+    methodWriter.visitFieldInsn(
+        Opcodes.GETSTATIC,
+        descriptor.internalClassName(),
+        descriptor.fieldName(),
+        ClosureLiteral.TYPE_DESCRIPTOR);
+    methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
+    methodWriter.visitMethodInsn(
+        Opcodes.INVOKESPECIAL, 
+        Builtins.Closure.INTERNAL_CLASS_NAME, 
+        "<init>",
+        Builtins.Closure.CONSTRUCTOR_DESCRIPTOR, 
+        false);
   }
 
   @Override

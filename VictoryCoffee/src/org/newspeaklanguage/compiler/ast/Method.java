@@ -18,7 +18,9 @@ public class Method extends CodeUnit {
   }
   
   public MessagePattern messagePattern() { return messagePattern; }
+  public String selector() { return messagePattern.selector(); }
   public List<Argument> arguments() { return messagePattern.arguments(); }
+  public List<Block> allBlocks() { return allBlocks; }
 
   public void addBlock(Block block) {
     allBlocks.add(block);
