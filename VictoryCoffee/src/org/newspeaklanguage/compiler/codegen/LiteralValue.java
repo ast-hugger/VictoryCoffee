@@ -7,7 +7,7 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-abstract class LiteralValue implements ClassInitializerSnippet, StaticFieldDefiner {
+abstract class LiteralValue implements StaticFieldDefiner {
 
   /*
    * Public API

@@ -38,6 +38,17 @@ public class Compiler {
     return compiler.results();
   }
   
+  public static AstNode parseAndAnalyze(String source) {
+    Compiler compiler = new Compiler(source);
+    AstNode tree = compiler.parse(source);
+    compiler.analyze((ClassDecl) tree);
+    return tree;
+  }
+  
+  public static AstNode parseOnly(String source) {
+    return new Compiler(source).parse(source);
+  }
+  
   /*
    * Instance side 
    */
@@ -85,8 +96,8 @@ public class Compiler {
   }
   
   private void analyze(ClassDecl classDecl) {
-    Stage1Analyzer.analyze(ast);
-    Stage2Analyzer.analyze(ast);
+    Stage1Analyzer.analyze(classDecl);
+    Stage2Analyzer.analyze(classDecl);
   }
   
 }

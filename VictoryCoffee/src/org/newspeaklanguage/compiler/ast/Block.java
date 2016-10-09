@@ -2,12 +2,12 @@ package org.newspeaklanguage.compiler.ast;
 
 import java.util.List;
 
-import org.newspeaklanguage.compiler.codegen.BlockDescriptor;
+import org.newspeaklanguage.compiler.codegen.BlockDefiner;
 
 public class Block extends CodeUnit {
   
   private final List<Argument> arguments;
-  private BlockDescriptor codegenDescriptor;
+  private BlockDefiner definer;
   
   Block(List<Argument> arguments, List<SlotDefinition> temps, List<AstNode> body) {
     super(temps, body);
@@ -15,11 +15,12 @@ public class Block extends CodeUnit {
   }
   
   public List<Argument> arguments() { return arguments; }
-  public BlockDescriptor descriptor() { return codegenDescriptor; }
+  public int arity() { return arguments.size(); }
+  public BlockDefiner definer() { return definer; }
   
-  public void setDescriptor(BlockDescriptor descriptor) {
-    assert codegenDescriptor == null;
-    this.codegenDescriptor = descriptor;
+  public void setDefiner(BlockDefiner definer) {
+    assert this.definer == null;
+    this.definer = definer;
   }
   
   @Override

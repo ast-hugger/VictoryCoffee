@@ -12,12 +12,7 @@ public final class Builtins {
   public static StringObject string(String contents) {
     return new StringObject(contents);
   }
-  
-  public static ClosureLiteral closure(Class<? extends StandardObject> implementationClass, String methodName) {
-    return new ClosureLiteral(implementationClass, methodName);
-  }
-  
-  
+    
   public abstract static class BuiltinObject extends Object {
     @Override
     public ObjectFactory nsClass() {
@@ -95,28 +90,76 @@ public final class Builtins {
     }
   }
   
+  /**
+   * A Newspeak closure: the result of evaluating a block expression.
+   */
   public static final class Closure extends BuiltinObject {
     
     public static final String INTERNAL_CLASS_NAME = Descriptor.internalClassName(Closure.class);
     public static final String CONSTRUCTOR_DESCRIPTOR = 
-        Descriptor.ofMethod(void.class, ClosureLiteral.class, StandardObject.class);
+        Descriptor.ofMethod(void.class, BlockHandle.class, StandardObject.class);
     
-    private final MethodHandle bodyMethodHandle;
+    /*
+     * Instance side
+     */
+    
+    /** 
+     * The handle to the implementation method of the block, retrieved from the BlockHandle
+     * and stored locally for quicker access. 
+     */
+    private final MethodHandle implementation;
+
+    /**
+     * The number of block arguments. This is the number of the arguments as seen in the
+     * original source, not including any copied values.
+     */
+    private final int arity;
+    
+    /**
+     * The Newspeak receiver object captured by the closure.
+     */
     private final StandardObject copiedSelf;
     
-    public Closure(ClosureLiteral closureLiteral, StandardObject copiedSelf) {
-      this.bodyMethodHandle = closureLiteral.methodHandle();
+    public Closure(BlockHandle blockHandle, StandardObject copiedSelf) {
+      this.implementation = blockHandle.methodHandle();
+      this.arity = blockHandle.arity();
       this.copiedSelf = copiedSelf;
     }
     
     public Object $value() {
+      if (arity != 0) {
+        throw new RuntimeError("this closure expects " + arity + " arguments");
+      }
       try {
-        return (Object) bodyMethodHandle.invoke(copiedSelf);
+        return (Object) implementation.invoke(copiedSelf);
       } catch (Throwable e) {
         throw new RuntimeError("closure invocation error", e);
       }
     }
-  }
+
+    public Object $value$(Object arg) {
+      if (arity != 1) {
+        throw new RuntimeError("this closure expects " + arity + " arguments");
+      }
+      try {
+        return (Object) implementation.invoke(copiedSelf, arg);
+      } catch (Throwable e) {
+        throw new RuntimeError("closure invocation error", e);
+      }
+    }
+
+    public Object $value$value$(Object arg1, Object arg2) {
+      if (arity != 2) {
+        throw new RuntimeError("this closure expects " + arity + " arguments");
+      }
+      try {
+        return (Object) implementation.invoke(copiedSelf, arg1, arg2);
+      } catch (Throwable e) {
+        throw new RuntimeError("closure invocation error", e);
+      }
+    }
+
+}
   
 //  public static final class ClassObject extends Object {
 //    @Override

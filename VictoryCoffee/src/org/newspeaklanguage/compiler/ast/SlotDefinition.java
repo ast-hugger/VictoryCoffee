@@ -6,7 +6,7 @@ package org.newspeaklanguage.compiler.ast;
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
  */
-public class SlotDefinition extends AstNode implements NamedNode {
+public class SlotDefinition extends AstNode implements NameDefinition {
   
   private final String name;
   private final boolean isMutable;

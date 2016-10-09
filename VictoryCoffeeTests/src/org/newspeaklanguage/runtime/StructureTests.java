@@ -1,5 +1,7 @@
 package org.newspeaklanguage.runtime;
 
+import org.junit.Test;
+
 // import org.junit.Test;
 
 import junit.framework.TestCase;
@@ -67,4 +69,8 @@ public class StructureTests extends TestCase {
     assertEquals(innerInstance, innerInnerClass.enclosingObjects[1]);
   }
  */
+  @Test
+  public void testNothing() {
+    assertEquals(4, 2 + 2);
+  }
 }

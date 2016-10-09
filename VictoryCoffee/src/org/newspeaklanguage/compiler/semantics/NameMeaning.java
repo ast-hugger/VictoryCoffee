@@ -50,17 +50,20 @@ public abstract class NameMeaning {
     private SendToEnclosingObject(ScopeEntry def) {
       this.targetDefinition = def;
     }
-    public ScopeEntry targetDefinition() { return targetDefinition; }
+    public ScopeEntry definition() { return targetDefinition; }
     @Override
     public boolean isSendToEnclosingObject() { return true; }
   }
   
   public static class SelfSend extends NameMeaning {
+
     private SelfSend() {
     }
+
     @Override
-    public boolean isSelfSend() { return true; } 
-  }
+    public boolean isSelfSend() { return true; }
+    
+ }
   
   /*
    * Instance side
@@ -69,5 +72,11 @@ public abstract class NameMeaning {
   public boolean isLocalVarReference() { return false; }
   public boolean isSendToEnclosingObject() { return false; }
   public boolean isSelfSend() { return false; }
+  
+  @Override
+  public String toString() {
+    return this.getClass().getSimpleName();
+  }
+
 
 }

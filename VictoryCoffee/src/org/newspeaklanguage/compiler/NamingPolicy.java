@@ -47,7 +47,7 @@ public final class NamingPolicy {
    * Given a Newspeak selector assumed to be a slot getter or setter, return the
    * name of the actual slot. The name is in the original unmangled form.
    */
-  public static String slotNameForSelector(String selector) {
+  public static String slotForSelector(String selector) {
     int lastCharIndex = selector.length() - 1;
     char last = selector.charAt(lastCharIndex);
     return last == ':'

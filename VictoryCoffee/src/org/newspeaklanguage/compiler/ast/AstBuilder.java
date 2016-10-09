@@ -1,5 +1,6 @@
 package org.newspeaklanguage.compiler.ast;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -189,10 +190,21 @@ public class AstBuilder implements NewspeakVisitor<AstNode> {
 
   @Override
   public AstNode visitBlockLiteral(NewspeakParser.BlockLiteralContext ctx) {
+    List<Argument> args = Optional.ofNullable(ctx.block().blockArgs())
+        .map(it -> it.BLOCK_ARG().stream()
+            .map(each -> each.getText().substring(1))
+            .map(each -> new Argument(each))
+            .collect(Collectors.toList()))
+        .orElse(Collections.emptyList());
+    List<SlotDefinition> temps = Optional.ofNullable(ctx.block().blockTemps())
+        .map(it -> it.slotDecl().stream()
+            .map(each -> (SlotDefinition) visit(each))
+            .collect(Collectors.toList()))
+        .orElse(Collections.emptyList());
     List<AstNode> statements = ctx.block().codeBody().statement().stream()
         .map(this::visit)
         .collect(Collectors.toList());
-    return new Block(Collections.emptyList(), Collections.emptyList(), statements);
+    return new Block(args, temps, statements);
   }
 
   @Override

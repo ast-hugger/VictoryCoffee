@@ -6,7 +6,7 @@ package org.newspeaklanguage.compiler.ast;
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
  */
-public class Argument extends AstNode implements NamedNode {
+public class Argument extends AstNode implements NameDefinition {
   
   private final String name;
   

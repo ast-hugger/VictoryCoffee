@@ -52,11 +52,23 @@ public class MessageSendNoReceiver extends AstNode {
    * If the definition of the selector of this message is visible lexically,
    * return that definition.
    */
-  public ScopeEntry lexicalDefition() {return lexicalDefinition; }
-  public void setLexicalDefinition(ScopeEntry def) { lexicalDefinition = def; }
-  
-  public NameMeaning meaning() { return meaning; }
-  public void setMeaning(NameMeaning meaning) { this.meaning = meaning; }
+  public ScopeEntry lexicalDefinition() {
+    return lexicalDefinition;
+  }
+
+  public void setLexicalDefinition(ScopeEntry def) {
+    assert lexicalDefinition == null;
+    lexicalDefinition = def;
+  }
+
+  public NameMeaning meaning() {
+    return meaning;
+  }
+
+  public void setMeaning(NameMeaning meaning) {
+    assert this.meaning == null;
+    this.meaning = meaning;
+  }
   
   @Override
   public void accept(AstNodeVisitor visitor) {
@@ -65,6 +77,6 @@ public class MessageSendNoReceiver extends AstNode {
   
   @Override
   public String toString() {
-    return this.getClass().getSimpleName() + "(" + selector + ")";
+    return this.getClass().getSimpleName() + "(" + selector + "): " + meaning;
   }
 }

@@ -1,8 +1,12 @@
 package org.newspeaklanguage.compiler.codegen;
 
+import java.util.Arrays;
+
+import org.newspeaklanguage.compiler.Descriptor;
 import org.newspeaklanguage.compiler.ast.Block;
 import org.newspeaklanguage.compiler.ast.Method;
-import org.newspeaklanguage.runtime.ClosureLiteral;
+import org.newspeaklanguage.runtime.BlockHandle;
+import org.newspeaklanguage.runtime.Object;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -17,7 +21,17 @@ import org.objectweb.asm.Type;
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
  */
-public class BlockDescriptor implements StaticFieldDefiner, ClassInitializerSnippet {
+public class BlockDefiner implements StaticFieldDefiner {
+  
+  public static String descriptor(int arity) {
+    Class<?>[] argTypes = new Class<?>[arity];
+    Arrays.setAll(argTypes, i -> Object.class);
+    return Descriptor.ofMethod(Object.class, argTypes);
+  }
+  
+  /*
+   * Instance side
+   */
 
   /** The node of the block we are defining. */
   private final Block blockNode;
@@ -27,7 +41,7 @@ public class BlockDescriptor implements StaticFieldDefiner, ClassInitializerSnip
   /** The name of the method we will generate with the code of this block. */
   private final String methodName;
   
-  BlockDescriptor(Block blockNode, Method hostMethod, String internalClassName, String methodName) {
+  BlockDefiner(Block blockNode, Method hostMethod, String internalClassName, String methodName) {
     this.blockNode = blockNode;
     this.hostMethod = hostMethod;
     this.internalClassName = internalClassName;
@@ -41,33 +55,38 @@ public class BlockDescriptor implements StaticFieldDefiner, ClassInitializerSnip
   public String fieldName() { return methodName; }
   
   @Override
+  public void generateField(ClassWriter classWriter) {
+    FieldVisitor fieldWriter = classWriter.visitField(
+        Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
+        fieldName(),
+        BlockHandle.TYPE_DESCRIPTOR,
+        null, null);
+    fieldWriter.visitEnd();
+  }
+
+  @Override
   public void generateClinitFragment(MethodVisitor methodWriter) {
-    methodWriter.visitTypeInsn(Opcodes.NEW, ClosureLiteral.INTERNAL_CLASS_NAME);
+    methodWriter.visitTypeInsn(Opcodes.NEW, BlockHandle.INTERNAL_CLASS_NAME);
     methodWriter.visitInsn(Opcodes.DUP);
-    // ClosureObject.<init>(Class implementationClass, String methodName)
+    // BlockHandle.<init>(Class implementationClass, String methodName, int arity)
     methodWriter.visitLdcInsn(Type.getType("L" + internalClassName() + ";"));
     methodWriter.visitLdcInsn(methodName());
+    CodeGenerator.generateLoadInt(methodWriter, blockNode.arity());
     methodWriter.visitMethodInsn(
         Opcodes.INVOKESPECIAL, 
-        ClosureLiteral.INTERNAL_CLASS_NAME, 
+        BlockHandle.INTERNAL_CLASS_NAME, 
         "<init>",
-        ClosureLiteral.CONSTRUCTOR_DESCRIPTOR, 
+        BlockHandle.CONSTRUCTOR_DESCRIPTOR, 
         false);
     methodWriter.visitFieldInsn(
         Opcodes.PUTSTATIC,
         internalClassName(), 
         fieldName(),
-        ClosureLiteral.TYPE_DESCRIPTOR);
+        BlockHandle.TYPE_DESCRIPTOR);
   }
 
-  @Override
-  public void generateField(ClassWriter classWriter) {
-    FieldVisitor fieldWriter = classWriter.visitField(
-        Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
-        fieldName(),
-        ClosureLiteral.TYPE_DESCRIPTOR,
-        null, null);
-    fieldWriter.visitEnd();
+  public String descriptor() {
+    return descriptor(blockNode.arity());
   }
-
+  
 }

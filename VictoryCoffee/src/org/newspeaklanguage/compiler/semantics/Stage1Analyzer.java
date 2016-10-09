@@ -97,7 +97,7 @@ public class Stage1Analyzer extends AstNodeVisitorSkeleton {
 
   @Override
   public void visitArgument(Argument argument) {
-    assert currentScope.isMethodScope();
+    assert currentScope.isMethodScope() || currentScope.isBlockScope();
     defineName(NamingPolicy.getterForSlot(argument.name()), argument);
   }
 

@@ -24,7 +24,7 @@ import org.newspeaklanguage.compiler.ast.Super;
 import org.newspeaklanguage.compiler.semantics.CodeScopeEntry;
 import org.newspeaklanguage.compiler.semantics.NameMeaning;
 import org.newspeaklanguage.runtime.Builtins;
-import org.newspeaklanguage.runtime.ClosureLiteral;
+import org.newspeaklanguage.runtime.BlockHandle;
 import org.newspeaklanguage.runtime.MessageDispatcher;
 import org.newspeaklanguage.runtime.Object;
 import org.newspeaklanguage.runtime.ObjectFactory;
@@ -33,14 +33,29 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-// TODO I think we are leaving each method statement result on the stack,
-// so look into popping it, except after a last expression of a block.
-
-// TODO blocks are not implemented
+// TODO blocks are not fully implemented
 
 // TODO super sends are not implemented
 
+/**
+ * The generic method code generator. We generate Java methods to represent both
+ * the actual methods in Newspeak, and blocks contained in them. Those two tasks
+ * are handled by the two subclasses of this class.
+ *
+ * @author Vassili Bykov <newspeakbigot@gmail.com>
+ *
+ */
 abstract class CodeGenerator implements AstNodeVisitor {
+  
+  public static void generateLoadInt(MethodVisitor methodWriter, int value) {
+    if (0 <= value && value <= 5) {
+      methodWriter.visitInsn(specialOpcodes[value]);
+    } else if (-128 <= value && value <= 127) {
+      methodWriter.visitIntInsn(Opcodes.BIPUSH, value);
+    } else {
+      methodWriter.visitIntInsn(Opcodes.SIPUSH, value);
+    }
+  }
   
   protected final ClassGenerator classGenerator;
   protected final CodeUnit rootNode;
@@ -72,23 +87,23 @@ abstract class CodeGenerator implements AstNodeVisitor {
   }
   
   /**
-   * The manner of visiting statements is different between methods and blocks
-   * because the default return value is different.
+   * Subclasses will implement this as appropriate for their type. Methods
+   * and blocks differ in their default return value.
    */
   protected abstract void visitStatements();
   
   @Override
   public void visitBlock(Block block) {
-    BlockDescriptor descriptor = block.descriptor();
+    BlockDefiner definer = block.definer();
     // new Builtins.Closure
     methodWriter.visitTypeInsn(Opcodes.NEW, Builtins.Closure.INTERNAL_CLASS_NAME);
     methodWriter.visitInsn(Opcodes.DUP);
     // Builtins.Closure.<init>(ClosureLiteral closureLiteral, StandardObject self)
     methodWriter.visitFieldInsn(
         Opcodes.GETSTATIC,
-        descriptor.internalClassName(),
-        descriptor.fieldName(),
-        ClosureLiteral.TYPE_DESCRIPTOR);
+        definer.internalClassName(),
+        definer.fieldName(),
+        BlockHandle.TYPE_DESCRIPTOR);
     methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
     methodWriter.visitMethodInsn(
         Opcodes.INVOKESPECIAL, 
@@ -156,7 +171,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
 
   private void generateSendToEnclosingObject(MessageSendNoReceiver messageSend) {
     NameMeaning.SendToEnclosingObject meaning = (NameMeaning.SendToEnclosingObject) messageSend.meaning();
-    int scopeLevel = meaning.targetDefinition().definitionScope().level();
+    int scopeLevel = meaning.definition().scope().level();
     if (messageSend.isSetterSend()) {
       // A setter send should leave the message argument on the stack
       assert messageSend.arity() == 1;
@@ -195,7 +210,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
         ObjectFactory.INTERNAL_CLASS_NAME, 
         "enclosingObjects", 
         "[" + StandardObject.TYPE_DESCRIPTOR);
-    generateLoadInt(level);
+    generateLoadInt(methodWriter, level);
     methodWriter.visitInsn(Opcodes.AALOAD);
   }
   
@@ -311,16 +326,6 @@ abstract class CodeGenerator implements AstNodeVisitor {
   private static final int[] specialOpcodes = new int[]
       {Opcodes.ICONST_0, Opcodes.ICONST_1, Opcodes.ICONST_2, Opcodes.ICONST_3, Opcodes.ICONST_4, Opcodes.ICONST_5};
  
-  public void generateLoadInt(int value) {
-    if (0 <= value && value <= 5) {
-      methodWriter.visitInsn(specialOpcodes[value]);
-    } else if (-128 <= value && value <= 127) {
-      methodWriter.visitIntInsn(Opcodes.BIPUSH, value);
-    } else {
-      methodWriter.visitIntInsn(Opcodes.SIPUSH, value);
-    }
-  }
-  
   @Override
   public void visitArgument(Argument argument) {
     unexpectedVisit(argument);

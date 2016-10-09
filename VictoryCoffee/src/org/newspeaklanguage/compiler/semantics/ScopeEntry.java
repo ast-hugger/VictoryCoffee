@@ -21,15 +21,15 @@ public class ScopeEntry {
   }
 
   public String name() { return name; }
-  public Scope<? extends ScopeEntry> definitionScope() { return definitionScope; }
-  public AstNode definingNode() { return definingNode; }
+  public Scope<? extends ScopeEntry> scope() { return definitionScope; }
+  public AstNode astNode() { return definingNode; }
   public void setDefiningNode(AstNode node) { definingNode = node; }
   
   /**
    * Return true if the receiver is a method argument or a temp variable.
    */
   public boolean isLocalVariable() {
-    return definitionScope.isMethodScope();
+    return definitionScope.isMethodScope() || definitionScope.isBlockScope();
   }
   
   @Override

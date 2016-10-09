@@ -26,6 +26,28 @@ public class ClosureTests {
     Example test = Example.testBody("^['hello'. 'goodbye'] value");
     assertTrue(test.isResult("goodbye"));
   }
-
+  
+  @Test
+  public void testClosure1Arg() {
+    Example test = Example.testBody("^[:x | x] value: 'Hello'");
+    assertTrue(test.isResult("Hello"));
+  }
+  
+  @Test
+  public void testClosure2Args() {
+    Example test = Example.testBody("^[:a :b | a + b] value: 'Hello' value: 'there'");
+    assertTrue(test.isResult("Hellothere"));
+  }
+  
+  @Test
+  public void testClosureTemps() {
+    Example test = Example.testBody(
+        "^[:a :b | "
+        + "| c d | "
+        + "c: b. "
+        + "d: a. "
+        + "c + d] value: 'Hello' value: 'there'");
+    assertTrue(test.isResult("thereHello"));
+  }
   
 }

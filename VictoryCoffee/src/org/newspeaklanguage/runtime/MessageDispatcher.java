@@ -6,6 +6,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.invoke.MethodType;
 
+import org.newspeaklanguage.compiler.Descriptor;
 import org.newspeaklanguage.compiler.NamingPolicy;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Opcodes;
@@ -15,7 +16,7 @@ public final class MessageDispatcher {
   public static Handle bootstrapHandle() {
     return new Handle(
         Opcodes.H_INVOKESTATIC,
-        MessageDispatcher.class.getName().replace('.', '/'),
+        Descriptor.internalClassName(MessageDispatcher.class),
         "bootstrap",
         MethodType.methodType(CallSite.class, Lookup.class, String.class, MethodType.class)
             .toMethodDescriptorString(),

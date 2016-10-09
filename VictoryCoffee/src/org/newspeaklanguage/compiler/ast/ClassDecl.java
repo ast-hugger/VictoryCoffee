@@ -54,14 +54,34 @@ public class ClassDecl extends AstNode {
   public List<Category> classCategories() { return classCategories; }
  
   /*
-   * Analysis results
+   * Getting and setting analysis results
    */
-  public ClassScope scope() { return scope; }
-  public void setScope(ClassScope scope) { this.scope = scope; }
-  public ClassDecl enclosingClass() { return enclosingClass; }
-  public void setEnclosingClass(ClassDecl enclosingClass) { this.enclosingClass = enclosingClass; }
-  public String implementationClassName() { return implementationClassName; }
-  public void setImplementationClassName(String name) { this.implementationClassName = name; }
+  public ClassScope scope() {
+    return scope;
+  }
+
+  public void setScope(ClassScope scope) {
+    assert this.scope == null;
+    this.scope = scope;
+  }
+
+  public ClassDecl enclosingClass() {
+    return enclosingClass;
+  }
+
+  public void setEnclosingClass(ClassDecl enclosingClass) {
+    assert this.enclosingClass == null;
+    this.enclosingClass = enclosingClass;
+  }
+
+  public String implementationClassName() {
+    return implementationClassName;
+  }
+
+  public void setImplementationClassName(String name) {
+    assert this.implementationClassName == null;
+    this.implementationClassName = name;
+  }
   
   @Override
   public void accept(AstNodeVisitor visitor) {

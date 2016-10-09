@@ -2,8 +2,6 @@ package org.newspeaklanguage.compiler.ast;
 
 import java.util.List;
 
-import org.newspeaklanguage.compiler.NamingPolicy;
-
 /**
  * A basic implementation of the AstNodeVisitor interface, which visits each
  * node in the tree while doing nothing. A concrete visitor based on this only

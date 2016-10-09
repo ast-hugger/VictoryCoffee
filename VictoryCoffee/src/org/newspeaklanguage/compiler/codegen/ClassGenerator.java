@@ -38,10 +38,8 @@ public class ClassGenerator {
   private final String internalClassName;
   private final ClassWriter classWriter = new ClassWriter(
       ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
-  private final Map<java.lang.Object, LiteralValue> literals = 
-      new HashMap<java.lang.Object, LiteralValue>();
-  private final List<ClassInitializerSnippet> classInitializerSnippets = 
-      new LinkedList<ClassInitializerSnippet>();
+  private final Map<java.lang.Object, LiteralValue> literals = new HashMap<java.lang.Object, LiteralValue>();
+  private final List<StaticFieldDefiner> staticFieldDefiners = new LinkedList<StaticFieldDefiner>();
   
   private ClassGenerator(ClassDecl classNode) {
     this.classNode = classNode;
@@ -58,7 +56,7 @@ public class ClassGenerator {
   
   public byte[] generate() {
     start();
-    generateClassDefField();
+    setupClassDefField();
     processSlots();
     processNestedClasses();
     generateConstructor();
@@ -78,7 +76,7 @@ public class ClassGenerator {
       literal.setFieldName(allocateLiteralFieldName(literal));
     }
     literals.put(literal.key(), literal);
-    classInitializerSnippets.add(literal);
+    staticFieldDefiners.add(literal);
   }
   
   private String allocateLiteralFieldName(LiteralValue literal) {
@@ -96,14 +94,10 @@ public class ClassGenerator {
         null);
   }
   
-  private void generateClassDefField() {
-    FieldVisitor fieldWriter = classWriter.visitField(
-        Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
-        NamingPolicy.CLASS_DEF_FIELD_NAME,
-        ClassDefinition.TYPE_DESCRIPTOR,
-        null, null);
-    fieldWriter.visitEnd();
-    classInitializerSnippets.add(new ClassDefFieldInitializerSnippet(classNode));
+  private void setupClassDefField() {
+    ClassDefinitionDefiner classDef = new ClassDefinitionDefiner(classNode);
+    classDef.generateField(classWriter);
+    staticFieldDefiners.add(classDef);
   }
   
   private void processSlots() {
@@ -237,25 +231,26 @@ public class ClassGenerator {
   
   private void preprocessBlocksInMethod(Method method) {
     int i = 0;
-    for (Block block : method.allBlocks()) {
+    for (Block block : method.containedBlocks()) {
       String implMethodName = NamingPolicy.methodNameForClosure(method.selector(), i++);
-      BlockDescriptor descriptor = new BlockDescriptor(
-          block, method, internalClassName, implMethodName);
-      block.setDescriptor(descriptor);
-      descriptor.generateField(classWriter);
-      generateBlockImplementation(descriptor);
-      classInitializerSnippets.add(descriptor);
+      BlockDefiner definer = new BlockDefiner(block, method, internalClassName, implMethodName);
+      block.setDefiner(definer);
+      definer.generateField(classWriter);
+      generateBlockImplementation(definer);
+      staticFieldDefiners.add(definer);
     }
   }
   
-  private void generateBlockImplementation(BlockDescriptor descriptor) {
+  /**
+   * Generate the method with the code representing the block body.
+   */
+  private void generateBlockImplementation(BlockDefiner definer) {
     MethodVisitor writer = classWriter.visitMethod(
         Opcodes.ACC_PUBLIC, 
-        descriptor.methodName(), 
-        // TODO the type descriptor should be computed based on the closure arity
-        "()" + Object.TYPE_DESCRIPTOR, 
+        definer.methodName(), 
+        definer.descriptor(), 
         null, null);
-    CodeGenerator generator = new BlockGenerator(this, descriptor.blockNode(), writer);
+    CodeGenerator generator = new BlockGenerator(this, definer.blockNode(), writer);
     generator.generate();
   }
   
@@ -270,7 +265,7 @@ public class ClassGenerator {
         "()V",
         null, null);
     methodWriter.visitCode();
-    classInitializerSnippets.forEach(each -> each.generateClinitFragment(methodWriter));
+    staticFieldDefiners.forEach(each -> each.generateClinitFragment(methodWriter));
     methodWriter.visitInsn(Opcodes.RETURN);
     methodWriter.visitMaxs(0, 0); // args ignored
     methodWriter.visitEnd();

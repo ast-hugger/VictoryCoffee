@@ -3,17 +3,29 @@ package org.newspeaklanguage.compiler.codegen;
 import org.newspeaklanguage.compiler.NamingPolicy;
 import org.newspeaklanguage.compiler.ast.ClassDecl;
 import org.newspeaklanguage.runtime.ClassDefinition;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 
-class ClassDefFieldInitializerSnippet implements ClassInitializerSnippet {
+class ClassDefinitionDefiner implements StaticFieldDefiner {
   
   private final ClassDecl classNode;
   
-  ClassDefFieldInitializerSnippet(ClassDecl classNode) {
+  ClassDefinitionDefiner(ClassDecl classNode) {
     this.classNode = classNode;
+  }
+
+  @Override
+  public void generateField(ClassWriter classWriter) {
+    FieldVisitor fieldWriter = classWriter.visitField(
+        Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
+        NamingPolicy.CLASS_DEF_FIELD_NAME,
+        ClassDefinition.TYPE_DESCRIPTOR,
+        null, null);
+    fieldWriter.visitEnd();
   }
 
   @Override

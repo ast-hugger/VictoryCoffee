@@ -49,8 +49,8 @@ public class NamingPolicyTests {
   
   @Test
   public void testSlotNameForSelector() {
-    assertEquals("foo", NamingPolicy.slotNameForSelector("foo"));
-    assertEquals("foo", NamingPolicy.slotNameForSelector("foo:"));
+    assertEquals("foo", NamingPolicy.slotForSelector("foo"));
+    assertEquals("foo", NamingPolicy.slotForSelector("foo:"));
   }
 
   @Test

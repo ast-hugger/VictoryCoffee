@@ -87,7 +87,7 @@ public class Stage2Analyzer extends AstNodeVisitorSkeleton {
     } else {
       if (def.isLocalVariable()) {
         meaning = NameMeaning.localVarReference(def);
-      } else if (def.definitionScope() != nearestClassScope()) {
+      } else if (def.scope() != nearestClassScope()) {
         meaning = NameMeaning.sendToEnclosingObject(def);
       } else {
         meaning = NameMeaning.selfSend();
