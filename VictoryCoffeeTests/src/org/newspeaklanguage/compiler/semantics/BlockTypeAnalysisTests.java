@@ -42,7 +42,8 @@ public class BlockTypeAnalysisTests {
     + "   self x: temp1." // not copiable because temp1 is mutable
     + "   [:quux | bar] value." // copiable because bar is one level up and immutable  
     + "   [:frob | boo] value." // not copiable because boo is two levels up 
-    + " ]  value: 3 value: 4. )"
+    + "   ^baz"  // baz is clean, not copiable
+    + "]  value: 3 value: 4. )"
     + ")");
     MessageSendNoReceiver fooRef = NodeFinder.findLocalVarReference("foo", tree);
     MessageSendNoReceiver temp1Ref = NodeFinder.findLocalVarReference("temp1", tree);
