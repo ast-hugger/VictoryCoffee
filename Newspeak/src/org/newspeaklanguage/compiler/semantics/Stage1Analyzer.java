@@ -122,7 +122,7 @@ public class Stage1Analyzer extends AstNodeVisitorSkeleton {
   }
   
   protected void defineName(String name, AstNode definingNode) {
-    currentScope.define(name).setDefiningNode(definingNode);
+    currentScope.define(name).setAstNode(definingNode);
   }
 
   protected void exitScope() {

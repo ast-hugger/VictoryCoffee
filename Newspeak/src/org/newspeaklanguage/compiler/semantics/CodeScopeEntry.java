@@ -15,10 +15,10 @@ public class CodeScopeEntry extends ScopeEntry {
   public int index() { return index; }
   
   public boolean isMethodArgument() {
-    return definingNode instanceof Argument;
+    return definitionNode instanceof Argument;
   }
   
   public boolean isMethodTemp() {
-    return definingNode instanceof SlotDefinition;
+    return definitionNode instanceof SlotDefinition;
   }
 }
