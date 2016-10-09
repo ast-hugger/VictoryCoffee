@@ -27,5 +27,18 @@ public class Block extends CodeUnit {
   public void accept(AstNodeVisitor visitor) {
     visitor.visitBlock(this);
   }
+  
+  @Override
+  public String toString() {
+    return this.getClass().getSimpleName()
+        + "(" + argumentsString() + ")";
+  }
+  
+  private String argumentsString() {
+    return arguments.stream()
+        .map(each -> ":" + each.name())
+        .reduce((a, b) -> a + " " + b)
+        .orElse("");
+  }
 
 }

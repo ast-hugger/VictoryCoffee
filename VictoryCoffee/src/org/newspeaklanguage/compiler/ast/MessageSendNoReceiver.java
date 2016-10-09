@@ -77,6 +77,8 @@ public class MessageSendNoReceiver extends AstNode {
   
   @Override
   public String toString() {
-    return this.getClass().getSimpleName() + "(" + selector + "): " + meaning;
+    return this.getClass().getSimpleName()
+        + "." + meaning
+        + "(" + selector + ")";
   }
 }

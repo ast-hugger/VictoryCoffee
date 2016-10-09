@@ -24,4 +24,10 @@ public class MessageSendWithReceiver extends MessageSendNoReceiver {
     visitor.visitMessageSendWithReceiver(this);
   }
   
+  @Override
+  public String toString() {
+    return this.getClass().getSimpleName()
+        + "(" + receiver + " " + selector + ")";
+  }
+  
 }

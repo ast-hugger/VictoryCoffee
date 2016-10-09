@@ -66,4 +66,11 @@ public class CodeScope extends Scope<CodeScopeEntry> {
   protected CodeScopeEntry createScopeEntry(String name) {
     return new CodeScopeEntry(name, this, ++lastVarIndex);
   }
+  
+  @Override
+  public String toString() {
+    return super.toString()
+        + (isMethod ? "method" : "block");
+  }
+
 }

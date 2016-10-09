@@ -36,5 +36,12 @@ public class SlotDefinition extends AstNode implements NameDefinition {
   public void accept(AstNodeVisitor visitor) {
     visitor.visitSlotDefinition(this);
   }
+  
+  @Override
+  public String toString() {
+    return this.getClass().getSimpleName()
+        + "(" + name + ")"
+        + (isMutable ? "mutable" : "immutable");
+  }
 
 }

@@ -13,7 +13,7 @@ public class ScopeEntry {
   
   protected final String name;
   protected final Scope<? extends ScopeEntry> definitionScope;
-  protected AstNode definingNode;
+  protected AstNode definitionNode;
   
   ScopeEntry(String name, Scope<? extends ScopeEntry> definitionScope) {
     this.name = name;
@@ -22,8 +22,8 @@ public class ScopeEntry {
 
   public String name() { return name; }
   public Scope<? extends ScopeEntry> scope() { return definitionScope; }
-  public AstNode astNode() { return definingNode; }
-  public void setDefiningNode(AstNode node) { definingNode = node; }
+  public AstNode astNode() { return definitionNode; }
+  public void setAstNode(AstNode node) { definitionNode = node; }
   
   /**
    * Return true if the receiver is a method argument or a temp variable.
@@ -35,6 +35,8 @@ public class ScopeEntry {
   
   @Override
   public String toString() {
-    return this.getClass().getSimpleName() + "(" + name + ")";
+    return this.getClass().getSimpleName() 
+        + "(" + name + ")"
+        + definitionNode;
   }
 }

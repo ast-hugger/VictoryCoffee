@@ -23,4 +23,10 @@ public class MessagePattern extends AstNode {
   public void accept(AstNodeVisitor visitor) {
     visitor.visitMessagePattern(this);
   }
+  
+  @Override
+  public String toString() {
+    return this.getClass().getSimpleName()
+        + "(" + selector + ")";
+  }
 }

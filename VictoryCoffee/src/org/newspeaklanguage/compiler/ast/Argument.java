@@ -26,5 +26,11 @@ public class Argument extends AstNode implements NameDefinition {
   public void accept(AstNodeVisitor visitor) {
     visitor.visitArgument(this);
   }
+  
+  @Override
+  public String toString() {
+    return this.getClass().getSimpleName()
+        + "(" + name + ")";
+  }
 
 }

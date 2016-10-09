@@ -20,4 +20,10 @@ public class Category extends AstNode {
     visitor.visitCategory(this);
   }
 
+  @Override
+  public String toString() {
+    return this.getClass().getSimpleName()
+        + "(" + name + ")"
+        + methods.toString();
+  }
 }

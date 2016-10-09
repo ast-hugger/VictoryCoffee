@@ -47,4 +47,11 @@ public abstract class Scope<E extends ScopeEntry> {
   }
   
   protected abstract E createScopeEntry(String name);
+  
+  @Override
+  public String toString() {
+    return this.getClass().getSimpleName()
+        + "(level: " + level 
+        + ", entries: " + names.size() + ")";
+  }
 }

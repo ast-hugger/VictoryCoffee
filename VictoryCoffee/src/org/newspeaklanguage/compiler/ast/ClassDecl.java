@@ -87,4 +87,11 @@ public class ClassDecl extends AstNode {
   public void accept(AstNodeVisitor visitor) {
     visitor.visitClassDecl(this);
   }
+  
+  @Override
+  public String toString() {
+    return this.getClass().getSimpleName() 
+        + ":" + name() 
+        + "(" + implementationClassName() + ")";
+  }
 }

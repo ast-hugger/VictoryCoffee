@@ -27,6 +27,10 @@ public class Method extends CodeUnit implements NameDefinition {
     return selector();
   }
   
+  /**
+   * A method defines a scope entry, so it has to say if the name it defines is
+   * a mutable binding or not.
+   */
   @Override
   public boolean isMutable() {
     return false;
@@ -39,5 +43,11 @@ public class Method extends CodeUnit implements NameDefinition {
   @Override
   public void accept(AstNodeVisitor visitor) {
     visitor.visitMethod(this);
+  }
+  
+  @Override
+  public String toString() {
+    return this.getClass().getSimpleName()
+        + "(" + selector() + ")";
   }
 }
