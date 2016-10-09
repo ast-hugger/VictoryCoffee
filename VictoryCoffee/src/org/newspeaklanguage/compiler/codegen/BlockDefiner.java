@@ -54,6 +54,10 @@ public class BlockDefiner implements StaticFieldDefiner {
   public String methodName() { return methodName; }
   public String fieldName() { return methodName; }
   
+  public String descriptor() {
+    return descriptor(blockNode.arity());
+  }
+
   @Override
   public void generateField(ClassWriter classWriter) {
     FieldVisitor fieldWriter = classWriter.visitField(
@@ -77,10 +81,6 @@ public class BlockDefiner implements StaticFieldDefiner {
         internalClassName(), 
         fieldName(),
         Descriptor.ofType(MethodHandle.class));
-  }
-
-  public String descriptor() {
-    return descriptor(blockNode.arity());
   }
   
 }

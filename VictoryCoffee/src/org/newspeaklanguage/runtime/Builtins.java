@@ -105,7 +105,7 @@ public final class Builtins {
     
     /** 
      * The handle to the implementation method of the block, retrieved from the BlockHandle
-     * and stored locally for quicker access. 
+     * and bound to the copied receiver.
      */
     private final MethodHandle implementation;
 
@@ -115,17 +115,10 @@ public final class Builtins {
      */
     private final int arity;
     
-    /**
-     * The Newspeak receiver object captured by the closure.
-     */
-    private final StandardObject copiedSelf;
     
-    public Closure(MethodHandle implMethodHandle, StandardObject copiedSelf) {
-      this.implementation = implMethodHandle;
-      // The parameter count of the method handle includes the receiver,
-      // which we don't count in the arity.
-      this.arity = implMethodHandle.type().parameterCount() - 1;
-      this.copiedSelf = copiedSelf;
+    public Closure(MethodHandle blockMethodHandle, StandardObject copiedSelf) {
+      implementation = blockMethodHandle.bindTo(copiedSelf);
+      arity = implementation.type().parameterCount();
     }
     
     public Object $value() {
@@ -133,7 +126,7 @@ public final class Builtins {
         throw new RuntimeError("this closure expects " + arity + " arguments");
       }
       try {
-        return (Object) implementation.invoke(copiedSelf);
+        return (Object) implementation.invokeExact();
       } catch (Throwable e) {
         throw new RuntimeError("closure invocation error", e);
       }
@@ -144,7 +137,7 @@ public final class Builtins {
         throw new RuntimeError("this closure expects " + arity + " arguments");
       }
       try {
-        return (Object) implementation.invoke(copiedSelf, arg);
+        return (Object) implementation.invokeExact(arg);
       } catch (Throwable e) {
         throw new RuntimeError("closure invocation error", e);
       }
@@ -155,7 +148,7 @@ public final class Builtins {
         throw new RuntimeError("this closure expects " + arity + " arguments");
       }
       try {
-        return (Object) implementation.invoke(copiedSelf, arg1, arg2);
+        return (Object) implementation.invokeExact(arg1, arg2);
       } catch (Throwable e) {
         throw new RuntimeError("closure invocation error", e);
       }
