@@ -17,6 +17,11 @@ public class Argument extends AstNode implements NameDefinition {
   @Override
   public String name() { return name; }
   
+  @Override 
+  public boolean isMutable() {
+    return false;
+  }
+  
   @Override
   public void accept(AstNodeVisitor visitor) {
     visitor.visitArgument(this);

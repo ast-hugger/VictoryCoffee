@@ -27,6 +27,7 @@ public class ScopeEntry {
   
   /**
    * Return true if the receiver is a method argument or a temp variable.
+   * (It can also be a class slot or a method node).
    */
   public boolean isLocalVariable() {
     return definitionScope.isMethodScope() || definitionScope.isBlockScope();

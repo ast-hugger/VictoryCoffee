@@ -10,21 +10,19 @@ import org.newspeaklanguage.compiler.ast.ClassDecl;
 import org.newspeaklanguage.compiler.ast.MessageSendNoReceiver;
 import org.newspeaklanguage.compiler.ast.NameDefinition;
 import org.newspeaklanguage.compiler.semantics.NameMeaning.LocalVarReference;
-import org.newspeaklanguage.compiler.semantics.NameMeaning.SelfSend;
 import org.newspeaklanguage.compiler.semantics.NameMeaning.SendToEnclosingObject;
 
 public class VarReferenceResolutionTests {
 
   @Test
   public void testClassSlotReferences() {
-    AstNode tree = parseAndAnalyze(
-        "class Test = ( | foo bar baz | )"
-        + "('testing'"
-        + "test = ("
-        + "  foo: 3."
-        + "  bar:: 4."
-        + "  ^baz)"
-        + ")");
+    AstNode tree = Compiler.parseAndAnalyze("class Test = ( | foo bar baz | )"
+    + "('testing'"
+    + "test = ("
+    + "  foo: 3."
+    + "  bar:: 4."
+    + "  ^baz)"
+    + ")");
     NameDefinition fooDef = NodeFinder.findLocalVarDefinition("foo", tree);
     NameDefinition barDef = NodeFinder.findLocalVarDefinition("bar", tree);
     NameDefinition bazDef = NodeFinder.findLocalVarDefinition("baz", tree);
@@ -41,16 +39,15 @@ public class VarReferenceResolutionTests {
 
   @Test
   public void testOuterClassSlotReferences() {
-    ClassDecl tree = (ClassDecl) parseAndAnalyze(
-        "class Test = ( | foo bar baz | )"
-        + "(class Inner = ()"
-        + "  ('example'"
-        + "  test = ("
-        + "    foo: 3."
-        + "    bar:: 4."
-        + "    ^baz)"
-        + "  )"
-        + ")");
+    ClassDecl tree = (ClassDecl) Compiler.parseAndAnalyze("class Test = ( | foo bar baz | )"
+    + "(class Inner = ()"
+    + "  ('example'"
+    + "  test = ("
+    + "    foo: 3."
+    + "    bar:: 4."
+    + "    ^baz)"
+    + "  )"
+    + ")");
     NameDefinition fooDef = NodeFinder.findLocalVarDefinition("foo", tree);
     NameDefinition barDef = NodeFinder.findLocalVarDefinition("bar", tree);
     NameDefinition bazDef = NodeFinder.findLocalVarDefinition("baz", tree);
@@ -76,12 +73,11 @@ public class VarReferenceResolutionTests {
 
   @Test
   public void testMethodArgReferences() {
-    AstNode tree = parseAndAnalyze(
-        "class Test = ()"
-        + "('testing'"
-        + "test: foo and: bar  = ("
-        + "  ^foo + bar)"
-        + ")");
+    AstNode tree = Compiler.parseAndAnalyze("class Test = ()"
+    + "('testing'"
+    + "test: foo and: bar  = ("
+    + "  ^foo + bar)"
+    + ")");
     NameDefinition fooDef = NodeFinder.findLocalVarDefinition("foo", tree);
     MessageSendNoReceiver fooRef = NodeFinder.findLocalVarReference("foo", tree);
     assertEquals(fooDef, fooRef.lexicalDefinition().astNode());
@@ -95,13 +91,12 @@ public class VarReferenceResolutionTests {
 
   @Test
   public void testMethodTempReferences() {
-    AstNode tree = parseAndAnalyze(
-        "class Test = ()"
-        + "('testing'"
-        + "test: quux = ("
-        + "  | foo bar | "
-        + "  ^foo + (bar: 5))"
-        + ")");
+    AstNode tree = Compiler.parseAndAnalyze("class Test = ()"
+    + "('testing'"
+    + "test: quux = ("
+    + "  | foo bar | "
+    + "  ^foo + (bar: 5))"
+    + ")");
     NameDefinition fooDef = NodeFinder.findLocalVarDefinition("foo", tree);
     MessageSendNoReceiver fooRef = NodeFinder.findLocalVarReference("foo", tree);
     assertEquals(fooDef, fooRef.lexicalDefinition().astNode());
@@ -115,12 +110,11 @@ public class VarReferenceResolutionTests {
 
   @Test
   public void testBlockArgReferences() {
-    AstNode tree = parseAndAnalyze(
-        "class Test = ()"
-        + "('testing'"
-        + "test = ("
-        + "  ^[:foo :bar | foo + bar] value: 3 value: 4)"
-        + ")");
+    AstNode tree = Compiler.parseAndAnalyze("class Test = ()"
+    + "('testing'"
+    + "test = ("
+    + "  ^[:foo :bar | foo + bar] value: 3 value: 4)"
+    + ")");
     NameDefinition fooDef = NodeFinder.findLocalVarDefinition("foo", tree);
     MessageSendNoReceiver fooRef = NodeFinder.findLocalVarReference("foo", tree);
     assertEquals(fooDef, fooRef.lexicalDefinition().astNode());
@@ -134,12 +128,11 @@ public class VarReferenceResolutionTests {
 
   @Test
   public void testBlockTempReferences() {
-    AstNode tree = parseAndAnalyze(
-        "class Test = ()"
-        + "('testing'"
-        + "test = ("
-        + "  ^[:quux | | foo bar | foo + bar] value: 3)"
-        + ")");
+    AstNode tree = Compiler.parseAndAnalyze("class Test = ()"
+    + "('testing'"
+    + "test = ("
+    + "  ^[:quux | | foo bar | foo + bar] value: 3)"
+    + ")");
     NameDefinition fooDef = NodeFinder.findLocalVarDefinition("foo", tree);
     MessageSendNoReceiver fooRef = NodeFinder.findLocalVarReference("foo", tree);
     assertEquals(fooDef, fooRef.lexicalDefinition().astNode());
@@ -151,10 +144,41 @@ public class VarReferenceResolutionTests {
     assertEquals(3, ((CodeScopeEntry) barRef.lexicalDefinition()).index());    
   }
 
+  @Test
+  public void testNestedBlockArgReferences() {
+    AstNode tree = Compiler.parseAndAnalyze("class Test = ()"
+    + "('testing'"
+    + "test = ("
+    + "  ^[:foo :bar | [foo + bar] value] value: 3 value: 4)"
+    + ")");
+    NameDefinition fooDef = NodeFinder.findLocalVarDefinition("foo", tree);
+    MessageSendNoReceiver fooRef = NodeFinder.findLocalVarReference("foo", tree);
+    assertEquals(fooDef, fooRef.lexicalDefinition().astNode());
+    assertTrue(fooRef.meaning().isLocalVarReference());
+    LocalVarReference fooMeaning = (LocalVarReference) fooRef.meaning();
+    assertEquals(fooDef, fooMeaning.definition().astNode());
+    assertEquals(1, ((CodeScopeEntry) fooMeaning.definition()).index());
+    MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
+    assertEquals(2, ((CodeScopeEntry) barRef.lexicalDefinition()).index());    
+  }
 
-  private AstNode parseAndAnalyze(String source) {
-    AstNode tree = Compiler.parseAndAnalyze(source);
-    return tree;
+
+  @Test
+  public void testNestedBlockTempReferences() {
+    AstNode tree = Compiler.parseAndAnalyze("class Test = ()"
+    + "('testing'"
+    + "test = ("
+    + "  ^[:quux | | foo bar | [foo + bar] value] value: 3)"
+    + ")");
+    NameDefinition fooDef = NodeFinder.findLocalVarDefinition("foo", tree);
+    MessageSendNoReceiver fooRef = NodeFinder.findLocalVarReference("foo", tree);
+    assertEquals(fooDef, fooRef.lexicalDefinition().astNode());
+    assertTrue(fooRef.meaning().isLocalVarReference());
+    LocalVarReference fooMeaning = (LocalVarReference) fooRef.meaning();
+    assertEquals(fooDef, fooMeaning.definition().astNode());
+    assertEquals(2, ((CodeScopeEntry) fooMeaning.definition()).index());
+    MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
+    assertEquals(3, ((CodeScopeEntry) barRef.lexicalDefinition()).index());    
   }
   
 }

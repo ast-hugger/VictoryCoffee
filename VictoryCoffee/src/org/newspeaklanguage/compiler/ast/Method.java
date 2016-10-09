@@ -26,6 +26,11 @@ public class Method extends CodeUnit implements NameDefinition {
   public String name() {
     return selector();
   }
+  
+  @Override
+  public boolean isMutable() {
+    return false;
+  }
 
   public void addBlock(Block block) {
     containedBlocks.add(block);
