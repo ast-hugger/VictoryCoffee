@@ -1,17 +1,17 @@
 package org.newspeaklanguage.compiler.codegen;
 
+import java.lang.invoke.MethodHandle;
 import java.util.Arrays;
 
 import org.newspeaklanguage.compiler.Descriptor;
 import org.newspeaklanguage.compiler.ast.Block;
 import org.newspeaklanguage.compiler.ast.Method;
-import org.newspeaklanguage.runtime.BlockHandle;
 import org.newspeaklanguage.runtime.Object;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 
 /**
  * A record created by {@link ClassGenerator} to keep track of blocks in
@@ -59,30 +59,24 @@ public class BlockDefiner implements StaticFieldDefiner {
     FieldVisitor fieldWriter = classWriter.visitField(
         Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
         fieldName(),
-        BlockHandle.TYPE_DESCRIPTOR,
+        Descriptor.ofType(MethodHandle.class),
         null, null);
     fieldWriter.visitEnd();
   }
 
   @Override
   public void generateClinitFragment(MethodVisitor methodWriter) {
-    methodWriter.visitTypeInsn(Opcodes.NEW, BlockHandle.INTERNAL_CLASS_NAME);
-    methodWriter.visitInsn(Opcodes.DUP);
-    // BlockHandle.<init>(Class implementationClass, String methodName, int arity)
-    methodWriter.visitLdcInsn(Type.getType("L" + internalClassName() + ";"));
-    methodWriter.visitLdcInsn(methodName());
-    CodeGenerator.generateLoadInt(methodWriter, blockNode.arity());
-    methodWriter.visitMethodInsn(
-        Opcodes.INVOKESPECIAL, 
-        BlockHandle.INTERNAL_CLASS_NAME, 
-        "<init>",
-        BlockHandle.CONSTRUCTOR_DESCRIPTOR, 
-        false);
+    methodWriter.visitLdcInsn(new Handle(
+        Opcodes.H_INVOKEVIRTUAL,
+        internalClassName(),
+        methodName(),
+        descriptor(),
+        false));
     methodWriter.visitFieldInsn(
         Opcodes.PUTSTATIC,
         internalClassName(), 
         fieldName(),
-        BlockHandle.TYPE_DESCRIPTOR);
+        Descriptor.ofType(MethodHandle.class));
   }
 
   public String descriptor() {

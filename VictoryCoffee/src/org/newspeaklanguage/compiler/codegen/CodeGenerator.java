@@ -1,5 +1,8 @@
 package org.newspeaklanguage.compiler.codegen;
 
+import java.lang.invoke.MethodHandle;
+
+import org.newspeaklanguage.compiler.Descriptor;
 import org.newspeaklanguage.compiler.NamingPolicy;
 import org.newspeaklanguage.compiler.ast.Argument;
 import org.newspeaklanguage.compiler.ast.AstNode;
@@ -24,7 +27,6 @@ import org.newspeaklanguage.compiler.ast.Super;
 import org.newspeaklanguage.compiler.semantics.CodeScopeEntry;
 import org.newspeaklanguage.compiler.semantics.NameMeaning;
 import org.newspeaklanguage.runtime.Builtins;
-import org.newspeaklanguage.runtime.BlockHandle;
 import org.newspeaklanguage.runtime.MessageDispatcher;
 import org.newspeaklanguage.runtime.Object;
 import org.newspeaklanguage.runtime.ObjectFactory;
@@ -103,7 +105,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
         Opcodes.GETSTATIC,
         definer.internalClassName(),
         definer.fieldName(),
-        BlockHandle.TYPE_DESCRIPTOR);
+        Descriptor.ofType(MethodHandle.class));
     methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
     methodWriter.visitMethodInsn(
         Opcodes.INVOKESPECIAL, 

@@ -97,7 +97,7 @@ public final class Builtins {
     
     public static final String INTERNAL_CLASS_NAME = Descriptor.internalClassName(Closure.class);
     public static final String CONSTRUCTOR_DESCRIPTOR = 
-        Descriptor.ofMethod(void.class, BlockHandle.class, StandardObject.class);
+        Descriptor.ofMethod(void.class, MethodHandle.class, StandardObject.class);
     
     /*
      * Instance side
@@ -110,8 +110,8 @@ public final class Builtins {
     private final MethodHandle implementation;
 
     /**
-     * The number of block arguments. This is the number of the arguments as seen in the
-     * original source, not including any copied values.
+     * The number of arguments of the implementation method. This is currently the same
+     * as the number of the original block arguments.
      */
     private final int arity;
     
@@ -120,9 +120,11 @@ public final class Builtins {
      */
     private final StandardObject copiedSelf;
     
-    public Closure(BlockHandle blockHandle, StandardObject copiedSelf) {
-      this.implementation = blockHandle.methodHandle();
-      this.arity = blockHandle.arity();
+    public Closure(MethodHandle implMethodHandle, StandardObject copiedSelf) {
+      this.implementation = implMethodHandle;
+      // The parameter count of the method handle includes the receiver,
+      // which we don't count in the arity.
+      this.arity = implMethodHandle.type().parameterCount() - 1;
       this.copiedSelf = copiedSelf;
     }
     
