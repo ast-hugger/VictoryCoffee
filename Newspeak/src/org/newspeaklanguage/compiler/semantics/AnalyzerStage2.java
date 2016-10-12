@@ -74,7 +74,7 @@ public class AnalyzerStage2 extends AstNodeVisitorSkeleton {
 
   @Override
   public void visitOuter(Outer outerNode) {
-    ClassScope target = currentScope.outerClass(outerNode.name());
+    ClassScope target = currentScope.outerClassNamed(outerNode.name());
     if (target == null) {
       throw new IllegalArgumentException("no such outer class");
     }

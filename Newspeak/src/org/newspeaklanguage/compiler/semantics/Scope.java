@@ -11,9 +11,9 @@ import org.newspeaklanguage.compiler.ast.AstNode;
  *
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
- * @param <E>
+ * @param <T>
  */
-public abstract class Scope<E extends ScopeEntry> {
+public abstract class Scope<T extends ScopeEntry> {
   
   /**
    * The AstNode this scope is associated with.
@@ -21,7 +21,7 @@ public abstract class Scope<E extends ScopeEntry> {
   protected final AstNode definition;
   
   /**
-   * The next level up lexical scope. {@code null} for the top-level class.
+   * The lexical scope one level up. {@code null} for the top-level class.
    */
   protected final Scope<? extends ScopeEntry> parent;
   
@@ -36,7 +36,7 @@ public abstract class Scope<E extends ScopeEntry> {
   /**
    * Scope entries for the names defined by this scope, keyed by name.
    */
-  protected final Map<String, E> names = new HashMap<String, E>();
+  protected final Map<String, T> names = new HashMap<>();
   
   Scope(AstNode definition, Scope<? extends ScopeEntry> parent, int level) {
     this.definition = definition;
@@ -67,25 +67,25 @@ public abstract class Scope<E extends ScopeEntry> {
   public abstract CodeScope methodScope();
   
   public ScopeEntry lookup(String name) {
-    E local = names.get(name);
+    T local = names.get(name);
     return local != null
         ? local 
         : parent != null ? parent.lookup(name) : null;
   }
   
-  public E lookupLocally(String name) {
+  public T lookupLocally(String name) {
     return names.get(name);
   }
   
-  public abstract ClassScope outerClass(String name);
+  public abstract ClassScope outerClassNamed(String name);
   
-  public E define(String name) {
-    E def = createScopeEntry(name);
+  public T define(String name) {
+    T def = createScopeEntry(name);
     names.put(name, def);
     return def;
   }
   
-  protected abstract E createScopeEntry(String name);
+  protected abstract T createScopeEntry(String name);
   
   @Override
   public String toString() {

@@ -20,12 +20,8 @@ import org.newspeaklanguage.compiler.ast.MessageSendNoReceiver;
  */
 public abstract class NameMeaning {
 
-  public boolean isLocalVarReference() {
+  public boolean isLexicalVarReference() {
     return false;
-  }
-
-  public Optional<ScopeEntry> lexicalDefinition() {
-    return Optional.empty();
   }
 
   public boolean isSendToEnclosingObject() {
@@ -34,6 +30,10 @@ public abstract class NameMeaning {
 
   public boolean isSelfSend() {
     return false;
+  }
+
+  public <T extends ScopeEntry> Optional<T> lexicalDefinition() {
+    return Optional.empty();
   }
 
   @Override

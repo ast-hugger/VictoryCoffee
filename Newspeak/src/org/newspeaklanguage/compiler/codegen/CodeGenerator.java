@@ -24,8 +24,8 @@ import org.newspeaklanguage.compiler.ast.Return;
 import org.newspeaklanguage.compiler.ast.Self;
 import org.newspeaklanguage.compiler.ast.SlotDefinition;
 import org.newspeaklanguage.compiler.ast.Super;
-import org.newspeaklanguage.compiler.semantics.CodeScopeEntry;
 import org.newspeaklanguage.compiler.semantics.LexicalVarReference;
+import org.newspeaklanguage.compiler.semantics.LocalVariable;
 import org.newspeaklanguage.compiler.semantics.SendToEnclosingObject;
 import org.newspeaklanguage.runtime.Builtins;
 import org.newspeaklanguage.runtime.MessageDispatcher;
@@ -42,14 +42,14 @@ import org.objectweb.asm.Opcodes;
 
 /**
  * The generic method code generator. We generate Java methods to represent both
- * the actual methods in Newspeak, and blocks contained in them. Those two tasks
- * are handled by the two subclasses of this class.
+ * the individual Newspeak methods, and blocks contained in them. Those two
+ * tasks are handled by the two subclasses of this class.
  *
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
  */
 abstract class CodeGenerator implements AstNodeVisitor {
-  
+
   public static void generateLoadInt(MethodVisitor methodWriter, int value) {
     if (0 <= value && value <= 5) {
       methodWriter.visitInsn(specialOpcodes[value]);
@@ -59,49 +59,56 @@ abstract class CodeGenerator implements AstNodeVisitor {
       methodWriter.visitIntInsn(Opcodes.SIPUSH, value);
     }
   }
-  
+
   protected final ClassGenerator classGenerator;
   protected final CodeUnit rootNode;
   protected final MethodVisitor methodWriter;
-  
+
   CodeGenerator(ClassGenerator classGenerator, CodeUnit rootNode, MethodVisitor methodVisitor) {
     this.classGenerator = classGenerator;
     this.rootNode = rootNode;
     this.methodWriter = methodVisitor;
   }
-  
-  public ClassGenerator classGenerator() { return classGenerator; }
-  public ClassWriter classWriter() { return classGenerator.classWriter(); }
-  
+
+  public ClassGenerator classGenerator() {
+    return classGenerator;
+  }
+
+  public ClassWriter classWriter() {
+    return classGenerator.classWriter();
+  }
+
   public void generate() {
     methodWriter.visitCode();
     visitStatements();
-    methodWriter.visitMaxs(0, 0); // args ignored; writer is set to compute these 
+    methodWriter.visitMaxs(0, 0); // args ignored; writer is set to compute
+                                  // these
     methodWriter.visitEnd();
   }
-  
+
   @Override
   public void visitMethod(Method method) {
     throw new IllegalStateException("this node should not be visited directly");
   }
-  
+
   public void visit(AstNode node) {
     node.accept(this);
   }
-  
+
   /**
-   * Subclasses will implement this as appropriate for their type. Methods
-   * and blocks differ in their default return value.
+   * Subclasses will implement this as appropriate for their type. Methods and
+   * blocks differ in their default return value.
    */
   protected abstract void visitStatements();
-  
+
   @Override
   public void visitBlock(Block block) {
     BlockDefiner definer = block.definer();
     // new Builtins.Closure
     methodWriter.visitTypeInsn(Opcodes.NEW, Builtins.Closure.INTERNAL_CLASS_NAME);
     methodWriter.visitInsn(Opcodes.DUP);
-    // Builtins.Closure.<init>(ClosureLiteral closureLiteral, StandardObject self)
+    // Builtins.Closure.<init>(ClosureLiteral closureLiteral, StandardObject
+    // self)
     methodWriter.visitFieldInsn(
         Opcodes.GETSTATIC,
         definer.internalClassName(),
@@ -109,10 +116,10 @@ abstract class CodeGenerator implements AstNodeVisitor {
         Descriptor.ofType(MethodHandle.class));
     methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
     methodWriter.visitMethodInsn(
-        Opcodes.INVOKESPECIAL, 
-        Builtins.Closure.INTERNAL_CLASS_NAME, 
+        Opcodes.INVOKESPECIAL,
+        Builtins.Closure.INTERNAL_CLASS_NAME,
         "<init>",
-        Builtins.Closure.CONSTRUCTOR_DESCRIPTOR, 
+        Builtins.Closure.CONSTRUCTOR_DESCRIPTOR,
         false);
   }
 
@@ -137,48 +144,88 @@ abstract class CodeGenerator implements AstNodeVisitor {
     messagePattern.arguments().forEach(this::visit);
   }
 
+  /**
+   * Generate code for a receiverless message send. Depending on the lexical
+   * context previously examined by the analyzer, this send may be a variable
+   * reference, a send to an enclosing object, or a self send.
+   */
   @Override
-  public void visitMessageSendNoReceiver(MessageSendNoReceiver messageSend) {
-    if (messageSend.meaning().isLocalVarReference()) {
-      generateLocalVarReference(messageSend);
-    } else if (messageSend.meaning().isSendToEnclosingObject()) {
-      generateSendToEnclosingObject(messageSend);
-    } else if (messageSend.meaning().isSelfSend()) {
-      generateSelfSend(messageSend);
+  public void visitMessageSendNoReceiver(MessageSendNoReceiver messageNode) {
+    if (messageNode.meaning().isLexicalVarReference()) {
+      generateLexicalVarReference(messageNode);
+    } else if (messageNode.meaning().isSendToEnclosingObject()) {
+      generateSendToEnclosingObject(messageNode);
+    } else if (messageNode.meaning().isSelfSend()) {
+      generateSelfSend(messageNode);
     } else {
-      throw new IllegalArgumentException("unrecognized here send meaning");
+      throw new IllegalStateException("unrecognized here send meaning");
     }
   }
 
-  private void generateLocalVarReference(MessageSendNoReceiver messageSend) {
-    LexicalVarReference meaning = (LexicalVarReference) messageSend.meaning();
-    int index = ((CodeScopeEntry) meaning.definition()).index();
-    if (NamingPolicy.isSetterSelector(messageSend.selector())) {
-      assert messageSend.arity() == 1;
-      visit(messageSend.arguments().get(0));
-      // TODO we can do some peephole optimization here to avoid the moves
-      // to have the result on the stack if the send is a statement and the
-      // result is going to be discarded anyway.
-      if (messageSend.isSetterSend()) {
-        methodWriter.visitInsn(Opcodes.DUP); // the copy will be the result
-      }
-      methodWriter.visitVarInsn(Opcodes.ASTORE, index);
-      if (!messageSend.isSetterSend()) {
-        methodWriter.visitVarInsn(Opcodes.ALOAD, 0); // the result is the receiver
+  /**
+   * Generate code for access to a lexically visible variable available
+   * as a local in the current method frame (which local may be
+   * a closed over value copied from the outer scope). There are three
+   * major cases: a getter, a regular setter (result is the receiver) and
+   * a double-colon setter (result is the set value). Each of those
+   * has the subcases of a regular and a boxed representation.
+   */
+  private void generateLexicalVarReference(MessageSendNoReceiver messageNode) {
+    LexicalVarReference meaning = (LexicalVarReference) messageNode.meaning();
+    LocalVariable local = meaning.localVariable(); 
+    int index = local.index();
+    // TODO we can do some peephole optimization here to avoid the effort
+    // to keep the result on the stack if the send is a statement and the
+    // result is going to be discarded anyway.
+    if (NamingPolicy.isSetterSelector(messageNode.selector())) {
+      assert messageNode.arity() == 1;
+      if (messageNode.isSetterSend()) {
+        visit(messageNode.arguments().get(0));
+        methodWriter.visitInsn(Opcodes.DUP); // make a copy for the result
+        if (local.isBoxed()) {
+          // :: send, boxed
+          methodWriter.visitVarInsn(Opcodes.ALOAD, index);
+          methodWriter.visitInsn(Opcodes.SWAP);
+          methodWriter.visitInsn(Opcodes.ICONST_0);
+          methodWriter.visitInsn(Opcodes.SWAP);
+          methodWriter.visitInsn(Opcodes.AASTORE);
+        } else {
+          // :: send, unboxed
+          methodWriter.visitVarInsn(Opcodes.ASTORE, index);
+        }
+        // a prior copy of expr is now on the stack
+      } else {
+        if (local.isBoxed()) {
+          // : send, boxed
+          methodWriter.visitVarInsn(Opcodes.ALOAD, index);
+          methodWriter.visitInsn(Opcodes.ICONST_0);
+          visit(messageNode.arguments().get(0));
+          methodWriter.visitInsn(Opcodes.AASTORE);
+        } else {
+          // : send, unboxed
+          visit(messageNode.arguments().get(0));
+          methodWriter.visitVarInsn(Opcodes.ASTORE, index);
+        }
+        methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
       }
     } else {
-      assert messageSend.arity() == 0;
+      // A getter
+      assert messageNode.arity() == 0;
       methodWriter.visitVarInsn(Opcodes.ALOAD, index);
+      if (local.isBoxed()) {
+        methodWriter.visitInsn(Opcodes.ICONST_0);
+        methodWriter.visitInsn(Opcodes.AALOAD);
+      }
     }
   }
 
-  private void generateSendToEnclosingObject(MessageSendNoReceiver messageSend) {
-    SendToEnclosingObject meaning = (SendToEnclosingObject) messageSend.meaning();
+  private void generateSendToEnclosingObject(MessageSendNoReceiver messageNode) {
+    SendToEnclosingObject meaning = (SendToEnclosingObject) messageNode.meaning();
     int scopeLevel = meaning.definition().scope().level();
-    if (messageSend.isSetterSend()) {
+    if (messageNode.isSetterSend()) {
       // A setter send should leave the message argument on the stack
-      assert messageSend.arity() == 1;
-      visit(messageSend.arguments().get(0));
+      assert messageNode.arity() == 1;
+      visit(messageNode.arguments().get(0));
       methodWriter.visitInsn(Opcodes.DUP);
       generateLoadOfEnclosingObject(scopeLevel);
       methodWriter.visitInsn(Opcodes.SWAP);
@@ -186,37 +233,38 @@ abstract class CodeGenerator implements AstNodeVisitor {
       // should also pop the send result once we are done.
     } else {
       generateLoadOfEnclosingObject(scopeLevel);
-      messageSend.arguments().forEach(this::visit);
+      messageNode.arguments().forEach(this::visit);
     }
     methodWriter.visitInvokeDynamicInsn(
-        messageSend.selector(),
-        callSiteTypeDescriptor(messageSend.arity()),
+        messageNode.selector(),
+        callSiteTypeDescriptor(messageNode.arity()),
         MessageDispatcher.bootstrapHandle());
-    if (messageSend.isSetterSend()) {
-      // Pop the answer; the copy of the argument is now exposed as the result. 
+    if (messageNode.isSetterSend()) {
+      // Pop the answer; the copy of the argument is now exposed as the result.
       methodWriter.visitInsn(Opcodes.POP);
     }
   }
-  
+
   private void generateLoadOfEnclosingObject(int level) {
     // get the enclosing receiver on the stack with the equivalent of:
     // this.nsClass.enclosingObjects[scopeLevel]
-    // 'this' is a subclass of StandardClass, so no CHECKCAST is needed prior to getting 'nsClass'.
+    // 'this' is a subclass of StandardClass, so no CHECKCAST is needed prior to
+    // getting 'nsClass'.
     methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
     methodWriter.visitFieldInsn(
-        Opcodes.GETFIELD, 
+        Opcodes.GETFIELD,
         StandardObject.INTERNAL_CLASS_NAME,
         "nsClass",
         ObjectFactory.TYPE_DESCRIPTOR);
     methodWriter.visitFieldInsn(
-        Opcodes.GETFIELD, 
-        ObjectFactory.INTERNAL_CLASS_NAME, 
-        "enclosingObjects", 
+        Opcodes.GETFIELD,
+        ObjectFactory.INTERNAL_CLASS_NAME,
+        "enclosingObjects",
         "[" + StandardObject.TYPE_DESCRIPTOR);
     generateLoadInt(methodWriter, level);
     methodWriter.visitInsn(Opcodes.AALOAD);
   }
-  
+
   private void generateSelfSend(MessageSendNoReceiver messageSend) {
     if (messageSend.isSetterSend()) {
       // A setter send should leave the message argument on the stack
@@ -236,7 +284,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
         callSiteTypeDescriptor(messageSend.arguments().size()),
         MessageDispatcher.bootstrapHandle());
     if (messageSend.isSetterSend()) {
-      // Pop the answer; the copy of the argument is now exposed as the result. 
+      // Pop the answer; the copy of the argument is now exposed as the result.
       methodWriter.visitInsn(Opcodes.POP);
     }
   }
@@ -256,18 +304,18 @@ abstract class CodeGenerator implements AstNodeVisitor {
   @Override
   public void visitLiteralNil(LiteralNil literalNil) {
     methodWriter.visitFieldInsn(
-        Opcodes.GETSTATIC, 
-        Builtins.INTERNAL_CLASS_NAME, 
-        "NIL", 
+        Opcodes.GETSTATIC,
+        Builtins.INTERNAL_CLASS_NAME,
+        "NIL",
         org.newspeaklanguage.runtime.Object.TYPE_DESCRIPTOR);
   }
 
   @Override
   public void visitLiteralBoolean(LiteralBoolean literalBoolean) {
     methodWriter.visitFieldInsn(
-        Opcodes.GETSTATIC, 
-        Builtins.INTERNAL_CLASS_NAME, 
-        literalBoolean.value() ? "TRUE" : "FALSE", 
+        Opcodes.GETSTATIC,
+        Builtins.INTERNAL_CLASS_NAME,
+        literalBoolean.value() ? "TRUE" : "FALSE",
         org.newspeaklanguage.runtime.Object.TYPE_DESCRIPTOR);
   }
 
@@ -286,13 +334,13 @@ abstract class CodeGenerator implements AstNodeVisitor {
     int scopeLevel = outer.targetClassScope().level();
     generateLoadOfEnclosingObject(scopeLevel);
   }
-  
+
   @Override
   public void visitReturn(Return returnNode) {
     returnNode.expression().accept(this);
     methodWriter.visitInsn(Opcodes.ARETURN);
   }
-  
+
   @Override
   public void visitClassDecl(ClassDecl classDecl) {
     unexpectedNode(classDecl);
@@ -313,22 +361,23 @@ abstract class CodeGenerator implements AstNodeVisitor {
     result.append(Object.TYPE_DESCRIPTOR);
     return result.toString();
   }
-  
+
   private void unexpectedNode(AstNode node) {
     throw new IllegalArgumentException("Unexpected node in a method AST: " + node);
   }
 
   private void unexpectedVisit(AstNode node) {
-    throw new IllegalArgumentException("This method AST node should not be visited directly: " + node);
+    throw new IllegalArgumentException(
+        "This method AST node should not be visited directly: " + node);
   }
 
   private void unimplemented(AstNode node) {
     throw new UnsupportedOperationException("Code generation is not yet implemented for " + node);
   }
 
-  private static final int[] specialOpcodes = new int[]
-      {Opcodes.ICONST_0, Opcodes.ICONST_1, Opcodes.ICONST_2, Opcodes.ICONST_3, Opcodes.ICONST_4, Opcodes.ICONST_5};
- 
+  private static final int[] specialOpcodes = new int[] { Opcodes.ICONST_0, Opcodes.ICONST_1,
+      Opcodes.ICONST_2, Opcodes.ICONST_3, Opcodes.ICONST_4, Opcodes.ICONST_5 };
+
   @Override
   public void visitArgument(Argument argument) {
     unexpectedVisit(argument);

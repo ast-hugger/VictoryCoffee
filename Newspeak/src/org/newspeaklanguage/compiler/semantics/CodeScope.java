@@ -3,27 +3,16 @@ package org.newspeaklanguage.compiler.semantics;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.newspeaklanguage.compiler.NamingPolicy;
 import org.newspeaklanguage.compiler.ast.CodeUnit;
 
 /**
  * A scope established by a method or a block. The names defined by this scope
- * are accessor selectors to the method's arguments and temps. The scope,
- * together with the entries, keeps track of the index of those variables. The
- * index used in the local var instructions to address them in the frame.
- * <p>
- * Because of the way the AST is traversed, the index simply starts off at 1 (0
- * is the receiver, and it has no AST node) and is incremented for every name
- * defined.
- * <p>
- * One nuance is that both getter and setter selectors for a field (unless the
- * field is read-only) should be defined in the scope, but setters should not be
- * allocated a new variable index. Instead, they should get the same index as
- * the corresponding getter.
- * <p>
- * A variable always adds a getter name to the scope. A setter name is only
- * added is the variable is not read-only.
+ * are accessor selectors to the method's arguments and temps. A variable always
+ * adds a getter name to the scope. A setter name is only added is the variable
+ * is not read-only.
  *
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
@@ -31,41 +20,46 @@ import org.newspeaklanguage.compiler.ast.CodeUnit;
 public abstract class CodeScope extends Scope<CodeScopeEntry> {
 
   /**
-   * The local variables of the implementation method frame which correspond
-   * to the arguments and temps of the block or methods.
+   * The local variables of the implementation method frame which correspond to
+   * the actual Newspeak arguments and temps of the block or method.
    */
-  protected final List<LocalVariable> ownVariables = new ArrayList<LocalVariable>();
-  
-  @Deprecated 
-  // FIXME should switch to using LocalVariables instead
-  protected int lastVarIndex = 0;
+  protected final List<LocalVariable> ownVariables = new ArrayList<>();
 
   CodeScope(CodeUnit definition, Scope<? extends ScopeEntry> parent) {
     super(definition, parent);
     definition.arguments().forEach(
         each -> ownVariables.add(new LocalVariable(each.name(), false)));
     definition.temps().forEach(
-        each -> ownVariables.add(new LocalVariable(each.name(), each.isMutable())));
+        each -> ownVariables.add(new LocalVariable(each.name(), false)));
   }
 
   @Override
-  public ClassScope outerClass(String name) {
-    return parent == null ? null : parent.outerClass(name);
+  public ClassScope outerClassNamed(String name) {
+    return parent == null ? null : parent.outerClassNamed(name);
+  }
+
+  public Optional<LocalVariable> ownVariableNamed(String name) {
+    return find(name, ownVariables);
+  }
+
+  public void assignLocalVariableIndices() {
+    int index = firstOwnVariableIndex();
+    for (LocalVariable var : ownVariables) {
+      var.setIndex(index++);
+    }
   }
 
   @Override
   public CodeScopeEntry define(String name) {
     if (NamingPolicy.isSetterSelector(name)) {
-      CodeScopeEntry getterEntry = lookupLocally(NamingPolicy.getterForSetter(name));
-      assert getterEntry != null;
-      CodeScopeEntry newEntry = new CodeScopeEntry(name, this, getterEntry.index());
+      CodeScopeEntry newEntry = new CodeScopeEntry(name, this);
       names.put(name, newEntry);
       return newEntry;
     } else {
       return super.define(name);
     }
   }
-  
+
   /**
    * Mark a variable defined in this scope (an argument or a temp) as boxed. The
    * variable must exist.
@@ -73,27 +67,27 @@ public abstract class CodeScope extends Scope<CodeScopeEntry> {
   public void markVariableAsBoxed(String name) {
     ownVariableNamed(name).get().setIsBoxed(true);
   }
-  
-  public Optional<LocalVariable> ownVariableNamed(String name) {
-    return ownVariables.stream()
-        .filter(some -> some.name().equals(name))
-        .findFirst();
-  }
-  
-  public void assignLocalVariableIndices() {
-    int index = firstOwnVariableIndex();
-    for (LocalVariable var : ownVariables) {
-      var.setIndex(index++);
-    }
-  }
-  
+
   protected int firstOwnVariableIndex() {
     return 1;
   }
 
   @Override
   protected CodeScopeEntry createScopeEntry(String name) {
-    return new CodeScopeEntry(name, this, ++lastVarIndex);
+    return new CodeScopeEntry(name, this);
   }
-  
+
+  // visible for testing
+  List<String> ownVariableNames() {
+    return ownVariables.stream()
+        .map(each -> each.name())
+        .collect(Collectors.toList());
+  }
+
+  protected Optional<LocalVariable> find(String name, List<LocalVariable> vars) {
+    return vars.stream()
+        .filter(some -> some.name().equals(name))
+        .findAny();
+  }
+
 }

@@ -49,12 +49,13 @@ public class LexicalVarReference extends NameMeaning {
   }
 
   @Override
-  public boolean isLocalVarReference() {
+  public boolean isLexicalVarReference() {
     return true;
   }
 
   @Override
-  public Optional<ScopeEntry> lexicalDefinition() {
+  @SuppressWarnings("unchecked")
+  public Optional<CodeScopeEntry> lexicalDefinition() {
     return Optional.of(definition);
   }
 

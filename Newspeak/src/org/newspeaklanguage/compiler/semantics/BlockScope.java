@@ -3,6 +3,7 @@ package org.newspeaklanguage.compiler.semantics;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.newspeaklanguage.compiler.ast.Block;
 import org.newspeaklanguage.compiler.ast.NameDefinition;
@@ -14,7 +15,7 @@ public class BlockScope extends CodeScope {
    * synthetic arguments added to accept values and bindings (boxes) copied from
    * outer scopes.
    */
-  private final List<LocalVariable> copiedVariables = new ArrayList<LocalVariable>();
+  private final List<LocalVariable> copiedVariables = new ArrayList<>();
 
   BlockScope(Block definition, Scope<? extends ScopeEntry> parent) {
     super(definition, parent);
@@ -38,7 +39,7 @@ public class BlockScope extends CodeScope {
     });
   }
 
-  public Optional<LocalVariable> localVariableNamed(String name) {
+  public Optional<LocalVariable> copiedVariableNamed(String name) {
     return find(name, copiedVariables);
   }
   
@@ -56,9 +57,11 @@ public class BlockScope extends CodeScope {
     return copiedVariables.size() + 1;
   }
 
-  private Optional<LocalVariable> find(String name, List<LocalVariable> vars) {
-    return vars.stream()
-        .filter(some -> some.name().equals(name))
-        .findAny();
+  // visible for testing
+  List<String> copiedVariableNames() {
+    return copiedVariables.stream()
+        .map(each -> each.name())
+        .collect(Collectors.toList());
   }
+
 }
