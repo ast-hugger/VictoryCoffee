@@ -2,7 +2,6 @@ package org.newspeaklanguage.compiler.ast;
 
 import java.util.List;
 
-import org.newspeaklanguage.compiler.semantics.ScopeEntry;
 import org.newspeaklanguage.compiler.semantics.NameMeaning;
 
 /**
@@ -17,11 +16,6 @@ public class MessageSendNoReceiver extends AstNode {
   protected final List<AstNode> arguments;
   protected final boolean isSetterSend;
   
-  /**
-   * For selectors with a lexically visible method (perhaps a slot accessor)
-   * visible in a scope above, this is the definition of that selector.
-   */
-  private ScopeEntry lexicalDefinition;
   private NameMeaning meaning;
 
   public MessageSendNoReceiver(String selector, List<AstNode> arguments, boolean isSetterSend) {
@@ -48,19 +42,6 @@ public class MessageSendNoReceiver extends AstNode {
     return arity() == 0;
   }
   
-  /**
-   * If the definition of the selector of this message is visible lexically,
-   * return that definition.
-   */
-  public ScopeEntry lexicalDefinition() {
-    return lexicalDefinition;
-  }
-
-  public void setLexicalDefinition(ScopeEntry def) {
-    assert lexicalDefinition == null;
-    lexicalDefinition = def;
-  }
-
   public NameMeaning meaning() {
     return meaning;
   }

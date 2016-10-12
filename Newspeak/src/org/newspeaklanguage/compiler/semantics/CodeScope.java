@@ -1,12 +1,17 @@
 package org.newspeaklanguage.compiler.semantics;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import org.newspeaklanguage.compiler.NamingPolicy;
+import org.newspeaklanguage.compiler.ast.CodeUnit;
 
 /**
- * A scope established by a method or a block. The names defined by this scope are accessor
- * selectors to the method's arguments and temps. The scope, together with the
- * entries, keeps track of the index of those variables. The index used in the
- * local var instructions to address them in the frame.
+ * A scope established by a method or a block. The names defined by this scope
+ * are accessor selectors to the method's arguments and temps. The scope,
+ * together with the entries, keeps track of the index of those variables. The
+ * index used in the local var instructions to address them in the frame.
  * <p>
  * Because of the way the AST is traversed, the index simply starts off at 1 (0
  * is the receiver, and it has no AST node) and is incremented for every name
@@ -23,32 +28,27 @@ import org.newspeaklanguage.compiler.NamingPolicy;
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
  */
-public class CodeScope extends Scope<CodeScopeEntry> {
+public abstract class CodeScope extends Scope<CodeScopeEntry> {
+
+  protected final List<LocalVariable> ownVariables = new ArrayList<LocalVariable>();
   
-  private final boolean isMethod;
+  @Deprecated 
+  // FIXME should switch to using LocalVariables instead
   protected int lastVarIndex = 0;
-  
-  CodeScope(Scope<? extends ScopeEntry> parent, boolean isMethod) {
-    super(parent);
-    this.isMethod = isMethod;
+
+  CodeScope(CodeUnit definition, Scope<? extends ScopeEntry> parent) {
+    super(definition, parent);
+    definition.arguments().forEach(
+        each -> ownVariables.add(new LocalVariable(each.name(), false)));
+    definition.temps().forEach(
+        each -> ownVariables.add(new LocalVariable(each.name(), each.isMutable())));
   }
-  
-  @Override
-  public ClassScope lookupClass(String name) {
-    return parent == null ? null : parent.lookupClass(name);
-  }
-  
-  @Override
-  public boolean isMethodScope() { return isMethod; }
 
   @Override
-  public boolean isBlockScope() { return !isMethod; }
-
-  @Override
-  public CodeScope enclosingMethodScope() {
-    return isMethod ? this : parent.enclosingMethodScope();
+  public ClassScope outerClass(String name) {
+    return parent == null ? null : parent.outerClass(name);
   }
-  
+
   @Override
   public CodeScopeEntry define(String name) {
     if (NamingPolicy.isSetterSelector(name)) {
@@ -62,15 +62,23 @@ public class CodeScope extends Scope<CodeScopeEntry> {
     }
   }
   
+  /**
+   * Mark a variable defined in this scope (an argument or a temp) as boxed. The
+   * variable must exist.
+   */
+  public void markVariableAsBoxed(String name) {
+    ownVariableNamed(name).get().setIsBoxed(true);
+  }
+  
+  public Optional<LocalVariable> ownVariableNamed(String name) {
+    return ownVariables.stream()
+        .filter(some -> some.name().equals(name))
+        .findFirst();
+  }
+
   @Override
   protected CodeScopeEntry createScopeEntry(String name) {
     return new CodeScopeEntry(name, this, ++lastVarIndex);
   }
   
-  @Override
-  public String toString() {
-    return super.toString()
-        + (isMethod ? "method" : "block");
-  }
-
 }

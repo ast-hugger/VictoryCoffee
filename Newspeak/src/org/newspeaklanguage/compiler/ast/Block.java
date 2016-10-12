@@ -14,6 +14,7 @@ public class Block extends CodeUnit {
     this.arguments = arguments;
   }
   
+  @Override
   public List<Argument> arguments() { return arguments; }
   public int arity() { return arguments.size(); }
   public BlockDefiner definer() { return definer; }

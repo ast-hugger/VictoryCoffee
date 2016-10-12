@@ -2,11 +2,11 @@ package org.newspeaklanguage.compiler.semantics;
 
 import org.newspeaklanguage.compiler.NamingPolicy;
 import org.newspeaklanguage.compiler.ast.Argument;
-import org.newspeaklanguage.compiler.ast.AstNode;
 import org.newspeaklanguage.compiler.ast.AstNodeVisitorSkeleton;
 import org.newspeaklanguage.compiler.ast.Block;
 import org.newspeaklanguage.compiler.ast.ClassDecl;
 import org.newspeaklanguage.compiler.ast.Method;
+import org.newspeaklanguage.compiler.ast.NameDefinition;
 import org.newspeaklanguage.compiler.ast.SlotDefinition;
 
 /**
@@ -26,16 +26,16 @@ import org.newspeaklanguage.compiler.ast.SlotDefinition;
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
  */
-public class Stage1Analyzer extends AstNodeVisitorSkeleton {
+public class AnalyzerStage1 extends AstNodeVisitorSkeleton {
 
   public static Scope<? extends ScopeEntry> analyze(ClassDecl classDecl) {
-    return new Stage1Analyzer().build(classDecl);
+    return new AnalyzerStage1().build(classDecl);
   }
 
   private Scope<? extends ScopeEntry> currentScope;
   private Method currentMethod;
 
-  private Stage1Analyzer() {
+  private AnalyzerStage1() {
   }
 
   public Scope<? extends ScopeEntry> build(ClassDecl classDecl) {
@@ -55,7 +55,7 @@ public class Stage1Analyzer extends AstNodeVisitorSkeleton {
       assert currentScope.isClassScope();
       defineName(classDecl.name(), classDecl);
       classDecl.setEnclosingClass(((ClassScope) currentScope).classNode());
-      enterClassScope(classDecl);
+      enterScope(classDecl);
     }
     classDecl.setScope((ClassScope) currentScope);
     classDecl.setImplementationClassName(computeImplementationName(classDecl));
@@ -73,7 +73,7 @@ public class Stage1Analyzer extends AstNodeVisitorSkeleton {
     assert currentMethod == null;
     currentMethod = method;
     defineName(method.messagePattern().selector(), method);
-    enterMethodScope();
+    enterScope(method);
     method.setScope((CodeScope) currentScope);
     try {
       super.visitMethod(method);
@@ -85,7 +85,7 @@ public class Stage1Analyzer extends AstNodeVisitorSkeleton {
 
   @Override
   public void visitBlock(Block block) {
-    enterBlockScope();
+    enterScope(block);
     block.setScope((CodeScope) currentScope);
     currentMethod.addBlock(block);
     try {
@@ -109,19 +109,19 @@ public class Stage1Analyzer extends AstNodeVisitorSkeleton {
     }
   }
   
-  protected void enterClassScope(ClassDecl classNode) {
+  protected void enterScope(ClassDecl classNode) {
     currentScope = new ClassScope(classNode, currentScope);
   }
   
-  protected void enterMethodScope() {
-    currentScope = new CodeScope(currentScope, true);
+  protected void enterScope(Method methodNode) {
+    currentScope = new MethodScope(methodNode, currentScope);
   }
   
-  protected void enterBlockScope() {
-    currentScope = new CodeScope(currentScope, false);
+  protected void enterScope(Block blockNode) {
+    currentScope = new BlockScope(blockNode, currentScope);
   }
   
-  protected void defineName(String name, AstNode definingNode) {
+  protected void defineName(String name, NameDefinition definingNode) {
     currentScope.define(name).setAstNode(definingNode);
   }
 

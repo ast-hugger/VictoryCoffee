@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.newspeaklanguage.compiler.semantics.ClassScope;
 
-public class ClassDecl extends AstNode {
+public class ClassDecl extends AstNode implements NameDefinition {
 
   private final String name;
   private final MessagePattern initMessage;
@@ -93,5 +93,10 @@ public class ClassDecl extends AstNode {
     return this.getClass().getSimpleName() 
         + ":" + name() 
         + "(" + implementationClassName() + ")";
+  }
+
+  @Override
+  public boolean isMutable() {
+    return false;
   }
 }

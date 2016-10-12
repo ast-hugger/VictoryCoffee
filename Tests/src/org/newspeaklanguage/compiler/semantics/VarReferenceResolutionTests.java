@@ -9,8 +9,6 @@ import org.newspeaklanguage.compiler.ast.AstNode;
 import org.newspeaklanguage.compiler.ast.ClassDecl;
 import org.newspeaklanguage.compiler.ast.MessageSendNoReceiver;
 import org.newspeaklanguage.compiler.ast.NameDefinition;
-import org.newspeaklanguage.compiler.semantics.NameMeaning.LocalVarReference;
-import org.newspeaklanguage.compiler.semantics.NameMeaning.SendToEnclosingObject;
 
 public class VarReferenceResolutionTests {
 
@@ -23,15 +21,9 @@ public class VarReferenceResolutionTests {
     + "  bar:: 4."
     + "  ^baz)"
     + ")");
-    NameDefinition fooDef = NodeFinder.findLocalVarDefinition("foo", tree);
-    NameDefinition barDef = NodeFinder.findLocalVarDefinition("bar", tree);
-    NameDefinition bazDef = NodeFinder.findLocalVarDefinition("baz", tree);
     MessageSendNoReceiver fooRef = NodeFinder.findLocalVarReference("foo", tree);
     MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
     MessageSendNoReceiver bazRef = NodeFinder.findLocalVarReference("baz", tree);
-    assertEquals(fooDef, fooRef.lexicalDefinition().astNode());
-    assertEquals(barDef, barRef.lexicalDefinition().astNode());
-    assertEquals(bazDef, bazRef.lexicalDefinition().astNode());
     assertTrue(fooRef.meaning().isSelfSend());
     assertTrue(barRef.meaning().isSelfSend());
     assertTrue(bazRef.meaning().isSelfSend());
@@ -54,9 +46,9 @@ public class VarReferenceResolutionTests {
     MessageSendNoReceiver fooRef = NodeFinder.findLocalVarReference("foo", tree);
     MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
     MessageSendNoReceiver bazRef = NodeFinder.findLocalVarReference("baz", tree);
-    assertEquals(fooDef, fooRef.lexicalDefinition().astNode());
-    assertEquals(barDef, barRef.lexicalDefinition().astNode());
-    assertEquals(bazDef, bazRef.lexicalDefinition().astNode());
+    assertEquals(fooDef, fooRef.meaning().lexicalDefinition().get().astNode());
+    assertEquals(barDef, barRef.meaning().lexicalDefinition().get().astNode());
+    assertEquals(bazDef, bazRef.meaning().lexicalDefinition().get().astNode());
     assertTrue(fooRef.meaning().isSendToEnclosingObject());
     assertTrue(barRef.meaning().isSendToEnclosingObject());
     assertTrue(bazRef.meaning().isSendToEnclosingObject());
@@ -80,13 +72,13 @@ public class VarReferenceResolutionTests {
     + ")");
     NameDefinition fooDef = NodeFinder.findLocalVarDefinition("foo", tree);
     MessageSendNoReceiver fooRef = NodeFinder.findLocalVarReference("foo", tree);
-    assertEquals(fooDef, fooRef.lexicalDefinition().astNode());
+    assertEquals(fooDef, fooRef.meaning().lexicalDefinition().get().astNode());
     assertTrue(fooRef.meaning().isLocalVarReference());
-    LocalVarReference fooMeaning = (LocalVarReference) fooRef.meaning();
+    LexicalVarReference fooMeaning = (LexicalVarReference) fooRef.meaning();
     assertEquals(fooDef, fooMeaning.definition().astNode());
     assertEquals(1, ((CodeScopeEntry) fooMeaning.definition()).index());
     MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
-    assertEquals(2, ((CodeScopeEntry) barRef.lexicalDefinition()).index());    
+    assertEquals(2, ((CodeScopeEntry) barRef.meaning().lexicalDefinition().get()).index());    
   }
 
   @Test
@@ -99,13 +91,13 @@ public class VarReferenceResolutionTests {
     + ")");
     NameDefinition fooDef = NodeFinder.findLocalVarDefinition("foo", tree);
     MessageSendNoReceiver fooRef = NodeFinder.findLocalVarReference("foo", tree);
-    assertEquals(fooDef, fooRef.lexicalDefinition().astNode());
+    assertEquals(fooDef, fooRef.meaning().lexicalDefinition().get().astNode());
     assertTrue(fooRef.meaning().isLocalVarReference());
-    LocalVarReference fooMeaning = (LocalVarReference) fooRef.meaning();
+    LexicalVarReference fooMeaning = (LexicalVarReference) fooRef.meaning();
     assertEquals(fooDef, fooMeaning.definition().astNode());
     assertEquals(2, ((CodeScopeEntry) fooMeaning.definition()).index());
     MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
-    assertEquals(3, ((CodeScopeEntry) barRef.lexicalDefinition()).index());    
+    assertEquals(3, ((CodeScopeEntry) barRef.meaning().lexicalDefinition().get()).index());    
   }
 
   @Test
@@ -117,13 +109,13 @@ public class VarReferenceResolutionTests {
     + ")");
     NameDefinition fooDef = NodeFinder.findLocalVarDefinition("foo", tree);
     MessageSendNoReceiver fooRef = NodeFinder.findLocalVarReference("foo", tree);
-    assertEquals(fooDef, fooRef.lexicalDefinition().astNode());
+    assertEquals(fooDef, fooRef.meaning().lexicalDefinition().get().astNode());
     assertTrue(fooRef.meaning().isLocalVarReference());
-    LocalVarReference fooMeaning = (LocalVarReference) fooRef.meaning();
+    LexicalVarReference fooMeaning = (LexicalVarReference) fooRef.meaning();
     assertEquals(fooDef, fooMeaning.definition().astNode());
     assertEquals(1, ((CodeScopeEntry) fooMeaning.definition()).index());
     MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
-    assertEquals(2, ((CodeScopeEntry) barRef.lexicalDefinition()).index());    
+    assertEquals(2, ((CodeScopeEntry) barRef.meaning().lexicalDefinition().get()).index());    
   }
 
   @Test
@@ -135,13 +127,13 @@ public class VarReferenceResolutionTests {
     + ")");
     NameDefinition fooDef = NodeFinder.findLocalVarDefinition("foo", tree);
     MessageSendNoReceiver fooRef = NodeFinder.findLocalVarReference("foo", tree);
-    assertEquals(fooDef, fooRef.lexicalDefinition().astNode());
+    assertEquals(fooDef, fooRef.meaning().lexicalDefinition().get().astNode());
     assertTrue(fooRef.meaning().isLocalVarReference());
-    LocalVarReference fooMeaning = (LocalVarReference) fooRef.meaning();
+    LexicalVarReference fooMeaning = (LexicalVarReference) fooRef.meaning();
     assertEquals(fooDef, fooMeaning.definition().astNode());
     assertEquals(2, ((CodeScopeEntry) fooMeaning.definition()).index());
     MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
-    assertEquals(3, ((CodeScopeEntry) barRef.lexicalDefinition()).index());    
+    assertEquals(3, ((CodeScopeEntry) barRef.meaning().lexicalDefinition().get()).index());    
   }
 
   @Test
@@ -153,13 +145,13 @@ public class VarReferenceResolutionTests {
     + ")");
     NameDefinition fooDef = NodeFinder.findLocalVarDefinition("foo", tree);
     MessageSendNoReceiver fooRef = NodeFinder.findLocalVarReference("foo", tree);
-    assertEquals(fooDef, fooRef.lexicalDefinition().astNode());
+    assertEquals(fooDef, fooRef.meaning().lexicalDefinition().get().astNode());
     assertTrue(fooRef.meaning().isLocalVarReference());
-    LocalVarReference fooMeaning = (LocalVarReference) fooRef.meaning();
+    LexicalVarReference fooMeaning = (LexicalVarReference) fooRef.meaning();
     assertEquals(fooDef, fooMeaning.definition().astNode());
     assertEquals(1, ((CodeScopeEntry) fooMeaning.definition()).index());
     MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
-    assertEquals(2, ((CodeScopeEntry) barRef.lexicalDefinition()).index());    
+    assertEquals(2, ((CodeScopeEntry) barRef.meaning().lexicalDefinition().get()).index());    
   }
 
 
@@ -172,13 +164,13 @@ public class VarReferenceResolutionTests {
     + ")");
     NameDefinition fooDef = NodeFinder.findLocalVarDefinition("foo", tree);
     MessageSendNoReceiver fooRef = NodeFinder.findLocalVarReference("foo", tree);
-    assertEquals(fooDef, fooRef.lexicalDefinition().astNode());
+    assertEquals(fooDef, fooRef.meaning().lexicalDefinition().get().astNode());
     assertTrue(fooRef.meaning().isLocalVarReference());
-    LocalVarReference fooMeaning = (LocalVarReference) fooRef.meaning();
+    LexicalVarReference fooMeaning = (LexicalVarReference) fooRef.meaning();
     assertEquals(fooDef, fooMeaning.definition().astNode());
     assertEquals(2, ((CodeScopeEntry) fooMeaning.definition()).index());
     MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
-    assertEquals(3, ((CodeScopeEntry) barRef.lexicalDefinition()).index());    
+    assertEquals(3, ((CodeScopeEntry) barRef.meaning().lexicalDefinition().get()).index());    
   }
   
 }

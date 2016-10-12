@@ -25,7 +25,8 @@ import org.newspeaklanguage.compiler.ast.Self;
 import org.newspeaklanguage.compiler.ast.SlotDefinition;
 import org.newspeaklanguage.compiler.ast.Super;
 import org.newspeaklanguage.compiler.semantics.CodeScopeEntry;
-import org.newspeaklanguage.compiler.semantics.NameMeaning;
+import org.newspeaklanguage.compiler.semantics.LexicalVarReference;
+import org.newspeaklanguage.compiler.semantics.SendToEnclosingObject;
 import org.newspeaklanguage.runtime.Builtins;
 import org.newspeaklanguage.runtime.MessageDispatcher;
 import org.newspeaklanguage.runtime.Object;
@@ -150,7 +151,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
   }
 
   private void generateLocalVarReference(MessageSendNoReceiver messageSend) {
-    NameMeaning.LocalVarReference meaning = (NameMeaning.LocalVarReference) messageSend.meaning();
+    LexicalVarReference meaning = (LexicalVarReference) messageSend.meaning();
     int index = ((CodeScopeEntry) meaning.definition()).index();
     if (NamingPolicy.isSetterSelector(messageSend.selector())) {
       assert messageSend.arity() == 1;
@@ -172,7 +173,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
   }
 
   private void generateSendToEnclosingObject(MessageSendNoReceiver messageSend) {
-    NameMeaning.SendToEnclosingObject meaning = (NameMeaning.SendToEnclosingObject) messageSend.meaning();
+    SendToEnclosingObject meaning = (SendToEnclosingObject) messageSend.meaning();
     int scopeLevel = meaning.definition().scope().level();
     if (messageSend.isSetterSend()) {
       // A setter send should leave the message argument on the stack

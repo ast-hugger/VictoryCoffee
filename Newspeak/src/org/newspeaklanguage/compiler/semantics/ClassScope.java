@@ -4,35 +4,29 @@ import org.newspeaklanguage.compiler.ast.ClassDecl;
 
 public class ClassScope extends Scope<ScopeEntry> {
   
-  /**
-   * The class this scope is associated with.
-   */
-  protected final ClassDecl classNode;
   
-  ClassScope(ClassDecl classNode, Scope<? extends ScopeEntry> parent, int level) {
-    super(parent, level);
-    this.classNode = classNode;
+  ClassScope(ClassDecl definition, Scope<? extends ScopeEntry> parent, int level) {
+    super(definition, parent, level);
   }
   
   ClassScope(ClassDecl classNode, Scope<? extends ScopeEntry> parent) {
-    super(parent);
-    this.classNode = classNode;
+    super(classNode, parent);
   }
   
-  public ClassDecl classNode() { return classNode; }
+  public ClassDecl classNode() { return (ClassDecl) definition; }
   
-  public ClassScope lookupClass(String name) {
-    if (classNode.name().equals(name)) {
+  public ClassScope outerClass(String name) {
+    if (classNode().name().equals(name)) {
       return this;
     }
-    return parent == null ? null : parent.lookupClass(name);
+    return parent == null ? null : parent.outerClass(name);
   }
   
   @Override
   public boolean isClassScope() { return true; }
   
   @Override
-  public CodeScope enclosingMethodScope() {
+  public CodeScope methodScope() {
     return null;
   }
 

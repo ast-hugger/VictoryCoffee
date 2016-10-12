@@ -5,8 +5,8 @@ syntax: regexp
 
 syntax: glob
 
-VictoryCoffee/bin
-VictoryCoffeeTests/bin
+Newspeak/bin
+Tests/bin
 .classpath
 .project
 .settings

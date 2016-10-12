@@ -12,8 +12,8 @@ import org.newspeaklanguage.compiler.codegen.ClassGenerator;
 import org.newspeaklanguage.compiler.parser.NewspeakLexer;
 import org.newspeaklanguage.compiler.parser.NewspeakParser;
 import org.newspeaklanguage.compiler.parser.NewspeakParser.SourceUnitContext;
-import org.newspeaklanguage.compiler.semantics.Stage1Analyzer;
-import org.newspeaklanguage.compiler.semantics.Stage2Analyzer;
+import org.newspeaklanguage.compiler.semantics.AnalyzerStage1;
+import org.newspeaklanguage.compiler.semantics.AnalyzerStage2;
 
 public class Compiler {
 
@@ -96,8 +96,8 @@ public class Compiler {
   }
   
   private void analyze(ClassDecl classDecl) {
-    Stage1Analyzer.analyze(classDecl);
-    Stage2Analyzer.analyze(classDecl);
+    AnalyzerStage1.analyze(classDecl);
+    AnalyzerStage2.analyze(classDecl);
   }
   
 }

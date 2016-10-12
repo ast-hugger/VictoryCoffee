@@ -16,6 +16,8 @@ public abstract class CodeUnit extends AstNode {
     this.body = body;
   }
   
+  
+  public abstract List<Argument> arguments();
   public List<SlotDefinition> temps() { return temps; }
   public List<AstNode> body() { return body; }
   

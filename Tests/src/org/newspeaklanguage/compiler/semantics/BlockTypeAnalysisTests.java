@@ -7,7 +7,6 @@ import org.junit.Test;
 import org.newspeaklanguage.compiler.Compiler;
 import org.newspeaklanguage.compiler.ast.AstNode;
 import org.newspeaklanguage.compiler.ast.MessageSendNoReceiver;
-import org.newspeaklanguage.compiler.semantics.NameMeaning.LocalVarReference;
 
 public class BlockTypeAnalysisTests {
 
@@ -26,10 +25,10 @@ public class BlockTypeAnalysisTests {
     MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
     MessageSendNoReceiver bazRef = NodeFinder.findLocalVarReference("baz", tree);
     MessageSendNoReceiver tempRef = NodeFinder.findLocalVarReference("temp", tree);
-    assertFalse(((LocalVarReference) fooRef.meaning()).isClean());
-    assertFalse(((LocalVarReference) barRef.meaning()).isClean());
-    assertTrue(((LocalVarReference) bazRef.meaning()).isClean());
-    assertTrue(((LocalVarReference) tempRef.meaning()).isClean());
+    assertFalse(((LexicalVarReference) fooRef.meaning()).isClean());
+    assertFalse(((LexicalVarReference) barRef.meaning()).isClean());
+    assertTrue(((LexicalVarReference) bazRef.meaning()).isClean());
+    assertTrue(((LexicalVarReference) tempRef.meaning()).isClean());
   }
 
   @Test
@@ -41,7 +40,7 @@ public class BlockTypeAnalysisTests {
     + "   self x: foo." // copiable because foo is one level up and immutable
     + "   self x: temp1." // not copiable because temp1 is mutable
     + "   [:quux | bar] value." // copiable because bar is one level up and immutable  
-    + "   [:frob | boo] value." // not copiable because boo is two levels up 
+    + "   [:frob | boo] value." // still copiable though boo is two levels up 
     + "   ^baz"  // baz is clean, not copiable
     + "]  value: 3 value: 4. )"
     + ")");
@@ -49,10 +48,10 @@ public class BlockTypeAnalysisTests {
     MessageSendNoReceiver temp1Ref = NodeFinder.findLocalVarReference("temp1", tree);
     MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
     MessageSendNoReceiver booRef = NodeFinder.findLocalVarReference("boo", tree);
-    assertTrue(((LocalVarReference) fooRef.meaning()).isCopiable());
-    assertFalse(((LocalVarReference) temp1Ref.meaning()).isCopiable());
-    assertTrue(((LocalVarReference) barRef.meaning()).isCopiable());
-    assertFalse(((LocalVarReference) booRef.meaning()).isCopiable());
+    assertTrue(((LexicalVarReference) fooRef.meaning()).isCopiable());
+    assertFalse(((LexicalVarReference) temp1Ref.meaning()).isCopiable());
+    assertTrue(((LexicalVarReference) barRef.meaning()).isCopiable());
+    assertTrue(((LexicalVarReference) booRef.meaning()).isCopiable());
   }
 
 }

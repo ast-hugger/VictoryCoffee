@@ -3,12 +3,14 @@ package org.newspeaklanguage.compiler.ast;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.newspeaklanguage.compiler.semantics.AnalyzerStage1;
+
 public class Method extends CodeUnit implements NameDefinition {
   
   private final MessagePattern messagePattern;
   /**
    * A list of all blocks, including blocks inside blocks, contained in this
-   * method. Populated by {@link Stage1Analyzer}.
+   * method. Populated by {@link AnalyzerStage1}.
    */
   private final List<Block> containedBlocks = new LinkedList<Block>();
 
@@ -19,6 +21,7 @@ public class Method extends CodeUnit implements NameDefinition {
   
   public MessagePattern messagePattern() { return messagePattern; }
   public String selector() { return messagePattern.selector(); }
+  @Override
   public List<Argument> arguments() { return messagePattern.arguments(); }
   public List<Block> containedBlocks() { return containedBlocks; }
   
