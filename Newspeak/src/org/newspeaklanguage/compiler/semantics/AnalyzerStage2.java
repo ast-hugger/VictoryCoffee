@@ -47,22 +47,26 @@ public class AnalyzerStage2 extends AstNodeVisitorSkeleton {
   }
 
   @Override
-  public void visitBlock(Block classDecl) {
+  public void visitBlock(Block blockNode) {
     Scope<? extends ScopeEntry> original = currentScope;
-    currentScope = classDecl.scope();
+    currentScope = blockNode.scope();
     try {
-      super.visitBlock(classDecl);
+      super.visitBlock(blockNode);
+      // Now that all the locals are finalized, we know their indices
+      blockNode.scope().assignLocalVariableIndices();
     } finally {
       currentScope = original;
     }
   }
 
   @Override
-  public void visitMethod(Method classDecl) {
+  public void visitMethod(Method methodNode) {
     Scope<? extends ScopeEntry> original = currentScope;
-    currentScope = classDecl.scope();
+    currentScope = methodNode.scope();
     try {
-      super.visitMethod(classDecl);
+      super.visitMethod(methodNode);
+      // Now that all the locals are finalized, we know their indices
+      methodNode.scope().assignLocalVariableIndices();
     } finally {
       currentScope = original;
     }

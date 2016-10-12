@@ -30,6 +30,10 @@ import org.newspeaklanguage.compiler.ast.CodeUnit;
  */
 public abstract class CodeScope extends Scope<CodeScopeEntry> {
 
+  /**
+   * The local variables of the implementation method frame which correspond
+   * to the arguments and temps of the block or methods.
+   */
   protected final List<LocalVariable> ownVariables = new ArrayList<LocalVariable>();
   
   @Deprecated 
@@ -74,6 +78,17 @@ public abstract class CodeScope extends Scope<CodeScopeEntry> {
     return ownVariables.stream()
         .filter(some -> some.name().equals(name))
         .findFirst();
+  }
+  
+  public void assignLocalVariableIndices() {
+    int index = firstOwnVariableIndex();
+    for (LocalVariable var : ownVariables) {
+      var.setIndex(index++);
+    }
+  }
+  
+  protected int firstOwnVariableIndex() {
+    return 1;
   }
 
   @Override
