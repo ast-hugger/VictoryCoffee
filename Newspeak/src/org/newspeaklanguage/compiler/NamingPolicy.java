@@ -90,22 +90,26 @@ public final class NamingPolicy {
 
   private static String binarySelectorCharToToken(char character) {
     switch (character) {
-    case '+':
-      return "plus";
-    case '-':
-      return "minus";
-    case '*':
-      return "star";
-    case '/':
-      return "slash";
-    case '=':
-      return "eq";
-    case '~':
-      return "tilda";
-    case '&':
-      return "amp";
-    default:
-      throw new IllegalArgumentException("Unrecognized binary methodName char: " + character);
+      case '+':
+        return "plus";
+      case '-':
+        return "minus";
+      case '*':
+        return "star";
+      case '/':
+        return "slash";
+      case '<':
+        return "lt";
+      case '>':
+        return "gt";
+      case '=':
+        return "eq";
+      case '~':
+        return "tilda";
+      case '&':
+        return "amp";
+      default:
+        throw new IllegalArgumentException("Unrecognized binary methodName char: " + character);
     }
   }
 

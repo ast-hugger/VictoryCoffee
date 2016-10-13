@@ -9,7 +9,7 @@ options {
 	language = Java;
 }
 
-@header {package org.newspeaklanguage.compiler.parser;}
+// @header {package org.newspeaklanguage.compiler.parser;}
 
 sourceUnit : classDecl EOF;
 
@@ -187,9 +187,9 @@ CCE_SIGN : '::=';
 LBRACKET : '[';
 LCURLY : '{';
 LPAREN : '(';
-LANGLE : '<';
+//LANGLE : '<';
 POUND : '#';
-RANGLE : '>';
+//RANGLE : '>';
 RBRACKET : ']';
 RCURLY : '}';
 RPAREN : ')';
@@ -197,7 +197,7 @@ SEMICOLON : ';';
 // SLASH : '/';
 VBAR : '|';
 
-BINARY_SELECTOR : '+' | '/' | '*' | '-'; // good enough for now
+BINARY_SELECTOR : '+' | '/' | '*' | '-' | '<' | '>'; // good enough for now
 
 IDENTIFIER : [a-zA-Z_][a-zA-Z_0-9]*;
 KEYWORD : IDENTIFIER ':';

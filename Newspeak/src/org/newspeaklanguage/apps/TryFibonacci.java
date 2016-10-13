@@ -9,15 +9,17 @@ import org.newspeaklanguage.runtime.NewspeakClassLoader;
 import org.newspeaklanguage.runtime.NsObject;
 import org.newspeaklanguage.runtime.ObjectFactory;
 
-public class TrySimpleApp {
+public class TryFibonacci {
 
   private static final String source =
 "class App = (         \n"
 + ")                   \n"
 + "('testing'          \n"
 + "main = (            \n"
-+ "  ^nil printString  \n"
-+ ")                   \n"
++ "  ^(fib: 5) printString  \n"
++ ")  "
++ "fib: n = ("
++ "^n < 2 ifTrue: [1] ifFalse: [(fib: n - 1) + (fib: n - 2)]) \n"
 + ")";
   
   @SuppressWarnings("unchecked")
@@ -25,7 +27,7 @@ public class TrySimpleApp {
     say("Compiling...");
     List<Compiler.Result> results = Compiler.compile(source);
     say("Loading...");
-    NewspeakClassLoader classLoader = new NewspeakClassLoader(TrySimpleApp.class.getClassLoader());
+    NewspeakClassLoader classLoader = new NewspeakClassLoader(TryFibonacci.class.getClassLoader());
     results.forEach(each 
         -> classLoader.addBytecode(each.implementationClassName(), each.bytecode()));
     classLoader.dumpClassFiles();

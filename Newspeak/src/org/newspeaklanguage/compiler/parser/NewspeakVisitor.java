@@ -1,4 +1,4 @@
-// Generated from Newspeak.g4 by ANTLR 4.5.3
+// Generated from /home/vassili/VictoryCoffee/Newspeak/src/org/newspeaklanguage/compiler/parser/Newspeak.g4 by ANTLR 4.5.3
 package org.newspeaklanguage.compiler.parser;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
