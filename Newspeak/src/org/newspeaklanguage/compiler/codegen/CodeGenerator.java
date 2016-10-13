@@ -52,15 +52,22 @@ import org.objectweb.asm.Opcodes;
  */
 abstract class CodeGenerator implements AstNodeVisitor {
 
+  /**
+   * Using the supplied MethodVisitor, pick and generate an optimal
+   * instruction to load the specified int value.
+   */
   public static void generateLoadInt(MethodVisitor methodWriter, int value) {
     if (0 <= value && value <= 5) {
-      methodWriter.visitInsn(specialOpcodes[value]);
+      methodWriter.visitInsn(SPECIAL_LOAD_INT_OPCODES[value]);
     } else if (-128 <= value && value <= 127) {
       methodWriter.visitIntInsn(Opcodes.BIPUSH, value);
     } else {
       methodWriter.visitIntInsn(Opcodes.SIPUSH, value);
     }
   }
+  private static final int[] SPECIAL_LOAD_INT_OPCODES = new int[] {
+      Opcodes.ICONST_0, Opcodes.ICONST_1, Opcodes.ICONST_2, Opcodes.ICONST_3, Opcodes.ICONST_4, Opcodes.ICONST_5 };
+
 
   protected final ClassGenerator classGenerator;
   protected final CodeUnit rootNode;
@@ -107,10 +114,11 @@ abstract class CodeGenerator implements AstNodeVisitor {
   @Override
   public void visitBlock(Block block) {
     BlockDefiner definer = block.definer();
-    // new Builtins.Closure
+    int copiedValueCount = block.scope().asBlockScope().copiedVariableCount();
+    // Generate a constructor call of Closure in either the positional argument or
+    // varargs form, depending on the number of copied values.
     methodWriter.visitTypeInsn(Opcodes.NEW, Closure.INTERNAL_CLASS_NAME);
     methodWriter.visitInsn(Opcodes.DUP);
-    // Builtins.Closure.<init>(MethodHandle implMethod, StandardObject self, Object... copiedValues)
     // push implementation method handle
     methodWriter.visitFieldInsn(
         Opcodes.GETSTATIC,
@@ -119,16 +127,29 @@ abstract class CodeGenerator implements AstNodeVisitor {
         Descriptor.ofType(MethodHandle.class));
     // push the current receiver
     methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
-    // push all copied values and boxes
-    block.scope().asBlockScope().forEachCopiedVariable(each -> {
-      LocalVariable here = rootNode.scope().localVariableNamed(each.name()).get(); // must be found or the analyzer is broken
-      methodWriter.visitVarInsn(Opcodes.ALOAD, here.index());
-    });
+    // push all copied values
+    if (copiedValueCount <= Closure.MAX_POSITIONAL_ARGC) {
+      block.scope().asBlockScope().forEachCopiedVariable(each -> {
+        LocalVariable here = rootNode.scope().localVariableNamed(each.name()).get(); // must be found or the analyzer is broken
+        methodWriter.visitVarInsn(Opcodes.ALOAD, here.index());
+      });
+    } else {
+      generateLoadInt(methodWriter, copiedValueCount);
+      methodWriter.visitTypeInsn(Opcodes.ANEWARRAY, Object.INTERNAL_CLASS_NAME);
+      int i = 0;
+      for (LocalVariable copied : block.scope().asBlockScope().copiedVariables()) {
+        methodWriter.visitInsn(Opcodes.DUP);
+        generateLoadInt(methodWriter, i++);
+        LocalVariable here = rootNode.scope().localVariableNamed(copied.name()).get(); // must be found or the analyzer is broken
+        methodWriter.visitVarInsn(Opcodes.ALOAD, here.index());
+        methodWriter.visitInsn(Opcodes.AASTORE);
+      }
+    }
     methodWriter.visitMethodInsn(
         Opcodes.INVOKESPECIAL,
         Closure.INTERNAL_CLASS_NAME,
         "<init>",
-        Closure.constructorDescriptor(block.scope().asBlockScope().copiedVariableCount()),
+        Closure.constructorDescriptor(copiedValueCount),
         false);
   }
 
@@ -383,9 +404,6 @@ abstract class CodeGenerator implements AstNodeVisitor {
   private void unimplemented(AstNode node) {
     throw new UnsupportedOperationException("Code generation is not yet implemented for " + node);
   }
-
-  private static final int[] specialOpcodes = new int[] { Opcodes.ICONST_0, Opcodes.ICONST_1,
-      Opcodes.ICONST_2, Opcodes.ICONST_3, Opcodes.ICONST_4, Opcodes.ICONST_5 };
 
   @Override
   public void visitArgument(Argument argument) {

@@ -1,6 +1,7 @@
 package org.newspeaklanguage.compiler.semantics;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -57,7 +58,11 @@ public class BlockScope extends CodeScope {
   public void forEachCopiedVariable(Consumer<LocalVariable> action) {
     copiedVariables.forEach(action);
   }
-  
+
+  public List<LocalVariable> copiedVariables() {
+    return Collections.unmodifiableList(copiedVariables);
+  }
+
   @Override
   public void assignLocalVariableIndices() {
     int index = 1;

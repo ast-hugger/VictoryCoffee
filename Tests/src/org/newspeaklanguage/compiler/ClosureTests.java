@@ -65,6 +65,17 @@ public class ClosureTests {
   }
 
   @Test
+  public void testManyCopiedArgs() { // enough to trigger the varargs closure form
+    Example test = Example.testBody(
+        "^[:a :b | | t1 t2 | " +
+            "[:c :d | " +
+            "[t1: a + b." +
+            " t2: c + d." +
+            "t1 + t2] value] value: 'it' value: 'works'] value: 'Hello' value: 'there'");
+    assertTrue(test.isResult("Hellothereitworks"));
+  }
+
+  @Test
   public void testMutableOuterBinding() {
     Example test = Example.testBody(
         "^[:a | | b | " +
