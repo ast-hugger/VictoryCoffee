@@ -4,7 +4,9 @@ import java.util.List;
 
 import org.newspeaklanguage.compiler.ast.AstNode;
 import org.newspeaklanguage.compiler.ast.Block;
+import org.newspeaklanguage.compiler.semantics.BlockScope;
 import org.newspeaklanguage.runtime.Builtins;
+import org.newspeaklanguage.runtime.Object;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -20,13 +22,13 @@ public class BlockGenerator extends CodeGenerator {
    * the last expression rather than self.
    */
   @Override
-  protected void visitStatements() {
+  protected void generateCode() {
     List<AstNode> body = rootNode.body();
     if (body.isEmpty()) {
       // And empty block: return nil.
       methodWriter.visitFieldInsn(
-          Opcodes.GETSTATIC, 
-          Builtins.INTERNAL_CLASS_NAME, 
+          Opcodes.GETSTATIC,
+          Builtins.INTERNAL_CLASS_NAME,
           "NIL",
           org.newspeaklanguage.runtime.Object.TYPE_DESCRIPTOR);
     } else {
@@ -43,4 +45,5 @@ public class BlockGenerator extends CodeGenerator {
     }
     methodWriter.visitInsn(Opcodes.ARETURN);
   }
+
 }

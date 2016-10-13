@@ -13,3 +13,4 @@ Tests/bin
 *.class
 *~
 *.log
+workspace.xml

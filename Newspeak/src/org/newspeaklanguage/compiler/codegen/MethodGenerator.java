@@ -19,7 +19,7 @@ public class MethodGenerator extends CodeGenerator {
    * returned by the generated method is self if there is no explicit return.
    */
   @Override
-  protected void visitStatements() {
+  protected void generateCode() {
     List<AstNode> body = rootNode.body();
     body.forEach(each -> {
       visit(each);

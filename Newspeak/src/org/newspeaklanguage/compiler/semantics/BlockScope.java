@@ -3,6 +3,7 @@ package org.newspeaklanguage.compiler.semantics;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.newspeaklanguage.compiler.ast.Block;
@@ -33,7 +34,7 @@ public class BlockScope extends CodeScope {
 
   public LocalVariable registerCopiedVariable(NameDefinition def) {
     return find(def.name(), copiedVariables).orElseGet(() -> {
-      LocalVariable newVar = new LocalVariable(def.name(), def.isMutable());
+      LocalVariable newVar = new LocalVariable(def.name(), false, def.isMutable());
       copiedVariables.add(newVar);
       return newVar;
     });
@@ -50,6 +51,10 @@ public class BlockScope extends CodeScope {
       var.setIndex(index++);
     }
     super.assignLocalVariableIndices();
+  }
+
+  public void forEachBoxedTemp(Consumer<LocalVariable> action) {
+    ownVariables.stream().filter(LocalVariable::isBoxed).forEach(action);
   }
   
   @Override

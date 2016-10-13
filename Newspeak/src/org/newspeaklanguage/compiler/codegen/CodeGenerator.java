@@ -80,7 +80,8 @@ abstract class CodeGenerator implements AstNodeVisitor {
 
   public void generate() {
     methodWriter.visitCode();
-    visitStatements();
+    generateMethodPrologue();
+    generateCode();
     methodWriter.visitMaxs(0, 0); // args ignored; writer is set to compute
                                   // these
     methodWriter.visitEnd();
@@ -99,7 +100,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
    * Subclasses will implement this as appropriate for their type. Methods and
    * blocks differ in their default return value.
    */
-  protected abstract void visitStatements();
+  protected abstract void generateCode();
 
   @Override
   public void visitBlock(Block block) {
@@ -107,8 +108,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
     // new Builtins.Closure
     methodWriter.visitTypeInsn(Opcodes.NEW, Builtins.Closure.INTERNAL_CLASS_NAME);
     methodWriter.visitInsn(Opcodes.DUP);
-    // Builtins.Closure.<init>(ClosureLiteral closureLiteral, StandardObject
-    // self)
+    // Builtins.Closure.<init>(ClosureLiteral closureLiteral, StandardObject self)
     methodWriter.visitFieldInsn(
         Opcodes.GETSTATIC,
         definer.internalClassName(),
@@ -388,4 +388,27 @@ abstract class CodeGenerator implements AstNodeVisitor {
     unexpectedVisit(slotDefinition);
   }
 
+  /**
+   * Put a NIL value into each temp. Put an array of size 1 containing the NIL value
+   * into each temp which is supposed to be boxed.
+   */
+  protected void generateMethodPrologue() {
+    rootNode.scope().forEachTemp(each -> {
+      if (each.isBoxed()) {
+        methodWriter.visitInsn(Opcodes.ICONST_1);
+        methodWriter.visitTypeInsn(Opcodes.ANEWARRAY, Object.INTERNAL_CLASS_NAME);
+        methodWriter.visitInsn(Opcodes.DUP);
+        methodWriter.visitInsn(Opcodes.ICONST_0);
+      }
+      methodWriter.visitFieldInsn(
+          Opcodes.GETSTATIC,
+          Builtins.INTERNAL_CLASS_NAME,
+          "NIL",
+          Object.TYPE_DESCRIPTOR);
+      if (each.isBoxed()) {
+        methodWriter.visitInsn(Opcodes.AASTORE);
+      }
+      methodWriter.visitVarInsn(Opcodes.ASTORE, each.index());
+    });
+  }
 }

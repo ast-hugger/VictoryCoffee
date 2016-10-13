@@ -3,6 +3,7 @@ package org.newspeaklanguage.compiler.semantics;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.newspeaklanguage.compiler.NamingPolicy;
@@ -15,7 +16,6 @@ import org.newspeaklanguage.compiler.ast.CodeUnit;
  * is not read-only.
  *
  * @author Vassili Bykov <newspeakbigot@gmail.com>
- *
  */
 public abstract class CodeScope extends Scope<CodeScopeEntry> {
 
@@ -28,9 +28,9 @@ public abstract class CodeScope extends Scope<CodeScopeEntry> {
   CodeScope(CodeUnit definition, Scope<? extends ScopeEntry> parent) {
     super(definition, parent);
     definition.arguments().forEach(
-        each -> ownVariables.add(new LocalVariable(each.name(), false)));
+        each -> ownVariables.add(new LocalVariable(each.name(), false, false)));
     definition.temps().forEach(
-        each -> ownVariables.add(new LocalVariable(each.name(), false)));
+        each -> ownVariables.add(new LocalVariable(each.name(), true, false)));
   }
 
   @Override
@@ -58,6 +58,14 @@ public abstract class CodeScope extends Scope<CodeScopeEntry> {
     } else {
       return super.define(name);
     }
+  }
+
+  public void forEachOwnVariable(Consumer<LocalVariable> action) {
+    ownVariables.forEach(action);
+  }
+
+  public void forEachTemp(Consumer<LocalVariable> action) {
+    ownVariables.stream().filter(LocalVariable::isTemp).forEach(action);
   }
 
   /**
