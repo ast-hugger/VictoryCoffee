@@ -32,6 +32,18 @@ public abstract class NameMeaning {
     return false;
   }
 
+  public LexicalVarReference asLexicalVarReference() {
+    return (LexicalVarReference) this;
+  }
+
+  public SendToEnclosingObject asSendToEnclosingObject() {
+    return (SendToEnclosingObject) this;
+  }
+
+  public SelfSend asSelfSend() {
+    return (SelfSend) this;
+  }
+
   public <T extends ScopeEntry> Optional<T> lexicalDefinition() {
     return Optional.empty();
   }

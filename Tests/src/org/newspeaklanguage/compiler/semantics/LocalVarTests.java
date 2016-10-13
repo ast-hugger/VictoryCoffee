@@ -38,10 +38,10 @@ public class LocalVarTests {
     assertEquals(methodScope, temp1ref.meaning().lexicalDefinition().get().scope());
     assertEquals(methodScope, temp2ref.meaning().lexicalDefinition().get().scope());
 
-    assertEquals(arg1, ((LexicalVarReference) arg1ref.meaning()).localVariable());
-    assertEquals(arg2, ((LexicalVarReference) arg2ref.meaning()).localVariable());
-    assertEquals(temp1, ((LexicalVarReference) temp1ref.meaning()).localVariable());
-    assertEquals(temp2, ((LexicalVarReference) temp2ref.meaning()).localVariable());
+    assertEquals(arg1, arg1ref.meaning().asLexicalVarReference().localVariable());
+    assertEquals(arg2, arg2ref.meaning().asLexicalVarReference().localVariable());
+    assertEquals(temp1, temp1ref.meaning().asLexicalVarReference().localVariable());
+    assertEquals(temp2, temp2ref.meaning().asLexicalVarReference().localVariable());
 
     assertArrayEquals(
         new String[]{"arg1", "arg2", "temp1", "temp2"}, 
@@ -83,10 +83,10 @@ public class LocalVarTests {
     assertEquals(blockScope, temp1ref.meaning().lexicalDefinition().get().scope());
     assertEquals(blockScope, temp2ref.meaning().lexicalDefinition().get().scope());
 
-    assertEquals(arg1, (asLexicalRef(arg1ref.meaning())).localVariable());
-    assertEquals(arg2, (asLexicalRef(arg2ref.meaning())).localVariable());
-    assertEquals(temp1, (asLexicalRef(temp1ref.meaning())).localVariable());
-    assertEquals(temp2, (asLexicalRef(temp2ref.meaning())).localVariable());
+    assertEquals(arg1, arg1ref.meaning().asLexicalVarReference().localVariable());
+    assertEquals(arg2, arg2ref.meaning().asLexicalVarReference().localVariable());
+    assertEquals(temp1, temp1ref.meaning().asLexicalVarReference().localVariable());
+    assertEquals(temp2, temp2ref.meaning().asLexicalVarReference().localVariable());
 
     assertArrayEquals(
         new String[]{"arg1", "arg2", "temp1", "temp2"}, 
@@ -112,8 +112,8 @@ public class LocalVarTests {
     MessageSendNoReceiver arg1ref = NodeFinder.findLocalVarReference("arg1", tree);
     MessageSendNoReceiver arg2ref = NodeFinder.findLocalVarReference("arg2", tree);
 
-    assertTrue(asLexicalRef(arg1ref.meaning()).isCopiable());
-    assertTrue(asLexicalRef(arg2ref.meaning()).isClean());
+    assertTrue(arg1ref.meaning().asLexicalVarReference().isCopiable());
+    assertTrue(arg2ref.meaning().asLexicalVarReference().isClean());
     
     assertArrayEquals(new String[]{"arg1"}, methodScope.ownVariableNames().toArray());
     assertEquals(1, arg1.index());
@@ -142,8 +142,8 @@ public class LocalVarTests {
     MessageSendNoReceiver tempRef = NodeFinder.findLocalVarReference("temp", tree);
     MessageSendNoReceiver arg2ref = NodeFinder.findLocalVarReference("arg2", tree);
 
-    assertFalse(asLexicalRef(tempRef.meaning()).isClean());
-    assertTrue(asLexicalRef(arg2ref.meaning()).isClean());
+    assertFalse(tempRef.meaning().asLexicalVarReference().isClean());
+    assertTrue(arg2ref.meaning().asLexicalVarReference().isClean());
     
     assertArrayEquals(new String[]{"temp"}, methodScope.ownVariableNames().toArray());
     assertEquals(1, temp.index());
@@ -180,9 +180,9 @@ public class LocalVarTests {
     MessageSendNoReceiver tempRef = NodeFinder.findLocalVarReference("temp", tree);
     MessageSendNoReceiver arg2ref = NodeFinder.findLocalVarReference("arg2", tree);
 
-    assertFalse(asLexicalRef(arg1Ref.meaning()).isClean());
-    assertFalse(asLexicalRef(tempRef.meaning()).isClean());
-    assertTrue(asLexicalRef(arg2ref.meaning()).isClean());
+    assertFalse(arg1Ref.meaning().asLexicalVarReference().isClean());
+    assertFalse(tempRef.meaning().asLexicalVarReference().isClean());
+    assertTrue(arg2ref.meaning().asLexicalVarReference().isClean());
     
     assertArrayEquals(new String[]{"arg1", "temp"}, methodScope.ownVariableNames().toArray());
     assertArrayEquals(new String[0], outerBlockScope.ownVariableNames().toArray());
@@ -213,8 +213,4 @@ public class LocalVarTests {
     assertFalse(arg2.isBoxed());
   }
   
-  private LexicalVarReference asLexicalRef(NameMeaning meaning) {
-    return (LexicalVarReference) meaning;
-  }
-
 }

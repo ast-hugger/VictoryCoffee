@@ -25,10 +25,10 @@ public class BlockTypeAnalysisTests {
     MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
     MessageSendNoReceiver bazRef = NodeFinder.findLocalVarReference("baz", tree);
     MessageSendNoReceiver tempRef = NodeFinder.findLocalVarReference("temp", tree);
-    assertFalse(((LexicalVarReference) fooRef.meaning()).isClean());
-    assertFalse(((LexicalVarReference) barRef.meaning()).isClean());
-    assertTrue(((LexicalVarReference) bazRef.meaning()).isClean());
-    assertTrue(((LexicalVarReference) tempRef.meaning()).isClean());
+    assertFalse(fooRef.meaning().asLexicalVarReference().isClean());
+    assertFalse(barRef.meaning().asLexicalVarReference().isClean());
+    assertTrue(bazRef.meaning().asLexicalVarReference().isClean());
+    assertTrue(tempRef.meaning().asLexicalVarReference().isClean());
   }
 
   @Test
@@ -48,10 +48,10 @@ public class BlockTypeAnalysisTests {
     MessageSendNoReceiver temp1Ref = NodeFinder.findLocalVarReference("temp1", tree);
     MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
     MessageSendNoReceiver booRef = NodeFinder.findLocalVarReference("boo", tree);
-    assertTrue(((LexicalVarReference) fooRef.meaning()).isCopiable());
-    assertFalse(((LexicalVarReference) temp1Ref.meaning()).isCopiable());
-    assertTrue(((LexicalVarReference) barRef.meaning()).isCopiable());
-    assertTrue(((LexicalVarReference) booRef.meaning()).isCopiable());
+    assertTrue(fooRef.meaning().asLexicalVarReference().isCopiable());
+    assertFalse(temp1Ref.meaning().asLexicalVarReference().isCopiable());
+    assertTrue(barRef.meaning().asLexicalVarReference().isCopiable());
+    assertTrue(booRef.meaning().asLexicalVarReference().isCopiable());
   }
 
 }

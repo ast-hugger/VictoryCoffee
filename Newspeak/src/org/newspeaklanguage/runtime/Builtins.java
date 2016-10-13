@@ -1,10 +1,18 @@
 package org.newspeaklanguage.runtime;
 
-import org.newspeaklanguage.compiler.Descriptor;
-
+/**
+ * This class is a holder of a set of static classes used to give apparent
+ * Newspeak behavior to built-in Java artifacts such as wrappers, Strings,
+ * and null.
+ * <p>
+ * When Newspeak message dispatch encounters one of those artifacts as the
+ * receiver of a message, it looks for a static method in one of the
+ * classes nested here as the implementor of the corresponding message.
+ * In other words, these are Newspeak method dictionaries of those Java artifacts.
+ *
+ * @author Vassili Bykov <newspeakbigot@gmail.com>
+ */
 public final class Builtins {
-
-  public static final String INTERNAL_CLASS_NAME = Descriptor.internalClassName(Builtins.class);
 
   public static Object string(String contents) {
     return contents;
@@ -30,35 +38,35 @@ public final class Builtins {
     }
   }
 
-  public static final class UndefinedObject extends BuiltinObject {
+  public static final class BuiltinNil extends BuiltinObject {
 
     public static Object $printString(Object self) {
       return "<nil>";
     }
   }
 
-  public abstract static class BooleanObject extends BuiltinObject {
+  public abstract static class BuiltinBoolean extends BuiltinObject {
   }
 
-  public static final class TrueObject extends BooleanObject {
+  public static final class BuiltinTrue extends BuiltinBoolean {
 
     public static Object $printString(Object self) {
       return "<true>";
     }
   }
 
-  public static final class FalseObject extends BooleanObject {
+  public static final class BuiltinFalse extends BuiltinBoolean {
 
     public static Object $printString(Object self) {
       return "<false>";
     }
   }
 
-  public static final class IntegerObject extends BuiltinObject {
+  public static final class BuiltinNumber extends BuiltinObject {
 
   }
 
-  public static final class StringObject extends BuiltinObject {
+  public static final class BuiltinString extends BuiltinObject {
 
     public static Object $$plus(Object self, Object another) {
       // TODO for now just assuming another is also a string

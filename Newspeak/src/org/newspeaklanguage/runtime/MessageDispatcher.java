@@ -7,7 +7,6 @@ import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.invoke.MethodType;
 
 import org.newspeaklanguage.compiler.Descriptor;
-import org.newspeaklanguage.compiler.NamingPolicy;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Opcodes;
 
@@ -45,7 +44,7 @@ public final class MessageDispatcher {
     Class<?> receiverClass = newspeakClassOf(receiver);
     MethodHandle method;
     try {
-      // TODO is the following fast enough or should we remember the decision from newspeakClassOf?
+      // TODO is the following fast enough or should we remember the findings in newspeakClassOf?
       if (StandardObject.class.isAssignableFrom(receiverClass)) {
         method = callSite.lookup()
             .findVirtual(receiverClass, callSite.methodName(), methodType(callSite.type().parameterCount() - 1))
@@ -155,10 +154,10 @@ public final class MessageDispatcher {
   }
 
   private static Class<?> newspeakClassOf(Object object) {
-    if (object == null) return Builtins.UndefinedObject.class;
-    if (object instanceof String) return Builtins.StringObject.class;
-    if (object instanceof Boolean) return ((Boolean) object) ? Builtins.TrueObject.class : Builtins.FalseObject.class;
     if (object instanceof StandardObject) return object.getClass();
-    throw new IllegalArgumentException("unrecognized value used as a Newspeak object: " + object);
+    if (object == null) return Builtins.BuiltinNil.class;
+    if (object instanceof String) return Builtins.BuiltinString.class;
+    if (object instanceof Boolean) return ((Boolean) object) ? Builtins.BuiltinTrue.class : Builtins.BuiltinFalse.class;
+    throw new IllegalArgumentException("unrecognized artifact used as a Newspeak object: " + object);
   }
 }
