@@ -1,7 +1,7 @@
 package org.newspeaklanguage.compiler;
 
 /**
- * A utility class for the various field, method, and selector-related
+ * A utility class for the various field, method, and methodName-related
  * translation, mangling, and unmangling.
  *
  * @author Vassili Bykov <newspeakbigot@gmail.com>
@@ -44,7 +44,7 @@ public final class NamingPolicy {
   }
 
   /**
-   * Given a Newspeak selector assumed to be a slot getter or setter, return the
+   * Given a Newspeak methodName assumed to be a slot getter or setter, return the
    * name of the actual slot. The name is in the original unmangled form.
    */
   public static String slotForSelector(String selector) {
@@ -56,14 +56,14 @@ public final class NamingPolicy {
   }
   
   /**
-   * Given a Newspeak selector, return a method name to be used for a method
-   * implementing that selector.
+   * Given a Newspeak methodName, return a method name to be used for a method
+   * implementing that methodName.
    */
   public static String methodNameForSelector(String selector) {
     StringBuilder name = new StringBuilder(selector.length() + 5);
     name.append('$');
     if (Character.isLetter(selector.charAt(0))) {
-      // A unary or keyword selector
+      // A unary or keyword methodName
       int part = 0;
       for (String keyword : selector.split(":")) {
         if (part++ > 0) {
@@ -75,7 +75,7 @@ public final class NamingPolicy {
         name.append('$');
       }
     } else {
-      // A binary selector
+      // A binary methodName
       for (char c : selector.toCharArray()) {
         name.append('$');
         name.append(binarySelectorCharToToken(c));
@@ -105,7 +105,7 @@ public final class NamingPolicy {
     case '&':
       return "amp";
     default:
-      throw new IllegalArgumentException("Unrecognized binary selector char: " + character);
+      throw new IllegalArgumentException("Unrecognized binary methodName char: " + character);
     }
   }
 

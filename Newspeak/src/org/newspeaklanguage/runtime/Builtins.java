@@ -1,184 +1,72 @@
 package org.newspeaklanguage.runtime;
 
-import java.lang.invoke.MethodHandle;
-
 import org.newspeaklanguage.compiler.Descriptor;
 
 public final class Builtins {
 
   public static final String INTERNAL_CLASS_NAME = Descriptor.internalClassName(Builtins.class);
-  public static final Object NIL = new UndefinedObject();
 
-  /*
-   * Nested classes
-   */
-  public static final Object TRUE = new TrueObject();
-  public static final Object FALSE = new FalseObject();
-
-  public static StringObject string(String contents) {
-    return new StringObject(contents);
+  public static Object string(String contents) {
+    return contents;
   }
 
-  public abstract static class BuiltinObject extends Object {
+  public abstract static class BuiltinObject {
 
-    @Override
-    public ObjectFactory nsClass() {
+    private BuiltinObject() { // no instances, this and the subclasses are just repositories of static methods
+    }
+
+    public static Object $class(Object self) {
       return null;
     }
 
-    @Override
-    public Object $class() {
-      return NIL;
-    }
-
-    public Object $printString() {
-      String className = this.getClass().getSimpleName();
+    public static Object $printString(Object self) {
+      String className = self.getClass().getSimpleName();
       String article = isVowel(className.charAt(0)) ? "an " : "a ";
-      return Builtins.string(article + this.getClass().getSimpleName());
+      return Builtins.string(article + className);
     }
 
-    private boolean isVowel(char c) {
+    private static boolean isVowel(char c) {
       return "AEIOUaeiou".indexOf(c) != -1;
     }
   }
 
   public static final class UndefinedObject extends BuiltinObject {
 
-    @Override
-    public String toString() {
+    public static Object $printString(Object self) {
       return "<nil>";
     }
   }
 
   public abstract static class BooleanObject extends BuiltinObject {
-
   }
 
   public static final class TrueObject extends BooleanObject {
 
-    public Object $printString() {
-      return Builtins.string("<true>");
+    public static Object $printString(Object self) {
+      return "<true>";
     }
   }
 
   public static final class FalseObject extends BooleanObject {
 
-    public Object $printString() {
-      return Builtins.string("<false>");
+    public static Object $printString(Object self) {
+      return "<false>";
     }
   }
 
-//  public static final class ClassObject extends Object {
-//    @Override
-//    public ObjectFactory nsClass() {
-//      return stringFactory;
-//    }
-//  }
-
-
-//  public static final ClassDefinition undefinedObjectClassDef = 
-//      new ClassDefinition(UndefinedObject.class); 
-//  public static final ClassDefinition booleanClassDef =
-//      new ClassDefinition(BooleanObject.class);
-//  public static final ClassDefinition trueClassDef =
-//      new ClassDefinition(TrueObject.class);
-//  public static final ClassDefinition falseClassDef =
-//      new ClassDefinition(FalseObject.class);
-//  public static final ClassDefinition integerClassDef =
-//      new ClassDefinition(IntegerObject.class);
-//  public static final ClassDefinition stringClassDef =
-//      new ClassDefinition(StringObject.class);
-////  public static final ClassDefinition classClassDef =
-////      new ClassDefinition(ClassObject.class);
-//  public static final ClassDefinition closureClassDef =
-//      new ClassDefinition(ClosureObject.class);
-
-//  public static final ObjectFactory objectMetafactory = new ObjectFactory();
-//  public static final ObjectFactory undefinedObjectFactory =
-//      new ObjectFactory(objectMetafactory, undefinedObjectClassDef, null);s
-//  public static final ObjectFactory trueFactory =
-//      new ObjectFactory(objectMetafactory, trueClassDef, null);
-//  public static final ObjectFactory falseFactory =
-//      new ObjectFactory(objectMetafactory, falseClassDef, null);
-//new ObjectFactory(objectMetafactory, falseCl
-//public static final ObjectFactory integerFactory =
-//new ObjectFactory(objectMetafactory, integerClassDef, null);
-//public static final ObjectFactory stringFactory =
-//new ObjectFactory(objectMetafactory, stringClassDef, null
-//public static final ObjectFactory falseFactory =
-//new ObjectFactory(objectMetafactory, falseClassDef, null);
-//public static final ObjectFactory integerFactory =
-//new ObjectFactory(objectMetafactory, integerClassDef, nulassDef, null);
-//public static final ObjectFactory integerFactory =
-//new ObjectFactory(objectMetafactory, integerClassDef, null);
-//public static final ObjectFactory stringFactory =
-//new ObjectFactory(objectMetafactory, stringClassDef, null
-//  public static final ObjectFactory integerFactory =
-//      new ObjectFactory(objectMetafactory, integerClassDef, null);
-//  public static final ObjectFactory stringFactory =
-//      new ObjectFactory(objectMetafactory, stringClassDef, null);
-//  public static final ObjectFactory closureFactory =
-//public static final ObjectFactory trueFactory =
-//new ObjectFactory(objectMetafactory, trueClassDef, null);
-//new ObjectFactory(objectMetafactory, falseClassDef, null);
-//public static final ObjectFactory integerFactory =
-//new ObjectFactory(objectMetafactory, integerClassDef, null);
-//public static final ObjectFactory stringFactory =
-//new ObjectFactory(objectMetafactory, stringClassDef, null
-//public static final ObjectFactory falseFactory =
-//new ObjectFactory(objectMetafactory, falseClassDef, null);
-//public static final ObjectFactory integerFactory =
-//new ObjectFactory(objectMetafactory, integerClassDef, null);
-//public static final ObjectFactory stringFactory =
-//new ObjectFactory(objectMetafactory, stringClassDef, null
-//      new ObjectFactory(objectMetafactory, closureClassDef, null);
-
   public static final class IntegerObject extends BuiltinObject {
 
-    public static final String INTERNAL_CLASS_NAME =
-        IntegerObject.class.getName().replace('.', '/');
-
-    private final int value;
-
-    public IntegerObject(int value) {
-      this.value = value;
-    }
-
-    public int value() {
-      return value;
-    }
-
-    public String toString() {
-      return "<" + value + ">";
-    }
   }
 
   public static final class StringObject extends BuiltinObject {
 
-    public static final String INTERNAL_CLASS_NAME =
-        StringObject.class.getName().replace('.', '/');
-
-    private final String value;
-
-    public StringObject(String value) {
-      this.value = value;
-    }
-
-    public String value() {
-      return value;
-    }
-
-    public String toString() {
-      return "<'" + value + "'>";
-    }
-
-    public Object $$plus(Object another) {
+    public static Object $$plus(Object self, Object another) {
       // TODO for now just assuming another is also a string
-      return Builtins.string(value + ((StringObject) another).value());
+      return ((String) self) + ((String) another);
     }
 
-    public Object $printString() {
-      return Builtins.string("'" + value + "'");
+    public static Object $printString(Object self) {
+      return "'" + ((String) self) + "'";
     }
   }
 

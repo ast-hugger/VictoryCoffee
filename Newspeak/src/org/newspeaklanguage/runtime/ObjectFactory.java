@@ -5,9 +5,9 @@ package org.newspeaklanguage.runtime;
  * <p>
  * A Newspeak class is implemented by a triplet of entities. Given a class
  * source code, the compiler produces two of them: a {@link ClassDefinition}
- * instance holding onto a subclass of {@link Object}. The subclass is what's
+ * instance holding onto a subclass of {@link NsObject}. The subclass is what's
  * instantiated to produce an instance of the Newspeak class. There is always
- * one ClassDefinition and one subclass of Object per Newspeak class. The third
+ * one ClassDefinition and one subclass of NsObject per Newspeak class. The third
  * entity comes into play when Newspeak code retrieves a Newspeak class from a
  * particular containing object. The metaobject received is a {@link ObjectFactory}. It
  * holds onto the corresponding ClassDefinition and the enclosing instance of
@@ -23,7 +23,7 @@ package org.newspeaklanguage.runtime;
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
  */
-public class ObjectFactory extends Object {
+public class ObjectFactory extends StandardObject {
   
   public static final String INTERNAL_CLASS_NAME =
       ObjectFactory.class.getName().replace('.', '/');
@@ -43,7 +43,7 @@ public class ObjectFactory extends Object {
    * Instance side
    */
   
-  private final ObjectFactory nsClass;
+  // private final ObjectFactory nsClass;
   private final ClassDefinition classDefinition;
   // Public so call sites for outer sends can read this directly as a field
   public final StandardObject[] enclosingObjects;
@@ -53,7 +53,7 @@ public class ObjectFactory extends Object {
    * Provided for bootstrapping and testing to create the Class class.
    */
   ObjectFactory() {
-    this.nsClass = null;
+    super(null);
     this.classDefinition = null;
     this.enclosingObjects = null;
   }
@@ -73,7 +73,7 @@ public class ObjectFactory extends Object {
    * @throws IllegalAccessException
    */
   public ObjectFactory(ObjectFactory nsClass, ClassDefinition classDefinition, StandardObject container) {
-    this.nsClass = nsClass;
+    super(nsClass);
     this.classDefinition = classDefinition;
     
     // Capture the enclosing objects
@@ -102,7 +102,7 @@ public class ObjectFactory extends Object {
     return classDefinition;
   }
   
-  public Object makeInstance() {
+  public StandardObject makeInstance() {
     try {
       return classDefinition.makeInstance(this);
     } catch (Throwable e) {

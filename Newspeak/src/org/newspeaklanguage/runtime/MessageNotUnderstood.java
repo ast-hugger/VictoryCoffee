@@ -9,9 +9,9 @@ public class MessageNotUnderstood extends Exception {
   private final String selector;
   private final Object[] arguments;
   
-  public MessageNotUnderstood(Object receiver, String selector, Object[] arguments) {
+  public MessageNotUnderstood(Object receiver, String methodName, Object[] arguments) {
     this.receiver = receiver;
-    this.selector = selector;
+    this.selector = methodName;
     this.arguments = arguments;
   }
   

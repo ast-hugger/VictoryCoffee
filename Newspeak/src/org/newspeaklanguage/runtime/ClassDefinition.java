@@ -9,9 +9,9 @@ import java.lang.invoke.MethodType;
  * 
  * <p>A Newspeak class is implemented by a triplet of entities. Given a class
  * source code, the compiler produces two of them: a {@link ClassDefinition}
- * instance holding onto a subclass of {@link Object}. The subclass is what's
+ * instance holding onto a subclass of {@link NsObject}. The subclass is what's
  * instantiated to produce an instance of the Newspeak class. There is always
- * one ClassDefinition and one subclass of Object per Newspeak class. The third
+ * one ClassDefinition and one subclass of NsObject per Newspeak class. The third
  * entity comes into play when Newspeak code retrieves a Newspeak class from a
  * particular containing object. The metaobject received is a {@link ObjectFactory}. It
  * holds onto the corresponding ClassDefinition and the enclosing instance of
@@ -28,7 +28,7 @@ public class ClassDefinition {
   public static final String TYPE_DESCRIPTOR = "L" + INTERNAL_CLASS_NAME + ";";
   public static final String CONSTRUCTOR_DESCRIPTOR = "(Ljava/lang/String;Ljava/lang/Class;)V";
 
-  public static ClassDefinition create(String name, java.lang.Class<? extends Object> implClass) {
+  public static ClassDefinition create(String name, java.lang.Class<? extends NsObject> implClass) {
     return new ClassDefinition(name, implClass);
   }
   
@@ -37,10 +37,10 @@ public class ClassDefinition {
    */
   
   private final String name;
-  private final java.lang.Class<? extends Object> implementation;
+  private final java.lang.Class<? extends NsObject> implementation;
   private final MethodHandle constructor;
   
-  public ClassDefinition(String name, java.lang.Class<? extends Object> implementation)
+  public ClassDefinition(String name, java.lang.Class<? extends NsObject> implementation)
   {
     this.name = name;
     this.implementation = implementation;
@@ -57,12 +57,12 @@ public class ClassDefinition {
     return name;
   }
   
-  public java.lang.Class<? extends Object> implementation() {
+  public java.lang.Class<? extends NsObject> implementation() {
     return implementation;
   }
   
-  public Object makeInstance(ObjectFactory nsClass) throws Throwable {
-    return (Object) constructor.invoke(nsClass);
+  public StandardObject makeInstance(ObjectFactory nsClass) throws Throwable {
+    return (StandardObject) constructor.invoke(nsClass);
   }
   
 }

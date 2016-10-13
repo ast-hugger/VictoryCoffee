@@ -4,9 +4,8 @@ import java.util.List;
 
 import org.newspeaklanguage.compiler.ast.AstNode;
 import org.newspeaklanguage.compiler.ast.Block;
-import org.newspeaklanguage.compiler.semantics.BlockScope;
 import org.newspeaklanguage.runtime.Builtins;
-import org.newspeaklanguage.runtime.Object;
+import org.newspeaklanguage.runtime.NsObject;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -25,12 +24,8 @@ public class BlockGenerator extends CodeGenerator {
   protected void generateBody() {
     List<AstNode> body = rootNode.body();
     if (body.isEmpty()) {
-      // And empty block: return nil.
-      methodWriter.visitFieldInsn(
-          Opcodes.GETSTATIC,
-          Builtins.INTERNAL_CLASS_NAME,
-          "NIL",
-          org.newspeaklanguage.runtime.Object.TYPE_DESCRIPTOR);
+      // An empty block: return nil.
+      methodWriter.visitInsn(Opcodes.ACONST_NULL);
     } else {
       // A non-empty block. Don't pop the last statement result; leave it on the
       // stack to be returned.

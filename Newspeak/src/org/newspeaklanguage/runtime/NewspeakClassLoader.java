@@ -9,8 +9,8 @@ import java.util.Map;
 public class NewspeakClassLoader extends ClassLoader {
   
   private final Map<String, byte[]> bytecodeByName = new HashMap<String, byte[]>();
-  private final Map<String, Class<? extends Object>> classesByName = 
-      new HashMap<String, Class<? extends Object>>();
+  private final Map<String, Class<? extends NsObject>> classesByName =
+      new HashMap<String, Class<? extends NsObject>>();
 
   public NewspeakClassLoader() {
     // Still not sure if we need or need not to inherit from the main loader,
@@ -35,7 +35,7 @@ public class NewspeakClassLoader extends ClassLoader {
         throw new ClassNotFoundException(name);
       }
       loadedClass = defineClass(name, bytecode, 0, bytecode.length);
-      classesByName.put(name, (Class<? extends Object>) loadedClass);
+      classesByName.put(name, (Class<? extends NsObject>) loadedClass);
     }
     return loadedClass;
   }

@@ -18,7 +18,7 @@ public class ClosureTests {
   @Test
   public void testEmptyClosureReturnsNil() {
     Example test = Example.testBody("^[] value");
-    assertEquals(test.result(), Builtins.NIL);
+    assertEquals(test.result(), null);
   }
   
   @Test

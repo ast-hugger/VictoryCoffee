@@ -1,6 +1,7 @@
 package org.newspeaklanguage.compiler.codegen;
 
 import java.lang.invoke.MethodHandle;
+import java.rmi.Naming;
 
 import org.newspeaklanguage.compiler.Descriptor;
 import org.newspeaklanguage.compiler.NamingPolicy;
@@ -31,7 +32,7 @@ import org.newspeaklanguage.runtime.Box;
 import org.newspeaklanguage.runtime.Builtins;
 import org.newspeaklanguage.runtime.Closure;
 import org.newspeaklanguage.runtime.MessageDispatcher;
-import org.newspeaklanguage.runtime.Object;
+import org.newspeaklanguage.runtime.NsObject;
 import org.newspeaklanguage.runtime.ObjectFactory;
 import org.newspeaklanguage.runtime.StandardObject;
 import org.objectweb.asm.ClassWriter;
@@ -135,7 +136,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
       });
     } else {
       generateLoadInt(methodWriter, copiedValueCount);
-      methodWriter.visitTypeInsn(Opcodes.ANEWARRAY, Object.INTERNAL_CLASS_NAME);
+      methodWriter.visitTypeInsn(Opcodes.ANEWARRAY, NsObject.INTERNAL_CLASS_NAME);
       int i = 0;
       for (LocalVariable copied : block.scope().asBlockScope().copiedVariables()) {
         methodWriter.visitInsn(Opcodes.DUP);
@@ -218,7 +219,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
           methodWriter.visitVarInsn(Opcodes.ALOAD, index);
           methodWriter.visitTypeInsn(Opcodes.CHECKCAST, Box.INTERNAL_CLASS_NAME);
           methodWriter.visitInsn(Opcodes.SWAP);
-          methodWriter.visitFieldInsn(Opcodes.PUTFIELD, Box.INTERNAL_CLASS_NAME, "value", Object.TYPE_DESCRIPTOR);
+          methodWriter.visitFieldInsn(Opcodes.PUTFIELD, Box.INTERNAL_CLASS_NAME, "value", NsObject.TYPE_DESCRIPTOR);
         } else {
           // :: send, unboxed
           methodWriter.visitVarInsn(Opcodes.ASTORE, index);
@@ -230,7 +231,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
           methodWriter.visitVarInsn(Opcodes.ALOAD, index);
           methodWriter.visitTypeInsn(Opcodes.CHECKCAST, Box.INTERNAL_CLASS_NAME);
           visit(messageNode.arguments().get(0));
-          methodWriter.visitFieldInsn(Opcodes.PUTFIELD, Box.INTERNAL_CLASS_NAME, "value", Object.TYPE_DESCRIPTOR);
+          methodWriter.visitFieldInsn(Opcodes.PUTFIELD, Box.INTERNAL_CLASS_NAME, "value", NsObject.TYPE_DESCRIPTOR);
         } else {
           // : send, unboxed
           visit(messageNode.arguments().get(0));
@@ -244,7 +245,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
       methodWriter.visitVarInsn(Opcodes.ALOAD, index);
       if (local.isBoxed()) {
         methodWriter.visitTypeInsn(Opcodes.CHECKCAST, Box.INTERNAL_CLASS_NAME);
-        methodWriter.visitFieldInsn(Opcodes.GETFIELD, Box.INTERNAL_CLASS_NAME, "value", Object.TYPE_DESCRIPTOR);
+        methodWriter.visitFieldInsn(Opcodes.GETFIELD, Box.INTERNAL_CLASS_NAME, "value", NsObject.TYPE_DESCRIPTOR);
       }
     }
   }
@@ -266,7 +267,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
       messageNode.arguments().forEach(this::visit);
     }
     methodWriter.visitInvokeDynamicInsn(
-        messageNode.selector(),
+        NamingPolicy.methodNameForSelector(messageNode.selector()),
         callSiteTypeDescriptor(messageNode.arity()),
         MessageDispatcher.bootstrapHandle());
     if (messageNode.isSetterSend()) {
@@ -310,7 +311,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
       messageSend.arguments().forEach(this::visit);
     }
     methodWriter.visitInvokeDynamicInsn(
-        messageSend.selector(),
+        NamingPolicy.methodNameForSelector(messageSend.selector()),
         callSiteTypeDescriptor(messageSend.arguments().size()),
         MessageDispatcher.bootstrapHandle());
     if (messageSend.isSetterSend()) {
@@ -326,27 +327,23 @@ abstract class CodeGenerator implements AstNodeVisitor {
       arg.accept(this);
     }
     methodWriter.visitInvokeDynamicInsn(
-        sendNode.selector(),
+        NamingPolicy.methodNameForSelector(sendNode.selector()),
         callSiteTypeDescriptor(sendNode.arguments().size()),
         MessageDispatcher.bootstrapHandle());
   }
 
   @Override
   public void visitLiteralNil(LiteralNil literalNil) {
-    methodWriter.visitFieldInsn(
-        Opcodes.GETSTATIC,
-        Builtins.INTERNAL_CLASS_NAME,
-        "NIL",
-        org.newspeaklanguage.runtime.Object.TYPE_DESCRIPTOR);
+    methodWriter.visitInsn(Opcodes.ACONST_NULL);
   }
 
   @Override
   public void visitLiteralBoolean(LiteralBoolean literalBoolean) {
     methodWriter.visitFieldInsn(
         Opcodes.GETSTATIC,
-        Builtins.INTERNAL_CLASS_NAME,
+        StandardObject.INTERNAL_CLASS_NAME,
         literalBoolean.value() ? "TRUE" : "FALSE",
-        org.newspeaklanguage.runtime.Object.TYPE_DESCRIPTOR);
+        NsObject.TYPE_DESCRIPTOR);
   }
 
   @Override
@@ -385,10 +382,10 @@ abstract class CodeGenerator implements AstNodeVisitor {
     StringBuilder result = new StringBuilder();
     result.append("(");
     for (int i = 0; i < arity + 1; i++) {
-      result.append(Object.TYPE_DESCRIPTOR);
+      result.append(NsObject.TYPE_DESCRIPTOR);
     }
     result.append(")");
-    result.append(Object.TYPE_DESCRIPTOR);
+    result.append(NsObject.TYPE_DESCRIPTOR);
     return result.toString();
   }
 
@@ -430,14 +427,8 @@ abstract class CodeGenerator implements AstNodeVisitor {
             "<init>",
             "()V",
             false);
-      } else {
-        methodWriter.visitFieldInsn(
-            Opcodes.GETSTATIC,
-            Builtins.INTERNAL_CLASS_NAME,
-            "NIL",
-            Object.TYPE_DESCRIPTOR);
+        methodWriter.visitVarInsn(Opcodes.ASTORE, each.index());
       }
-      methodWriter.visitVarInsn(Opcodes.ASTORE, each.index());
     });
   }
 }

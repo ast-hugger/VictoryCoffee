@@ -8,8 +8,9 @@ import org.newspeaklanguage.compiler.NamingPolicy;
 import org.newspeaklanguage.runtime.Builtins;
 import org.newspeaklanguage.runtime.ClassDefinition;
 import org.newspeaklanguage.runtime.NewspeakClassLoader;
-import org.newspeaklanguage.runtime.Object;
+import org.newspeaklanguage.runtime.NsObject;
 import org.newspeaklanguage.runtime.ObjectFactory;
+import org.newspeaklanguage.runtime.StandardObject;
 
 public class Example {
 
@@ -38,10 +39,10 @@ public class Example {
    */
   
   protected List<Compiler.Result> compilationResults;
-  protected Class<? extends Object> topImplementationClass;
+  protected Class<? extends StandardObject> topImplementationClass;
   protected ClassDefinition topClassDef;
   protected ObjectFactory topFactory;
-  protected Object module;
+  protected StandardObject module;
   protected Object testResult;
   
   // No direct instantiation. Use the static methods.
@@ -51,7 +52,7 @@ public class Example {
    * Return the implementation class (the class in the Java sense)
    * of the top Newspeak class of the test source unit.
    */
-  public Class<? extends Object> topJavaClass() { 
+  public Class<? extends NsObject> topJavaClass() {
     return topImplementationClass; 
     }
   
@@ -66,7 +67,7 @@ public class Example {
   /**
    * Return the Newspeak instance of the top class of the test source unit.
    */
-  public Object module() {
+  public NsObject module() {
     return module;
   }
   
@@ -80,7 +81,7 @@ public class Example {
    * method.
    */
   public String resultClassName() {
-    return testResult.nsClass().name();
+    return testResult.getClass().getName();
   }
   
   /**
@@ -88,8 +89,8 @@ public class Example {
    * specified contents.
    */
   public boolean isResult(String string) {
-    return testResult instanceof Builtins.StringObject
-        && ((Builtins.StringObject) testResult).value().equals(string);
+    return testResult instanceof String
+        && ((String) testResult).equals(string);
   }
   
   /*
@@ -105,7 +106,7 @@ public class Example {
     classLoader.dumpClassFiles();
 
     try {
-      topImplementationClass = (Class<? extends Object>) classLoader.loadClass(compilationResults.get(0).implementationClassName());
+      topImplementationClass = (Class<? extends StandardObject>) classLoader.loadClass(compilationResults.get(0).implementationClassName());
     } catch (ClassNotFoundException e) {
       throw new IllegalStateException("failure loading the compiled Newspeak class");
     }
@@ -118,10 +119,10 @@ public class Example {
     testResult = invoke(module, NamingPolicy.methodNameForSelector("test"));
   }
   
-  protected static Object invoke(Object object, String methodName) {
+  protected static Object invoke(NsObject object, String methodName) {
     try {
       Method method = object.getClass().getMethod(methodName);
-      return (Object) method.invoke(object);
+      return method.invoke(object);
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }

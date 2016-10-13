@@ -68,7 +68,7 @@ public class AnalyzerStage1 extends AstNodeVisitorSkeleton {
 
   @Override
   public void visitMethod(Method method) {
-    // Define the method's selector in the current scope
+    // Define the method's methodName in the current scope
     // (the one for the class containing the method).
     assert currentMethod == null;
     currentMethod = method;

@@ -11,7 +11,7 @@ import org.newspeaklanguage.compiler.parser.NewspeakParser.SourceUnitContext;
 public class TryParser {
 
   private static final String source =
-"class Foo name: x = Object name: x (\n"
+"class Foo name: x = NsObject name: x (\n"
 + "  | foo = \'foo\'. \n"
 + "    bar | \n"
 + ")\n"

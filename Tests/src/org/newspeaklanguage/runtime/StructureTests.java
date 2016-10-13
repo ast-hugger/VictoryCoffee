@@ -8,19 +8,19 @@ import junit.framework.TestCase;
 
 public class StructureTests extends TestCase {
 /*
-  public static class Outer extends Object {
+  public static class Outer extends NsObject {
     Outer(ObjectFactory klass) {
       super(klass);
     }
   }
   
-  public static class Inner extends Object {
+  public static class Inner extends NsObject {
     Inner(ObjectFactory klass) {
       super(klass);
     }
   }
   
-  public static class InnerInner extends Object {
+  public static class InnerInner extends NsObject {
     InnerInner(ObjectFactory klass) {
       super(klass);
     }
@@ -33,13 +33,13 @@ public class StructureTests extends TestCase {
   public ClassDefinition innerInnerDefinition = new ClassDefinition(InnerInner.class);
   
   public ObjectFactory outerClass;
-  public Object outerInstance;
+  public NsObject outerInstance;
   
   public ObjectFactory innerClass;
-  public Object innerInstance;
+  public NsObject innerInstance;
   
   public ObjectFactory innerInnerClass;
-  public Object innerInnerInstance;
+  public NsObject innerInnerInstance;
   
   @Override
   public void setUp() {

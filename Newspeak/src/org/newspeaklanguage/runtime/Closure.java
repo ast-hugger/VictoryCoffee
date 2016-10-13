@@ -7,7 +7,7 @@ import java.lang.invoke.MethodHandle;
 /**
  * A Newspeak closure: the result of evaluating a block expression.
  */
-public class Closure extends Builtins.BuiltinObject {
+public class Closure extends StandardObject {
 
   public static final String INTERNAL_CLASS_NAME = Descriptor.internalClassName(Closure.class);
   public static final int MAX_POSITIONAL_ARGC = 4;
@@ -24,10 +24,10 @@ public class Closure extends Builtins.BuiltinObject {
         .append(Descriptor.ofType(StandardObject.class));
     if (copiedArgCount <= MAX_POSITIONAL_ARGC) {
       for (int i = 0; i < copiedArgCount; i++) {
-        builder.append(Object.TYPE_DESCRIPTOR);
+        builder.append(NsObject.TYPE_DESCRIPTOR);
       }
     } else {
-      builder.append("[").append(Object.TYPE_DESCRIPTOR);
+      builder.append("[").append(NsObject.TYPE_DESCRIPTOR);
     }
     builder.append(")V");
     return builder.toString();
@@ -76,6 +76,7 @@ public class Closure extends Builtins.BuiltinObject {
   }
 
   public Closure(MethodHandle implMethodHandle, StandardObject copiedSelf, Object... copiedValues) {
+    super(null); // TODO set up a class object and pass it in
     MethodHandle impl = implMethodHandle.bindTo(copiedSelf);
     for (int i = 0; i < copiedValues.length; i++) {
       impl = impl.bindTo(copiedValues[i]);
@@ -85,6 +86,7 @@ public class Closure extends Builtins.BuiltinObject {
   }
 
   private Closure(MethodHandle alreadyBoundHandle) {
+    super(null);// TODO set up a class object and pass it in
     this.implementation = alreadyBoundHandle;
     this.arity = alreadyBoundHandle.type().parameterCount();
   }
@@ -94,7 +96,7 @@ public class Closure extends Builtins.BuiltinObject {
       throw new RuntimeError("this closure expects " + arity + " arguments, but was called with 0");
     }
     try {
-      return (Object) implementation.invokeExact();
+      return implementation.invokeExact();
     } catch (Throwable e) {
       throw new RuntimeError("closure invocation error", e);
     }
@@ -105,7 +107,7 @@ public class Closure extends Builtins.BuiltinObject {
       throw new RuntimeError("this closure expects " + arity + " arguments, but was called with 1");
     }
     try {
-      return (Object) implementation.invokeExact(arg);
+      return implementation.invokeExact(arg);
     } catch (Throwable e) {
       throw new RuntimeError("closure invocation error", e);
     }
@@ -116,7 +118,7 @@ public class Closure extends Builtins.BuiltinObject {
       throw new RuntimeError("this closure expects " + arity + " arguments, but was called with 2");
     }
     try {
-      return (Object) implementation.invokeExact(arg1, arg2);
+      return implementation.invokeExact(arg1, arg2);
     } catch (Throwable e) {
       throw new RuntimeError("closure invocation error", e);
     }
@@ -127,7 +129,7 @@ public class Closure extends Builtins.BuiltinObject {
       throw new RuntimeError("this closure expects " + arity + " arguments, but was called with 3");
     }
     try {
-      return (Object) implementation.invokeExact(arg1, arg2, arg3);
+      return implementation.invokeExact(arg1, arg2, arg3);
     } catch (Throwable e) {
       throw new RuntimeError("closure invocation error", e);
     }
@@ -138,7 +140,7 @@ public class Closure extends Builtins.BuiltinObject {
       throw new RuntimeError("this closure expects " + arity + " arguments, but was called with 4");
     }
     try {
-      return (Object) implementation.invokeExact(arg1, arg2, arg3, arg4);
+      return implementation.invokeExact(arg1, arg2, arg3, arg4);
     } catch (Throwable e) {
       throw new RuntimeError("closure invocation error", e);
     }

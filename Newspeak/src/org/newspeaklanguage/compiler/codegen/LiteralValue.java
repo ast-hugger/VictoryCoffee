@@ -1,7 +1,7 @@
 package org.newspeaklanguage.compiler.codegen;
 
 import org.newspeaklanguage.runtime.Builtins;
-import org.newspeaklanguage.runtime.Object;
+import org.newspeaklanguage.runtime.NsObject;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -36,15 +36,7 @@ abstract class LiteralValue implements StaticFieldDefiner {
     
     @Override
     protected void generateValueCreation(MethodVisitor visitor) {
-      visitor.visitTypeInsn(Opcodes.NEW, Builtins.StringObject.INTERNAL_CLASS_NAME);
-      visitor.visitInsn(Opcodes.DUP);
       visitor.visitLdcInsn(value);
-      visitor.visitMethodInsn(
-          Opcodes.INVOKESPECIAL,
-          Builtins.StringObject.INTERNAL_CLASS_NAME,
-          "<init>",
-          "(Ljava/lang/String;)V",
-          false);
     }
   }
   
@@ -81,7 +73,7 @@ abstract class LiteralValue implements StaticFieldDefiner {
     FieldVisitor fieldVisitor = classVisitor.visitField(
         Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
         fieldName,
-        Object.TYPE_DESCRIPTOR,
+        NsObject.TYPE_DESCRIPTOR,
         null, null);
     fieldVisitor.visitEnd();
   }
@@ -93,7 +85,7 @@ abstract class LiteralValue implements StaticFieldDefiner {
         Opcodes.PUTSTATIC,
         className, 
         fieldName,
-        Object.TYPE_DESCRIPTOR);
+        NsObject.TYPE_DESCRIPTOR);
   }
   
   protected abstract void generateValueCreation(MethodVisitor methodVisitor);
@@ -103,6 +95,6 @@ abstract class LiteralValue implements StaticFieldDefiner {
         Opcodes.GETSTATIC,
         className,
         fieldName,
-        Object.TYPE_DESCRIPTOR);
+        NsObject.TYPE_DESCRIPTOR);
   }
 }

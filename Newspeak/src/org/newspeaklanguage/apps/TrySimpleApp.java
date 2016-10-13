@@ -6,7 +6,7 @@ import java.util.List;
 import org.newspeaklanguage.compiler.Compiler;
 import org.newspeaklanguage.runtime.ClassDefinition;
 import org.newspeaklanguage.runtime.NewspeakClassLoader;
-import org.newspeaklanguage.runtime.Object;
+import org.newspeaklanguage.runtime.NsObject;
 import org.newspeaklanguage.runtime.ObjectFactory;
 
 public class TrySimpleApp {
@@ -29,9 +29,9 @@ public class TrySimpleApp {
     results.forEach(each 
         -> classLoader.addBytecode(each.implementationClassName(), each.bytecode()));
     classLoader.dumpClassFiles();
-    Class<? extends Object> topClass;
+    Class<? extends NsObject> topClass;
     try {
-      topClass = (Class<? extends Object>) classLoader.loadClass(results.get(0).implementationClassName());
+      topClass = (Class<? extends NsObject>) classLoader.loadClass(results.get(0).implementationClassName());
     } catch (ClassNotFoundException e) {
       throw new IllegalStateException("failure loading the compiled Newspeak class");
     }
@@ -39,8 +39,8 @@ public class TrySimpleApp {
     ClassDefinition classDef = ClassDefinition.create("App", topClass);
     ObjectFactory factory = ObjectFactory.create(classDef, null);
     say("Running...");
-    Object module = factory.makeInstance();
-    Object x = invoke(module, "$main");
+    NsObject module = factory.makeInstance();
+    NsObject x = invoke(module, "$main");
     say("Result: " + x);
     say("Done.");
   }
@@ -49,10 +49,10 @@ public class TrySimpleApp {
     System.out.println(message);
   }
   
-  private static Object invoke(Object object, String methodName) {
+  private static NsObject invoke(NsObject object, String methodName) {
     try {
       Method method = object.getClass().getMethod(methodName);
-      return (Object) method.invoke(object);
+      return (NsObject) method.invoke(object);
     } catch (Exception e) {
       e.printStackTrace();
       return null;

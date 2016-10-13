@@ -1,5 +1,7 @@
 package org.newspeaklanguage.runtime;
 
+import org.newspeaklanguage.compiler.Descriptor;
+
 /**
  * A superclass of classes used to create Newspeak instances.
  * <p>
@@ -19,11 +21,14 @@ package org.newspeaklanguage.runtime;
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
  */
-public class StandardObject extends Object {
+public class StandardObject extends NsObject {
 
-  public static final String INTERNAL_CLASS_NAME = StandardObject.class.getName().replace('.', '/');
+  public static final String INTERNAL_CLASS_NAME = Descriptor.internalClassName(StandardObject.class);
   public static final String TYPE_DESCRIPTOR = "L" + INTERNAL_CLASS_NAME + ";";
   public static final String CONSTRUCTOR_DESCRIPTOR = "(" + ObjectFactory.TYPE_DESCRIPTOR + ")V";
+
+  public static final Object TRUE = Boolean.TRUE; // new TrueObject();
+  public static final Object FALSE = Boolean.FALSE; // new FalseObject();
 
   public final ObjectFactory nsClass;
   

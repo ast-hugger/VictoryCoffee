@@ -42,18 +42,24 @@ public final class MessageDispatcher {
    * Unary message dispatch.
    */
   public static Object dispatch(MessageSendSite callSite, Object receiver) throws Throwable {
-    Class<?> receiverClass = receiver.getClass();
-    String methodName = NamingPolicy.methodNameForSelector(callSite.selector());
+    Class<?> receiverClass = newspeakClassOf(receiver);
     MethodHandle method;
     try {
-      method = callSite.lookup()
-        .findVirtual(receiverClass, methodName, methodType(callSite.type().parameterCount() - 1))
-        .asType(callSite.type());
+      // TODO is the following fast enough or should we remember the decision from newspeakClassOf?
+      if (StandardObject.class.isAssignableFrom(receiverClass)) {
+        method = callSite.lookup()
+            .findVirtual(receiverClass, callSite.methodName(), methodType(callSite.type().parameterCount() - 1))
+            .asType(callSite.type());
+      } else {
+        method = callSite.lookup()
+            .findStatic(receiverClass, callSite.methodName(), methodType(callSite.type().parameterCount()))
+            .asType(callSite.type());
+      }
     } catch (NoSuchMethodException e) {
-      throw new MessageNotUnderstood(receiver, callSite.selector(), new Object[0]);
+      throw new MessageNotUnderstood(receiver, callSite.methodName(), new Object[0]);
     }
     callSite.addInlineCache(receiverClass, method);
-    return (Object) method.invoke(receiver);
+    return method.invoke(receiver);
   }
   
   /**
@@ -62,18 +68,23 @@ public final class MessageDispatcher {
   public static Object dispatch(MessageSendSite callSite, Object receiver, Object arg1)
       throws Throwable
   {
-    Class<?> receiverClass = receiver.getClass();
-    String methodName = NamingPolicy.methodNameForSelector(callSite.selector());
+    Class<?> receiverClass = newspeakClassOf(receiver);
     MethodHandle method;
     try {
-      method = callSite.lookup()
-        .findVirtual(receiverClass, methodName, methodType(callSite.type().parameterCount() - 1))
-        .asType(callSite.type());
+      if (StandardObject.class.isAssignableFrom(receiverClass)) {
+        method = callSite.lookup()
+            .findVirtual(receiverClass, callSite.methodName(), methodType(callSite.type().parameterCount() - 1))
+            .asType(callSite.type());
+      } else {
+        method = callSite.lookup()
+            .findStatic(receiverClass, callSite.methodName(), methodType(callSite.type().parameterCount()))
+            .asType(callSite.type());
+      }
     } catch (NoSuchMethodException e) {
-      throw new MessageNotUnderstood(receiver, callSite.selector(), new Object[]{arg1});
+      throw new MessageNotUnderstood(receiver, callSite.methodName(), new Object[]{arg1});
     }
     callSite.addInlineCache(receiverClass, method);
-    return (Object) method.invoke(receiver, arg1);
+    return method.invoke(receiver, arg1);
   }
   
   /**
@@ -82,39 +93,49 @@ public final class MessageDispatcher {
   public static Object dispatch(MessageSendSite callSite, Object receiver, Object arg1, Object arg2)
       throws Throwable
   {
-    Class<?> receiverClass = receiver.getClass();
-    String methodName = NamingPolicy.methodNameForSelector(callSite.selector());
+    Class<?> receiverClass = newspeakClassOf(receiver);
     MethodHandle method;
     try {
-      method = callSite.lookup()
-        .findVirtual(receiverClass, methodName, methodType(callSite.type().parameterCount() - 1))
-        .asType(callSite.type());
+      if (StandardObject.class.isAssignableFrom(receiverClass)) {
+        method = callSite.lookup()
+            .findVirtual(receiverClass, callSite.methodName(), methodType(callSite.type().parameterCount() - 1))
+            .asType(callSite.type());
+      } else {
+        method = callSite.lookup()
+            .findStatic(receiverClass, callSite.methodName(), methodType(callSite.type().parameterCount()))
+            .asType(callSite.type());
+      }
     } catch (NoSuchMethodException e) {
-      throw new MessageNotUnderstood(receiver, callSite.selector(), new Object[]{arg1, arg2});
+      throw new MessageNotUnderstood(receiver, callSite.methodName(), new Object[]{arg1, arg2});
     }
     callSite.addInlineCache(receiverClass, method);
-    return (Object) method.invoke(receiver, arg1, arg2);
+    return method.invoke(receiver, arg1, arg2);
   }
   
   /**
    * Three-argument message dispatch.
    */
   public static Object dispatch(MessageSendSite callSite, Object receiver, Object arg1, Object arg2,
-      Object arg3) 
+                                  Object arg3)
       throws Throwable
   {
-    Class<?> receiverClass = receiver.getClass();
-    String methodName = NamingPolicy.methodNameForSelector(callSite.selector());
+    Class<?> receiverClass = newspeakClassOf(receiver);
     MethodHandle method;
     try {
-      method = callSite.lookup()
-        .findVirtual(receiverClass, methodName, methodType(callSite.type().parameterCount() - 1))
-        .asType(callSite.type());
+      if (StandardObject.class.isAssignableFrom(receiverClass)) {
+        method = callSite.lookup()
+            .findVirtual(receiverClass, callSite.methodName(), methodType(callSite.type().parameterCount() - 1))
+            .asType(callSite.type());
+      } else {
+        method = callSite.lookup()
+            .findStatic(receiverClass, callSite.methodName(), methodType(callSite.type().parameterCount()))
+            .asType(callSite.type());
+      }
     } catch (NoSuchMethodException e) {
-      throw new MessageNotUnderstood(receiver, callSite.selector(), new Object[]{arg1, arg2, arg3});
+      throw new MessageNotUnderstood(receiver, callSite.methodName(), new Object[]{arg1, arg2, arg3});
     }
     callSite.addInlineCache(receiverClass, method);
-    return (Object) method.invoke(receiver, arg1, arg2, arg3);
+    return method.invoke(receiver, arg1, arg2, arg3);
   }
   
   private static MethodType dispatchType(int arity) {
@@ -131,5 +152,13 @@ public final class MessageDispatcher {
       type = type.appendParameterTypes(Object.class);
     }
     return type;
+  }
+
+  private static Class<?> newspeakClassOf(Object object) {
+    if (object == null) return Builtins.UndefinedObject.class;
+    if (object instanceof String) return Builtins.StringObject.class;
+    if (object instanceof Boolean) return ((Boolean) object) ? Builtins.TrueObject.class : Builtins.FalseObject.class;
+    if (object instanceof StandardObject) return object.getClass();
+    throw new IllegalArgumentException("unrecognized value used as a Newspeak object: " + object);
   }
 }

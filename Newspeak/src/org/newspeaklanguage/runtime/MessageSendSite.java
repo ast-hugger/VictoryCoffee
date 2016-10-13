@@ -12,13 +12,13 @@ public final class MessageSendSite extends MutableCallSite {
   public static MessageSendSite create(
       Lookup lookupAtCallSite,
       Lookup lookupAtImplementor,
-      String selector,
+      String methodName,
       MethodType callSiteType,
       String fallbackMethodName,
       MethodType fallbackMethodType)
         throws NoSuchMethodException, IllegalAccessException
   {
-   MessageSendSite thisSite = new MessageSendSite(selector, lookupAtCallSite, callSiteType);
+   MessageSendSite thisSite = new MessageSendSite(methodName, lookupAtCallSite, callSiteType);
    MethodHandle fallback = lookupAtImplementor
        .findStatic(lookupAtImplementor.lookupClass(), fallbackMethodName, fallbackMethodType)
        .bindTo(thisSite)
@@ -28,9 +28,9 @@ public final class MessageSendSite extends MutableCallSite {
   }
   
   private static final MethodType CHECK_CLASS_TYPE =
-      MethodType.methodType(boolean.class, Class.class, Object.class);
+      MethodType.methodType(boolean.class, Class.class, NsObject.class);
   
-  public static boolean checkClass(Class<?> expectedClass, Object object) {
+  public static boolean checkClass(Class<?> expectedClass, NsObject object) {
     return object.getClass() == expectedClass;
   }
   
@@ -38,16 +38,16 @@ public final class MessageSendSite extends MutableCallSite {
    * Instance side
    */
   
-  private final String selector;
+  private final String methodName;
   private final Lookup lookup;
   
   private MessageSendSite(String name, Lookup lookup, MethodType type) {
     super(type);
-    this.selector = name;
+    this.methodName = name;
     this.lookup = lookup;
   }
   
-  public String selector() { return selector; }
+  public String methodName() { return methodName; }
   public Lookup lookup() { return lookup; }
   
   public void addInlineCache(Class<?> expectedClass, MethodHandle specialization)
