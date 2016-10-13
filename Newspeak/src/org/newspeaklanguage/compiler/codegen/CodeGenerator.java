@@ -28,6 +28,7 @@ import org.newspeaklanguage.compiler.semantics.LexicalVarReference;
 import org.newspeaklanguage.compiler.semantics.LocalVariable;
 import org.newspeaklanguage.compiler.semantics.SendToEnclosingObject;
 import org.newspeaklanguage.runtime.Builtins;
+import org.newspeaklanguage.runtime.Closure;
 import org.newspeaklanguage.runtime.MessageDispatcher;
 import org.newspeaklanguage.runtime.Object;
 import org.newspeaklanguage.runtime.ObjectFactory;
@@ -81,7 +82,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
   public void generate() {
     methodWriter.visitCode();
     generateMethodPrologue();
-    generateCode();
+    generateBody();
     methodWriter.visitMaxs(0, 0); // args ignored; writer is set to compute
                                   // these
     methodWriter.visitEnd();
@@ -100,28 +101,36 @@ abstract class CodeGenerator implements AstNodeVisitor {
    * Subclasses will implement this as appropriate for their type. Methods and
    * blocks differ in their default return value.
    */
-  protected abstract void generateCode();
+  protected abstract void generateBody();
 
   @Override
   public void visitBlock(Block block) {
     BlockDefiner definer = block.definer();
     // new Builtins.Closure
-    methodWriter.visitTypeInsn(Opcodes.NEW, Builtins.Closure.INTERNAL_CLASS_NAME);
+    methodWriter.visitTypeInsn(Opcodes.NEW, Closure.INTERNAL_CLASS_NAME);
     methodWriter.visitInsn(Opcodes.DUP);
-    // Builtins.Closure.<init>(ClosureLiteral closureLiteral, StandardObject self)
+    // Builtins.Closure.<init>(MethodHandle implMethod, StandardObject self, Object... copiedValues)
+    // push implementation method handle
     methodWriter.visitFieldInsn(
         Opcodes.GETSTATIC,
         definer.internalClassName(),
         definer.fieldName(),
         Descriptor.ofType(MethodHandle.class));
+    // push the current receiver
     methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
+    // push all copied values and boxes
+    block.scope().asBlockScope().forEachCopiedVariable(each -> {
+      LocalVariable here = rootNode.scope().localVariableNamed(each.name()).get(); // must be found or the analyzer is broken
+      methodWriter.visitVarInsn(Opcodes.ALOAD, here.index());
+    });
     methodWriter.visitMethodInsn(
         Opcodes.INVOKESPECIAL,
-        Builtins.Closure.INTERNAL_CLASS_NAME,
+        Closure.INTERNAL_CLASS_NAME,
         "<init>",
-        Builtins.Closure.CONSTRUCTOR_DESCRIPTOR,
+        Closure.constructorDescriptor(block.scope().asBlockScope().copiedVariableCount()),
         false);
   }
+
 
   @Override
   public void visitLiteralNumber(LiteralNumber literalNumber) {

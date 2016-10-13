@@ -10,7 +10,11 @@ import org.newspeaklanguage.compiler.NamingPolicy;
 import org.newspeaklanguage.compiler.ast.CodeUnit;
 
 /**
- * A scope established by a method or a block. The names defined by this scope
+ * A scope established by a method or a block. More exactly, this is an analyzer
+ * record associated with a method or a block which keeps track of the block's
+ * name bindings, as well as other things.
+ *
+ * The names defined by this scope
  * are accessor selectors to the method's arguments and temps. A variable always
  * adds a getter name to the scope. A setter name is only added is the variable
  * is not read-only.
@@ -33,12 +37,24 @@ public abstract class CodeScope extends Scope<CodeScopeEntry> {
         each -> ownVariables.add(new LocalVariable(each.name(), true, false)));
   }
 
+  public BlockScope asBlockScope() {
+    return (BlockScope) this;
+  }
+
+  public MethodScope asMethodScope() {
+    return (MethodScope) this;
+  }
+
   @Override
   public ClassScope outerClassNamed(String name) {
     return parent == null ? null : parent.outerClassNamed(name);
   }
 
   public Optional<LocalVariable> ownVariableNamed(String name) {
+    return find(name, ownVariables);
+  }
+
+  public Optional<LocalVariable> localVariableNamed(String name) {
     return find(name, ownVariables);
   }
 

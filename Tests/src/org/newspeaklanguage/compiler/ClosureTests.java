@@ -49,5 +49,29 @@ public class ClosureTests {
         + "c + d] value: 'Hello' value: 'there'");
     assertTrue(test.isResult("thereHello"));
   }
-  
+
+  @Test
+  public void testCopiedArg() {
+    Example test = Example.testBody(
+        "^[:a | [a] value] value: 'Hello'");
+    assertTrue(test.isResult("Hello"));
+  }
+
+  @Test
+  public void testCopiedArgs2Levels() {
+    Example test = Example.testBody(
+        "^[:a | [:b | [a + b] value] value: 'there'] value: 'Hello'");
+    assertTrue(test.isResult("Hellothere"));
+  }
+
+  @Test
+  public void testMutableOuterBinding() {
+    Example test = Example.testBody(
+        "^[:a | | b | " +
+        "   [b: a + a] value." +
+            "b] value: 'Hello'");
+    assertTrue(test.isResult("HelloHello"));
+  }
+
+
 }

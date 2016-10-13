@@ -14,7 +14,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 /**
- * A record created by {@link ClassGenerator} to keep track of blocks in
+ * A record created by a {@link CodeGenerator} to keep track of blocks in
  * a method. One is associated with every Block node and used by the
  * generator to produce the associated code.
  *
@@ -22,16 +22,6 @@ import org.objectweb.asm.Opcodes;
  *
  */
 public class BlockDefiner implements StaticFieldDefiner {
-  
-  public static String descriptor(int arity) {
-    Class<?>[] argTypes = new Class<?>[arity];
-    Arrays.setAll(argTypes, i -> Object.class);
-    return Descriptor.ofMethod(Object.class, argTypes);
-  }
-  
-  /*
-   * Instance side
-   */
 
   /** The node of the block we are defining. */
   private final Block blockNode;
@@ -55,7 +45,22 @@ public class BlockDefiner implements StaticFieldDefiner {
   public String fieldName() { return methodName; }
   
   public String descriptor() {
-    return descriptor(blockNode.arity());
+    StringBuilder builder = new StringBuilder(200);
+    String nsObject = Object.TYPE_DESCRIPTOR;
+    builder.append("(");
+    blockNode.scope().asBlockScope().forEachCopiedVariable(each -> {
+      if (each.isBoxed()) {
+        builder.append("[");
+      }
+      builder.append(nsObject);
+    });
+    for (int i = 0; i < blockNode.arity(); i++) {
+      builder.append(nsObject);
+    }
+    builder
+        .append(")")
+        .append(nsObject);
+    return builder.toString();
   }
 
   @Override

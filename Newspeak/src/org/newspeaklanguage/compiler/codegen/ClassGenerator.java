@@ -236,8 +236,10 @@ public class ClassGenerator {
       BlockDefiner definer = new BlockDefiner(block, method, internalClassName, implMethodName);
       block.setDefiner(definer);
       definer.generateField(classWriter);
-      generateBlockImplementation(definer);
       staticFieldDefiners.add(definer);
+    }
+    for (Block block : method.containedBlocks()) {
+      generateBlockImplementation(block.definer());
     }
   }
   

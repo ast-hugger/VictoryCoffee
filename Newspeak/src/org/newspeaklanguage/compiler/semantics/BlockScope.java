@@ -32,6 +32,12 @@ public class BlockScope extends CodeScope {
     return parent.methodScope();
   }
 
+  @Override
+  public Optional<LocalVariable> localVariableNamed(String name) {
+    Optional<LocalVariable> local = super.localVariableNamed(name);
+    return local.isPresent() ? local : copiedVariableNamed(name);
+  }
+
   public LocalVariable registerCopiedVariable(NameDefinition def) {
     return find(def.name(), copiedVariables).orElseGet(() -> {
       LocalVariable newVar = new LocalVariable(def.name(), false, def.isMutable());
@@ -40,8 +46,16 @@ public class BlockScope extends CodeScope {
     });
   }
 
+  public int copiedVariableCount() {
+    return copiedVariables.size();
+  }
+
   public Optional<LocalVariable> copiedVariableNamed(String name) {
     return find(name, copiedVariables);
+  }
+
+  public void forEachCopiedVariable(Consumer<LocalVariable> action) {
+    copiedVariables.forEach(action);
   }
   
   @Override

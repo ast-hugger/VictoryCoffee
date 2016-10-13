@@ -22,7 +22,7 @@ public class BlockGenerator extends CodeGenerator {
    * the last expression rather than self.
    */
   @Override
-  protected void generateCode() {
+  protected void generateBody() {
     List<AstNode> body = rootNode.body();
     if (body.isEmpty()) {
       // And empty block: return nil.
