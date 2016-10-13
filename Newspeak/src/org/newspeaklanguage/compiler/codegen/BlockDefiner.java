@@ -48,13 +48,8 @@ public class BlockDefiner implements StaticFieldDefiner {
     StringBuilder builder = new StringBuilder(200);
     String nsObject = Object.TYPE_DESCRIPTOR;
     builder.append("(");
-    blockNode.scope().asBlockScope().forEachCopiedVariable(each -> {
-      if (each.isBoxed()) {
-        builder.append("[");
-      }
-      builder.append(nsObject);
-    });
-    for (int i = 0; i < blockNode.arity(); i++) {
+    int totalArgCount = blockNode.scope().asBlockScope().copiedVariableCount() + blockNode.arity();
+    for (int i = 0; i < totalArgCount; i++ ) {
       builder.append(nsObject);
     }
     builder
