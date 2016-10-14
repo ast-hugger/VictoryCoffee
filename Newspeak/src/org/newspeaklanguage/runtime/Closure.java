@@ -3,6 +3,7 @@ package org.newspeaklanguage.runtime;
 import org.newspeaklanguage.compiler.Descriptor;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 
 /**
  * A Newspeak closure: the result of evaluating a block expression.
@@ -49,40 +50,41 @@ public class Closure extends StandardObject {
   }
 
   public Closure(MethodHandle implMethodHandle, StandardObject copiedSelf, Object copied1) {
-    this(implMethodHandle.bindTo(copiedSelf).bindTo(copied1));
+    this(MethodHandles.insertArguments(implMethodHandle, 0, copiedSelf, copied1));
   }
 
   public Closure(MethodHandle implMethodHandle, StandardObject copiedSelf, Object copied1, Object copied2) {
-    this(implMethodHandle.bindTo(copiedSelf).bindTo(copied1).bindTo(copied2));
+    this(MethodHandles.insertArguments(implMethodHandle, 0, copiedSelf, copied1, copied2));
   }
 
   public Closure(MethodHandle implMethodHandle, StandardObject copiedSelf, Object copied1, Object copied2,
                  Object copied3) {
-    this(implMethodHandle
-        .bindTo(copiedSelf)
-        .bindTo(copied1)
-        .bindTo(copied2)
-        .bindTo(copied3));
+    this(MethodHandles.insertArguments(
+        implMethodHandle,
+        0,
+        copiedSelf,
+        copied1,
+        copied2,
+        copied3));
   }
 
   public Closure(MethodHandle implMethodHandle, StandardObject copiedSelf, Object copied1, Object copied2,
                  Object copied3, Object copied4) {
-    this(implMethodHandle
-        .bindTo(copiedSelf)
-        .bindTo(copied1)
-        .bindTo(copied2)
-        .bindTo(copied3)
-        .bindTo(copied4));
+    this(MethodHandles.insertArguments(
+        implMethodHandle,
+        0,
+        copiedSelf,
+        copied1,
+        copied2,
+        copied3,
+        copied4));
   }
 
   public Closure(MethodHandle implMethodHandle, StandardObject copiedSelf, Object... copiedValues) {
     super(null); // TODO set up a class object and pass it in
     MethodHandle impl = implMethodHandle.bindTo(copiedSelf);
-    for (int i = 0; i < copiedValues.length; i++) {
-      impl = impl.bindTo(copiedValues[i]);
-    }
-    this.implementation = impl;
-    this.arity = impl.type().parameterCount();
+    this.implementation = MethodHandles.insertArguments(impl, 0, copiedValues);
+    this.arity = this.implementation.type().parameterCount();
   }
 
   private Closure(MethodHandle alreadyBoundHandle) {
