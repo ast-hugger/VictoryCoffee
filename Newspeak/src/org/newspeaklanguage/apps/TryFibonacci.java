@@ -16,7 +16,7 @@ public class TryFibonacci {
 + ")                   \n"
 + "('testing'          \n"
 + "main = (            \n"
-+ "  ^(fib: 5) printString  \n"
++ "  ^(fib: 30) printString  \n"
 + ")  "
 + "fib: n = ("
 + "^n < 2 ifTrue: [1] ifFalse: [(fib: n - 1) + (fib: n - 2)]) \n"
@@ -40,10 +40,19 @@ public class TryFibonacci {
     say("Setting up...");
     ClassDefinition classDef = ClassDefinition.create("App", topClass);
     ObjectFactory factory = ObjectFactory.create(classDef, null);
+    Object module = factory.makeInstance();
+    System.out.print("Warming up");
+    for (int i = 0; i < 3; i++) {
+      invoke(module, "$main");
+      System.out.print(".");
+    }
+    System.out.print("\n");
     say("Running...");
-    NsObject module = factory.makeInstance();
-    NsObject x = invoke(module, "$main");
+    long start = System.nanoTime();
+    Object x = invoke(module, "$main");
+    long stop = System.nanoTime();
     say("Result: " + x);
+    say("in " + ((stop - start) / 1_000_000) + "ms");
     say("Done.");
   }
 
@@ -51,10 +60,10 @@ public class TryFibonacci {
     System.out.println(message);
   }
   
-  private static NsObject invoke(NsObject object, String methodName) {
+  private static Object invoke(Object object, String methodName) {
     try {
       Method method = object.getClass().getMethod(methodName);
-      return (NsObject) method.invoke(object);
+      return method.invoke(object);
     } catch (Exception e) {
       e.printStackTrace();
       return null;

@@ -27,9 +27,6 @@ public class StandardObject extends NsObject {
   public static final String TYPE_DESCRIPTOR = "L" + INTERNAL_CLASS_NAME + ";";
   public static final String CONSTRUCTOR_DESCRIPTOR = "(" + ObjectFactory.TYPE_DESCRIPTOR + ")V";
 
-  public static final Object TRUE = Boolean.TRUE; // new BuiltinTrue();
-  public static final Object FALSE = Boolean.FALSE; // new BuiltinFalse();
-
   public final ObjectFactory nsClass;
   
   /**

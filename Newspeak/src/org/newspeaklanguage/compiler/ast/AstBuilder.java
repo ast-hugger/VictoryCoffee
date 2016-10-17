@@ -14,7 +14,6 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.newspeaklanguage.compiler.parser.NewspeakParser;
 import org.newspeaklanguage.compiler.parser.NewspeakParser.AccessModifierContext;
 import org.newspeaklanguage.compiler.parser.NewspeakParser.BinaryMessageContext;
-import org.newspeaklanguage.compiler.parser.NewspeakParser.BinaryReceiverContext;
 import org.newspeaklanguage.compiler.parser.NewspeakParser.BinarySendContext;
 import org.newspeaklanguage.compiler.parser.NewspeakParser.BlockArgsContext;
 import org.newspeaklanguage.compiler.parser.NewspeakParser.BlockContext;
@@ -27,7 +26,6 @@ import org.newspeaklanguage.compiler.parser.NewspeakParser.ExpressionContext;
 import org.newspeaklanguage.compiler.parser.NewspeakParser.ImmutableSlotInitializerContext;
 import org.newspeaklanguage.compiler.parser.NewspeakParser.InstanceSideDeclContext;
 import org.newspeaklanguage.compiler.parser.NewspeakParser.KeywordMessageContext;
-import org.newspeaklanguage.compiler.parser.NewspeakParser.KeywordReceiverContext;
 import org.newspeaklanguage.compiler.parser.NewspeakParser.KeywordSendContext;
 import org.newspeaklanguage.compiler.parser.NewspeakParser.MessageSendContext;
 import org.newspeaklanguage.compiler.parser.NewspeakParser.MutableSlotInitializerContext;
@@ -302,12 +300,12 @@ public class AstBuilder implements NewspeakVisitor<AstNode> {
  }
 
   @Override
-  public AstNode visitBinaryReceiver(BinaryReceiverContext ctx) {
+  public AstNode visitBinaryObject(NewspeakParser.BinaryObjectContext ctx) {
     return visitFirstChild(ctx);
   }
 
   @Override
-  public AstNode visitKeywordReceiver(KeywordReceiverContext ctx) {
+  public AstNode visitKeywordObject(NewspeakParser.KeywordObjectContext ctx) {
     return visitFirstChild(ctx);
   }
 
@@ -333,7 +331,7 @@ public class AstBuilder implements NewspeakVisitor<AstNode> {
 
   @Override
   public AstNode visitBinarySend(BinarySendContext ctx) {
-    AstNode receiver = ctx.binaryReceiver().accept(this);
+    AstNode receiver = ctx.binaryObject().accept(this);
     return makeMessageSend(receiver, ctx.binaryMessage());
   }
 
@@ -344,7 +342,7 @@ public class AstBuilder implements NewspeakVisitor<AstNode> {
 
   @Override
   public AstNode visitKeywordSend(KeywordSendContext ctx) {
-    AstNode receiver = ctx.keywordReceiver().accept(this);
+    AstNode receiver = ctx.keywordObject().accept(this);
     return makeMessageSend(receiver, ctx.keywordMessage());
   }
 
@@ -355,7 +353,7 @@ public class AstBuilder implements NewspeakVisitor<AstNode> {
     Optional<String> selector = ctx.KEYWORD().stream()
         .map(each -> each.getText())
         .reduce(String::concat);
-    List<AstNode> args = ctx.expression().stream()
+    List<AstNode> args = ctx.keywordObject().stream()
         .map(each -> each.accept(this))
         .collect(Collectors.toList());
     return new MessageSendNoReceiver(selector.get(), args, false); 
@@ -393,7 +391,7 @@ public class AstBuilder implements NewspeakVisitor<AstNode> {
   }
   
   private MessageSendWithReceiver makeMessageSend(AstNode receiver, BinaryMessageContext ctx) {
-    AstNode arg = ctx.expression().accept(this);
+    AstNode arg = ctx.binaryObject().accept(this);
     MessageSendWithReceiver send = new MessageSendWithReceiver(
         receiver,
         ctx.BINARY_SELECTOR().getText(),
@@ -408,7 +406,7 @@ public class AstBuilder implements NewspeakVisitor<AstNode> {
     Optional<String> selector = ctx.KEYWORD().stream()
         .map(each -> each.getText())
         .reduce(String::concat);
-    List<AstNode> args = ctx.expression().stream()
+    List<AstNode> args = ctx.keywordObject().stream()
         .map(each -> each.accept(this))
         .collect(Collectors.toList());
     return new MessageSendWithReceiver(

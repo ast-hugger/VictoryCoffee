@@ -59,25 +59,12 @@ public class Closure extends StandardObject {
 
   public Closure(MethodHandle implMethodHandle, StandardObject copiedSelf, Object copied1, Object copied2,
                  Object copied3) {
-    this(MethodHandles.insertArguments(
-        implMethodHandle,
-        0,
-        copiedSelf,
-        copied1,
-        copied2,
-        copied3));
+    this(MethodHandles.insertArguments(implMethodHandle, 0, copiedSelf, copied1, copied2, copied3));
   }
 
   public Closure(MethodHandle implMethodHandle, StandardObject copiedSelf, Object copied1, Object copied2,
                  Object copied3, Object copied4) {
-    this(MethodHandles.insertArguments(
-        implMethodHandle,
-        0,
-        copiedSelf,
-        copied1,
-        copied2,
-        copied3,
-        copied4));
+    this(MethodHandles.insertArguments(implMethodHandle, 0, copiedSelf, copied1, copied2, copied3, copied4));
   }
 
   public Closure(MethodHandle implMethodHandle, StandardObject copiedSelf, Object... copiedValues) {

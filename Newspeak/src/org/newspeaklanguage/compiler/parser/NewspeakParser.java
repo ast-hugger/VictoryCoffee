@@ -28,7 +28,7 @@ public class NewspeakParser extends Parser {
 		RULE_slotDecl = 7, RULE_mutableSlotInitializer = 8, RULE_immutableSlotInitializer = 9, 
 		RULE_methodDecl = 10, RULE_accessModifier = 11, RULE_messagePattern = 12, 
 		RULE_codeBody = 13, RULE_statement = 14, RULE_returnStatement = 15, RULE_expression = 16, 
-		RULE_messageSend = 17, RULE_receiver = 18, RULE_binaryReceiver = 19, RULE_keywordReceiver = 20, 
+		RULE_messageSend = 17, RULE_receiver = 18, RULE_binaryObject = 19, RULE_keywordObject = 20, 
 		RULE_setterSend = 21, RULE_unarySend = 22, RULE_unaryMessage = 23, RULE_binarySend = 24, 
 		RULE_binaryMessage = 25, RULE_keywordSend = 26, RULE_keywordMessage = 27, 
 		RULE_specialReceiver = 28, RULE_nilReceiver = 29, RULE_trueReceiver = 30, 
@@ -39,8 +39,8 @@ public class NewspeakParser extends Parser {
 		"sourceUnit", "classDecl", "classBody", "classHeader", "instanceSideDecl", 
 		"classSideDecl", "category", "slotDecl", "mutableSlotInitializer", "immutableSlotInitializer", 
 		"methodDecl", "accessModifier", "messagePattern", "codeBody", "statement", 
-		"returnStatement", "expression", "messageSend", "receiver", "binaryReceiver", 
-		"keywordReceiver", "setterSend", "unarySend", "unaryMessage", "binarySend", 
+		"returnStatement", "expression", "messageSend", "receiver", "binaryObject", 
+		"keywordObject", "setterSend", "unarySend", "unaryMessage", "binarySend", 
 		"binaryMessage", "keywordSend", "keywordMessage", "specialReceiver", "nilReceiver", 
 		"trueReceiver", "falseReceiver", "selfReceiver", "superReceiver", "outerReceiver", 
 		"literal", "block", "blockArgs", "blockTemps"
@@ -1383,27 +1383,27 @@ public class NewspeakParser extends Parser {
 		return _localctx;
 	}
 
-	public static class BinaryReceiverContext extends ParserRuleContext {
+	public static class BinaryObjectContext extends ParserRuleContext {
 		public ReceiverContext receiver() {
 			return getRuleContext(ReceiverContext.class,0);
 		}
 		public UnarySendContext unarySend() {
 			return getRuleContext(UnarySendContext.class,0);
 		}
-		public BinaryReceiverContext(ParserRuleContext parent, int invokingState) {
+		public BinaryObjectContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_binaryReceiver; }
+		@Override public int getRuleIndex() { return RULE_binaryObject; }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitBinaryReceiver(this);
+			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitBinaryObject(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	public final BinaryReceiverContext binaryReceiver() throws RecognitionException {
-		BinaryReceiverContext _localctx = new BinaryReceiverContext(_ctx, getState());
-		enterRule(_localctx, 38, RULE_binaryReceiver);
+	public final BinaryObjectContext binaryObject() throws RecognitionException {
+		BinaryObjectContext _localctx = new BinaryObjectContext(_ctx, getState());
+		enterRule(_localctx, 38, RULE_binaryObject);
 		try {
 			setState(238);
 			_errHandler.sync(this);
@@ -1435,7 +1435,7 @@ public class NewspeakParser extends Parser {
 		return _localctx;
 	}
 
-	public static class KeywordReceiverContext extends ParserRuleContext {
+	public static class KeywordObjectContext extends ParserRuleContext {
 		public ReceiverContext receiver() {
 			return getRuleContext(ReceiverContext.class,0);
 		}
@@ -1445,20 +1445,20 @@ public class NewspeakParser extends Parser {
 		public BinarySendContext binarySend() {
 			return getRuleContext(BinarySendContext.class,0);
 		}
-		public KeywordReceiverContext(ParserRuleContext parent, int invokingState) {
+		public KeywordObjectContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_keywordReceiver; }
+		@Override public int getRuleIndex() { return RULE_keywordObject; }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitKeywordReceiver(this);
+			if ( visitor instanceof NewspeakVisitor ) return ((NewspeakVisitor<? extends T>)visitor).visitKeywordObject(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	public final KeywordReceiverContext keywordReceiver() throws RecognitionException {
-		KeywordReceiverContext _localctx = new KeywordReceiverContext(_ctx, getState());
-		enterRule(_localctx, 40, RULE_keywordReceiver);
+	public final KeywordObjectContext keywordObject() throws RecognitionException {
+		KeywordObjectContext _localctx = new KeywordObjectContext(_ctx, getState());
+		enterRule(_localctx, 40, RULE_keywordObject);
 		try {
 			setState(243);
 			_errHandler.sync(this);
@@ -1625,8 +1625,8 @@ public class NewspeakParser extends Parser {
 	}
 
 	public static class BinarySendContext extends ParserRuleContext {
-		public BinaryReceiverContext binaryReceiver() {
-			return getRuleContext(BinaryReceiverContext.class,0);
+		public BinaryObjectContext binaryObject() {
+			return getRuleContext(BinaryObjectContext.class,0);
 		}
 		public BinaryMessageContext binaryMessage() {
 			return getRuleContext(BinaryMessageContext.class,0);
@@ -1649,7 +1649,7 @@ public class NewspeakParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(255);
-			binaryReceiver();
+			binaryObject();
 			setState(256);
 			binaryMessage();
 			}
@@ -1667,8 +1667,8 @@ public class NewspeakParser extends Parser {
 
 	public static class BinaryMessageContext extends ParserRuleContext {
 		public TerminalNode BINARY_SELECTOR() { return getToken(NewspeakParser.BINARY_SELECTOR, 0); }
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
+		public BinaryObjectContext binaryObject() {
+			return getRuleContext(BinaryObjectContext.class,0);
 		}
 		public BinaryMessageContext binaryMessage() {
 			return getRuleContext(BinaryMessageContext.class,0);
@@ -1687,23 +1687,23 @@ public class NewspeakParser extends Parser {
 	public final BinaryMessageContext binaryMessage() throws RecognitionException {
 		BinaryMessageContext _localctx = new BinaryMessageContext(_ctx, getState());
 		enterRule(_localctx, 50, RULE_binaryMessage);
+		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(258);
 			match(BINARY_SELECTOR);
 			setState(259);
-			expression();
+			binaryObject();
 			setState(261);
-			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,26,_ctx) ) {
-			case 1:
+			_la = _input.LA(1);
+			if (_la==BINARY_SELECTOR) {
 				{
 				setState(260);
 				binaryMessage();
 				}
-				break;
 			}
+
 			}
 		}
 		catch (RecognitionException re) {
@@ -1718,8 +1718,8 @@ public class NewspeakParser extends Parser {
 	}
 
 	public static class KeywordSendContext extends ParserRuleContext {
-		public KeywordReceiverContext keywordReceiver() {
-			return getRuleContext(KeywordReceiverContext.class,0);
+		public KeywordObjectContext keywordObject() {
+			return getRuleContext(KeywordObjectContext.class,0);
 		}
 		public KeywordMessageContext keywordMessage() {
 			return getRuleContext(KeywordMessageContext.class,0);
@@ -1742,7 +1742,7 @@ public class NewspeakParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(263);
-			keywordReceiver();
+			keywordObject();
 			setState(264);
 			keywordMessage();
 			}
@@ -1763,11 +1763,11 @@ public class NewspeakParser extends Parser {
 		public TerminalNode KEYWORD(int i) {
 			return getToken(NewspeakParser.KEYWORD, i);
 		}
-		public List<ExpressionContext> expression() {
-			return getRuleContexts(ExpressionContext.class);
+		public List<KeywordObjectContext> keywordObject() {
+			return getRuleContexts(KeywordObjectContext.class);
 		}
-		public ExpressionContext expression(int i) {
-			return getRuleContext(ExpressionContext.class,i);
+		public KeywordObjectContext keywordObject(int i) {
+			return getRuleContext(KeywordObjectContext.class,i);
 		}
 		public KeywordMessageContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1783,32 +1783,26 @@ public class NewspeakParser extends Parser {
 	public final KeywordMessageContext keywordMessage() throws RecognitionException {
 		KeywordMessageContext _localctx = new KeywordMessageContext(_ctx, getState());
 		enterRule(_localctx, 54, RULE_keywordMessage);
+		int _la;
 		try {
-			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(268); 
 			_errHandler.sync(this);
-			_alt = 1;
+			_la = _input.LA(1);
 			do {
-				switch (_alt) {
-				case 1:
-					{
-					{
-					setState(266);
-					match(KEYWORD);
-					setState(267);
-					expression();
-					}
-					}
-					break;
-				default:
-					throw new NoViableAltException(this);
+				{
+				{
+				setState(266);
+				match(KEYWORD);
+				setState(267);
+				keywordObject();
+				}
 				}
 				setState(270); 
 				_errHandler.sync(this);
-				_alt = getInterpreter().adaptivePredict(_input,27,_ctx);
-			} while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER );
+				_la = _input.LA(1);
+			} while ( _la==KEYWORD );
 			}
 		}
 		catch (RecognitionException re) {
@@ -2478,9 +2472,9 @@ public class NewspeakParser extends Parser {
 		"\60\31\2\u00fc/\3\2\2\2\u00fd\u00ff\7\35\2\2\u00fe\u0100\5\60\31\2\u00ff"+
 		"\u00fe\3\2\2\2\u00ff\u0100\3\2\2\2\u0100\61\3\2\2\2\u0101\u0102\5(\25"+
 		"\2\u0102\u0103\5\64\33\2\u0103\63\3\2\2\2\u0104\u0105\7\34\2\2\u0105\u0107"+
-		"\5\"\22\2\u0106\u0108\5\64\33\2\u0107\u0106\3\2\2\2\u0107\u0108\3\2\2"+
-		"\2\u0108\65\3\2\2\2\u0109\u010a\5*\26\2\u010a\u010b\58\35\2\u010b\67\3"+
-		"\2\2\2\u010c\u010d\7\36\2\2\u010d\u010f\5\"\22\2\u010e\u010c\3\2\2\2\u010f"+
+		"\5(\25\2\u0106\u0108\5\64\33\2\u0107\u0106\3\2\2\2\u0107\u0108\3\2\2\2"+
+		"\u0108\65\3\2\2\2\u0109\u010a\5*\26\2\u010a\u010b\58\35\2\u010b\67\3\2"+
+		"\2\2\u010c\u010d\7\36\2\2\u010d\u010f\5*\26\2\u010e\u010c\3\2\2\2\u010f"+
 		"\u0110\3\2\2\2\u0110\u010e\3\2\2\2\u0110\u0111\3\2\2\2\u01119\3\2\2\2"+
 		"\u0112\u0119\5<\37\2\u0113\u0119\5> \2\u0114\u0119\5@!\2\u0115\u0119\5"+
 		"B\"\2\u0116\u0119\5D#\2\u0117\u0119\5F$\2\u0118\u0112\3\2\2\2\u0118\u0113"+

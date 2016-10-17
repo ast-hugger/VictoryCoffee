@@ -98,11 +98,11 @@ receiver
     | LPAREN expression RPAREN
     ;
 
-binaryReceiver
+binaryObject
 	  : receiver
 	  | unarySend;
 
-keywordReceiver
+keywordObject
     : receiver
     | unarySend
     | binarySend;
@@ -118,17 +118,16 @@ unaryMessage
     : IDENTIFIER unaryMessage?;
 
 binarySend
-		: binaryReceiver binaryMessage;
+		: binaryObject binaryMessage;
 
 binaryMessage
-		: BINARY_SELECTOR expression binaryMessage?;
+		: BINARY_SELECTOR binaryObject binaryMessage?;
 
 keywordSend
-		: keywordReceiver keywordMessage;
+		: keywordObject keywordMessage;
 
 keywordMessage
-		: (KEYWORD expression)+ ;
-
+		: (KEYWORD keywordObject)+ ;
 
 specialReceiver
 	: nilReceiver

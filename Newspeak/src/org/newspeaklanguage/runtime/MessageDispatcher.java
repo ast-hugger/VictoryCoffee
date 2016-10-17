@@ -41,23 +41,25 @@ public final class MessageDispatcher {
    * Unary message dispatch.
    */
   public static Object dispatch(MessageSendSite callSite, Object receiver) throws Throwable {
-    Class<?> receiverClass = newspeakClassOf(receiver);
+    if (receiver == null) throw new RuntimeError("null receiver not supported yet");
+    Class<?> methodContainer = methodContainerOf(receiver);
     MethodHandle method;
     try {
-      // TODO is the following fast enough or should we remember the findings in newspeakClassOf?
-      if (StandardObject.class.isAssignableFrom(receiverClass)) {
+      // TODO is the following fast enough or should we remember the findings in methodContainerOf?
+      if (StandardObject.class.isAssignableFrom(methodContainer)) {
         method = callSite.lookup()
-            .findVirtual(receiverClass, callSite.methodName(), methodType(callSite.type().parameterCount() - 1))
+            .findVirtual(methodContainer, callSite.methodName(), methodType(callSite.type().parameterCount() - 1))
             .asType(callSite.type());
       } else {
         method = callSite.lookup()
-            .findStatic(receiverClass, callSite.methodName(), methodType(callSite.type().parameterCount()))
+            .findStatic(methodContainer, callSite.methodName(), methodType(callSite.type().parameterCount()))
             .asType(callSite.type());
       }
     } catch (NoSuchMethodException e) {
       throw new MessageNotUnderstood(receiver, callSite.methodName(), new Object[0]);
     }
-    callSite.addInlineCache(receiverClass, method);
+    // FIXME receiver.getClass() will not work for null receivers
+    callSite.addInlineCache(receiver.getClass(), method);
     return method.invoke(receiver);
   }
   
@@ -67,22 +69,23 @@ public final class MessageDispatcher {
   public static Object dispatch(MessageSendSite callSite, Object receiver, Object arg1)
       throws Throwable
   {
-    Class<?> receiverClass = newspeakClassOf(receiver);
+    if (receiver == null) throw new RuntimeError("null receiver not supported yet");
+    Class<?> methodContainer = methodContainerOf(receiver);
     MethodHandle method;
     try {
-      if (StandardObject.class.isAssignableFrom(receiverClass)) {
+      if (StandardObject.class.isAssignableFrom(methodContainer)) {
         method = callSite.lookup()
-            .findVirtual(receiverClass, callSite.methodName(), methodType(callSite.type().parameterCount() - 1))
+            .findVirtual(methodContainer, callSite.methodName(), methodType(callSite.type().parameterCount() - 1))
             .asType(callSite.type());
       } else {
         method = callSite.lookup()
-            .findStatic(receiverClass, callSite.methodName(), methodType(callSite.type().parameterCount()))
+            .findStatic(methodContainer, callSite.methodName(), methodType(callSite.type().parameterCount()))
             .asType(callSite.type());
       }
     } catch (NoSuchMethodException e) {
       throw new MessageNotUnderstood(receiver, callSite.methodName(), new Object[]{arg1});
     }
-    callSite.addInlineCache(receiverClass, method);
+    callSite.addInlineCache(receiver.getClass(), method);
     return method.invoke(receiver, arg1);
   }
   
@@ -92,22 +95,23 @@ public final class MessageDispatcher {
   public static Object dispatch(MessageSendSite callSite, Object receiver, Object arg1, Object arg2)
       throws Throwable
   {
-    Class<?> receiverClass = newspeakClassOf(receiver);
+    if (receiver == null) throw new RuntimeError("null receiver not supported yet");
+    Class<?> methodContainer = methodContainerOf(receiver);
     MethodHandle method;
     try {
-      if (StandardObject.class.isAssignableFrom(receiverClass)) {
+      if (StandardObject.class.isAssignableFrom(methodContainer)) {
         method = callSite.lookup()
-            .findVirtual(receiverClass, callSite.methodName(), methodType(callSite.type().parameterCount() - 1))
+            .findVirtual(methodContainer, callSite.methodName(), methodType(callSite.type().parameterCount() - 1))
             .asType(callSite.type());
       } else {
         method = callSite.lookup()
-            .findStatic(receiverClass, callSite.methodName(), methodType(callSite.type().parameterCount()))
+            .findStatic(methodContainer, callSite.methodName(), methodType(callSite.type().parameterCount()))
             .asType(callSite.type());
       }
     } catch (NoSuchMethodException e) {
       throw new MessageNotUnderstood(receiver, callSite.methodName(), new Object[]{arg1, arg2});
     }
-    callSite.addInlineCache(receiverClass, method);
+    callSite.addInlineCache(receiver.getClass(), method);
     return method.invoke(receiver, arg1, arg2);
   }
   
@@ -118,22 +122,23 @@ public final class MessageDispatcher {
                                   Object arg3)
       throws Throwable
   {
-    Class<?> receiverClass = newspeakClassOf(receiver);
+    if (receiver == null) throw new RuntimeError("null receiver not supported yet");
+    Class<?> methodContainer = methodContainerOf(receiver);
     MethodHandle method;
     try {
-      if (StandardObject.class.isAssignableFrom(receiverClass)) {
+      if (StandardObject.class.isAssignableFrom(methodContainer)) {
         method = callSite.lookup()
-            .findVirtual(receiverClass, callSite.methodName(), methodType(callSite.type().parameterCount() - 1))
+            .findVirtual(methodContainer, callSite.methodName(), methodType(callSite.type().parameterCount() - 1))
             .asType(callSite.type());
       } else {
         method = callSite.lookup()
-            .findStatic(receiverClass, callSite.methodName(), methodType(callSite.type().parameterCount()))
+            .findStatic(methodContainer, callSite.methodName(), methodType(callSite.type().parameterCount()))
             .asType(callSite.type());
       }
     } catch (NoSuchMethodException e) {
       throw new MessageNotUnderstood(receiver, callSite.methodName(), new Object[]{arg1, arg2, arg3});
     }
-    callSite.addInlineCache(receiverClass, method);
+    callSite.addInlineCache(receiver.getClass(), method);
     return method.invoke(receiver, arg1, arg2, arg3);
   }
   
@@ -153,11 +158,12 @@ public final class MessageDispatcher {
     return type;
   }
 
-  private static Class<?> newspeakClassOf(Object object) {
+  private static Class<?> methodContainerOf(Object object) {
     if (object instanceof StandardObject) return object.getClass();
-    if (object == null) return Builtins.BuiltinNil.class;
-    if (object instanceof String) return Builtins.BuiltinString.class;
-    if (object instanceof Boolean) return ((Boolean) object) ? Builtins.BuiltinTrue.class : Builtins.BuiltinFalse.class;
+    if (object == null) return Builtins.UndefinedObjectMethods.class;
+    if (object instanceof String) return Builtins.StringMethods.class;
+    if (object instanceof Boolean) return Builtins.BooleanMethods.class;
+    if (object instanceof Number) return Builtins.NumberMethods.class;
     throw new IllegalArgumentException("unrecognized artifact used as a Newspeak object: " + object);
   }
 }

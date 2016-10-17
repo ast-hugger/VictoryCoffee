@@ -1,5 +1,7 @@
 package org.newspeaklanguage.runtime;
 
+import org.newspeaklanguage.compiler.Descriptor;
+
 /**
  * This class is a holder of a set of static classes used to give apparent
  * Newspeak behavior to built-in Java artifacts such as wrappers, Strings,
@@ -14,13 +16,18 @@ package org.newspeaklanguage.runtime;
  */
 public final class Builtins {
 
+  public static final String INTERNAL_CLASS_NAME = Descriptor.internalClassName(Builtins.class);
+
+  public static final Object TRUE = Boolean.TRUE;
+  public static final Object FALSE = Boolean.FALSE;
+
   public static Object string(String contents) {
     return contents;
   }
 
-  public abstract static class BuiltinObject {
+  public abstract static class ObjectMethods {
 
-    private BuiltinObject() { // no instances, this and the subclasses are just repositories of static methods
+    private ObjectMethods() { // no instances, this and the subclasses are just repositories of static methods
     }
 
     public static Object $class(Object self) {
@@ -38,35 +45,57 @@ public final class Builtins {
     }
   }
 
-  public static final class BuiltinNil extends BuiltinObject {
+  public static final class UndefinedObjectMethods extends ObjectMethods {
 
     public static Object $printString(Object self) {
       return "<nil>";
     }
   }
 
-  public abstract static class BuiltinBoolean extends BuiltinObject {
-  }
+  public abstract static class BooleanMethods extends ObjectMethods {
 
-  public static final class BuiltinTrue extends BuiltinBoolean {
+    public static Object $ifTrue$ifFalse$(Object self, Object trueBlock, Object falseBlock) {
+      return ((Boolean) self)
+          ? ((Closure) trueBlock).$value()
+          : ((Closure) falseBlock).$value();
+    }
 
     public static Object $printString(Object self) {
-      return "<true>";
+      return ((Boolean) self)
+          ? "<true>"
+          : "<false>";
     }
   }
 
-  public static final class BuiltinFalse extends BuiltinBoolean {
+  public static final class NumberMethods extends ObjectMethods {
+
+    public static Object $$plus(Object self, Object arg) {
+      return ((Number) self).intValue() + ((Number) arg).intValue();
+    }
+
+    public static Object $$minus(Object self, Object arg) {
+      return ((Number) self).intValue() - ((Number) arg).intValue();
+    }
+
+    public static Object $$lt(Object self, Object arg) {
+      return ((Number) self).intValue() < ((Number) arg).intValue() ? TRUE : FALSE;
+    }
+
+    public static Object $$gt(Object self, Object arg) {
+      return ((Number) self).intValue() > ((Number) arg).intValue() ? TRUE : FALSE;
+    }
+
+    public static Object $$eq(Object self, Object arg) {
+      return ((Number) self).intValue() == ((Number) arg).intValue() ? TRUE : FALSE;
+    }
 
     public static Object $printString(Object self) {
-      return "<false>";
+      return "<" + ((Number) self).intValue() + ">";
     }
-  }
-
-  public static final class BuiltinNumber extends BuiltinObject {
 
   }
 
-  public static final class BuiltinString extends BuiltinObject {
+  public static final class StringMethods extends ObjectMethods {
 
     public static Object $$plus(Object self, Object another) {
       // TODO for now just assuming another is also a string

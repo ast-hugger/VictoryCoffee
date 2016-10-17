@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-import org.newspeaklanguage.runtime.StandardObject;
+import org.newspeaklanguage.runtime.Builtins;
 import org.newspeaklanguage.testsupport.Example;
 
 public class MethodTests {
@@ -36,13 +36,13 @@ public class MethodTests {
   @Test
   public void testReturnTrue() {
     Example test = Example.testBody("^true");
-    assertEquals(StandardObject.TRUE, test.result());
+    assertEquals(Builtins.TRUE, test.result());
   }
 
   @Test
   public void testReturnFalse() {
     Example test = Example.testBody("^false");
-    assertEquals(StandardObject.FALSE, test.result());
+    assertEquals(Builtins.FALSE, test.result());
   }
   
   @Test

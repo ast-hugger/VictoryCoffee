@@ -28,9 +28,9 @@ public final class MessageSendSite extends MutableCallSite {
   }
   
   private static final MethodType CHECK_CLASS_TYPE =
-      MethodType.methodType(boolean.class, Class.class, NsObject.class);
+      MethodType.methodType(boolean.class, Class.class, Object.class);
   
-  public static boolean checkClass(Class<?> expectedClass, NsObject object) {
+  public static boolean checkClass(final Class<?> expectedClass, Object object) {
     return object.getClass() == expectedClass;
   }
   
@@ -40,6 +40,8 @@ public final class MessageSendSite extends MutableCallSite {
   
   private final String methodName;
   private final Lookup lookup;
+
+  private int depth = 0;
   
   private MessageSendSite(String name, Lookup lookup, MethodType type) {
     super(type);
@@ -62,5 +64,7 @@ public final class MessageSendSite extends MutableCallSite {
     MethodHandle cacheNode =
         MethodHandles.guardWithTest(typeCheck, specialization, getTarget());
     setTarget(cacheNode);
+    depth++;
+//    System.out.println(expectedClass + ", " + depth + ", " + methodName);
   }
 }

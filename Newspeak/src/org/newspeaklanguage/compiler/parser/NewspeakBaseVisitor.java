@@ -164,14 +164,14 @@ public class NewspeakBaseVisitor<T> extends AbstractParseTreeVisitor<T> implemen
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitBinaryReceiver(NewspeakParser.BinaryReceiverContext ctx) { return visitChildren(ctx); }
+	@Override public T visitBinaryObject(NewspeakParser.BinaryObjectContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitKeywordReceiver(NewspeakParser.KeywordReceiverContext ctx) { return visitChildren(ctx); }
+	@Override public T visitKeywordObject(NewspeakParser.KeywordObjectContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *

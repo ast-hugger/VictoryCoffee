@@ -157,7 +157,13 @@ abstract class CodeGenerator implements AstNodeVisitor {
 
   @Override
   public void visitLiteralNumber(LiteralNumber literalNumber) {
-    unimplemented(literalNumber);
+    generateLoadInt(methodWriter, literalNumber.value().intValue());
+    methodWriter.visitMethodInsn(
+        Opcodes.INVOKESTATIC,
+        Descriptor.internalClassName(Integer.class),
+        "valueOf",
+        Descriptor.ofMethod(Integer.class, int.class),
+        false);
   }
 
   @Override
@@ -341,7 +347,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
   public void visitLiteralBoolean(LiteralBoolean literalBoolean) {
     methodWriter.visitFieldInsn(
         Opcodes.GETSTATIC,
-        StandardObject.INTERNAL_CLASS_NAME,
+        Builtins.INTERNAL_CLASS_NAME,
         literalBoolean.value() ? "TRUE" : "FALSE",
         NsObject.TYPE_DESCRIPTOR);
   }
