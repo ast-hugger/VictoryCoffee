@@ -84,9 +84,7 @@ public class ObjectFactory extends StandardObject {
     StandardObject[] higherObjects = container.nsClass().enclosingObjects;
     int higherLength = higherObjects.length;
     this.enclosingObjects = new StandardObject[higherLength + 1];
-    for (int i = 0; i < higherLength; i++) {
-      this.enclosingObjects[i] = higherObjects[i];
-    }
+    System.arraycopy(higherObjects, 0, this.enclosingObjects, 0, higherLength);
     this.enclosingObjects[higherLength] = container;
   }
   
