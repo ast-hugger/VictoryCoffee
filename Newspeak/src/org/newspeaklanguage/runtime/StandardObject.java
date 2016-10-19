@@ -41,6 +41,7 @@ public class StandardObject extends NsObject {
 
   public static final String INTERNAL_CLASS_NAME = Descriptor.internalClassName(StandardObject.class);
   public static final String TYPE_DESCRIPTOR = "L" + INTERNAL_CLASS_NAME + ";";
+  public static final String ARRAY_TYPE_DESCRIPTOR = "[" + TYPE_DESCRIPTOR;
   public static final String CONSTRUCTOR_DESCRIPTOR = "(" + ObjectFactory.TYPE_DESCRIPTOR + ")V";
 
   public final ObjectFactory nsClass;

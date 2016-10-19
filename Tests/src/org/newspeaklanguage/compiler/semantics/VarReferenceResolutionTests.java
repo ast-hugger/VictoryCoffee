@@ -94,7 +94,7 @@ public class VarReferenceResolutionTests {
     assertEquals(fooDef, fooMeaning.definition().astNode());
     assertEquals(1, fooMeaning.asLexicalVarReference().localVariable().index());
     MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
-    assertEquals(2, barRef.meaning().asLexicalVarReference().localVariable().index());
+    assertEquals(3, barRef.meaning().asLexicalVarReference().localVariable().index());
   }
 
   @Test
@@ -111,9 +111,9 @@ public class VarReferenceResolutionTests {
     assertTrue(fooRef.meaning().isLexicalVarReference());
     LexicalVarReference fooMeaning = (LexicalVarReference) fooRef.meaning();
     assertEquals(fooDef, fooMeaning.definition().astNode());
-    assertEquals(2, fooMeaning.asLexicalVarReference().localVariable().index());
+    assertEquals(3, fooMeaning.asLexicalVarReference().localVariable().index());
     MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
-    assertEquals(3, barRef.meaning().asLexicalVarReference().localVariable().index());
+    assertEquals(5, barRef.meaning().asLexicalVarReference().localVariable().index());
   }
 
   @Test
@@ -131,7 +131,7 @@ public class VarReferenceResolutionTests {
     assertEquals(fooDef, fooMeaning.definition().astNode());
     assertEquals(1, fooMeaning.asLexicalVarReference().localVariable().index());
     MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
-    assertEquals(2, barRef.meaning().asLexicalVarReference().localVariable().index());
+    assertEquals(3, barRef.meaning().asLexicalVarReference().localVariable().index());
   }
 
   @Test
@@ -147,9 +147,9 @@ public class VarReferenceResolutionTests {
     assertTrue(fooRef.meaning().isLexicalVarReference());
     LexicalVarReference fooMeaning = (LexicalVarReference) fooRef.meaning();
     assertEquals(fooDef, fooMeaning.definition().astNode());
-    assertEquals(2, fooMeaning.asLexicalVarReference().localVariable().index());
+    assertEquals(3, fooMeaning.asLexicalVarReference().localVariable().index());
     MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
-    assertEquals(3, barRef.meaning().asLexicalVarReference().localVariable().index());
+    assertEquals(5, barRef.meaning().asLexicalVarReference().localVariable().index());
   }
 
   @Test
@@ -167,7 +167,7 @@ public class VarReferenceResolutionTests {
     assertEquals(fooDef, fooMeaning.definition().astNode());
     assertEquals(1, fooMeaning.asLexicalVarReference().localVariable().index());
     MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
-    assertEquals(2, barRef.meaning().asLexicalVarReference().localVariable().index());
+    assertEquals(3, barRef.meaning().asLexicalVarReference().localVariable().index());
   }
 
 
@@ -189,7 +189,7 @@ public class VarReferenceResolutionTests {
     // They are going to be copied locals of the inner block with indices 1 and 2
     assertEquals(1, fooMeaning.asLexicalVarReference().localVariable().index());
     MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
-    assertEquals(2, barRef.meaning().asLexicalVarReference().localVariable().index());
+    assertEquals(3, barRef.meaning().asLexicalVarReference().localVariable().index());
   }
   
 }

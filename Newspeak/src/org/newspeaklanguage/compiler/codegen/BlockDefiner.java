@@ -21,7 +21,6 @@ import java.lang.invoke.MethodHandle;
 import org.newspeaklanguage.compiler.Descriptor;
 import org.newspeaklanguage.compiler.ast.Block;
 import org.newspeaklanguage.compiler.ast.Method;
-import org.newspeaklanguage.runtime.NsObject;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Handle;
@@ -61,7 +60,7 @@ public class BlockDefiner implements StaticFieldDefiner {
   
   public String descriptor() {
     StringBuilder builder = new StringBuilder(200);
-    String nsObject = NsObject.TYPE_DESCRIPTOR;
+    String nsObject = Descriptor.OBJECT_TYPE_DESCRIPTOR;
     builder.append("(");
     int totalArgCount = blockNode.scope().asBlockScope().copiedVariableCount() + blockNode.arity();
     for (int i = 0; i < totalArgCount; i++ ) {

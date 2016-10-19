@@ -16,6 +16,16 @@
 
 package org.newspeaklanguage.compiler.semantics;
 
+/**
+ * Instances of LocalVariable are used by {@link CodeScope scopes} to keep track
+ * of the locals the scope has (defines), as either an argument or a temp.
+ * The difference between this and a ScopeScopeEntry is that the latter
+ * represents the <em>definition</em> of an argument or a temp in the Newspeak
+ * source sense. This one is a definition in the implementation sense.
+ * Compared to the original Newspeak source, an implementation method
+ * has additional arguments for copied values of variables from outer
+ * scopes.
+ */
 public class LocalVariable {
 
   private final String name;
@@ -37,11 +47,6 @@ public class LocalVariable {
     return isTemp;
   }
 
-  public int index() {
-    return index;
-  }
-
-
   public boolean isBoxed() {
     return isBoxed;
   }
@@ -50,6 +55,13 @@ public class LocalVariable {
     this.isBoxed = isBoxed;
   }
 
+  public int index() {
+    return index;
+  }
+
+  public int primitiveIndex() {
+    return index + 1;
+  }
 
   public void setIndex(int index) {
     this.index = index;

@@ -19,26 +19,25 @@ package org.newspeaklanguage.runtime;
 import org.newspeaklanguage.compiler.Descriptor;
 
 /**
- * A value holder used by the closure implementation to hold the values of mutable local
- * variables that are passed down to the implementation methods of nested closures.
- * It's made a subclass of the Newspeak kind of NsObject so that we can mix and match
- * these and the actual objects without changing method signatures.
+ * Used by generated code to return primitive ints from methods
+ * which are supposed to return an Object.
  *
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  */
-public class Box extends NsObject {
+public final class ReturnPrimitiveValue extends RuntimeException {
 
-  public static final String INTERNAL_CLASS_NAME = Descriptor.internalClassName(Box.class);
+  public static final String INTERNAL_CLASS_NAME = Descriptor.internalClassName(ReturnPrimitiveValue.class);
+  public static final String FACTORY_DESCRIPTOR = Descriptor.ofMethod(ReturnPrimitiveValue.class, int.class);
 
-  public Object value = NsObject.UNDEFINED;
-  public int intValue;
-
-  public boolean isPrimitive() {
-    return value == NsObject.UNDEFINED;
+  @SuppressWarnings("unused") // Called by generated code
+  public static ReturnPrimitiveValue create(int value) {
+    return new ReturnPrimitiveValue(value);
   }
 
-  @Override
-  public ObjectFactory nsClass() {
-    return null;
+  public final int value;
+
+  private ReturnPrimitiveValue(int value) {
+    this.value = value;
   }
+
 }

@@ -41,10 +41,10 @@ public class Closure extends StandardObject {
         .append(Descriptor.ofType(StandardObject.class));
     if (copiedArgCount <= MAX_POSITIONAL_ARGC) {
       for (int i = 0; i < copiedArgCount; i++) {
-        builder.append(NsObject.TYPE_DESCRIPTOR);
+        builder.append(Descriptor.OBJECT_TYPE_DESCRIPTOR);
       }
     } else {
-      builder.append("[").append(NsObject.TYPE_DESCRIPTOR);
+      builder.append("[").append(Descriptor.OBJECT_TYPE_DESCRIPTOR);
     }
     builder.append(")V");
     return builder.toString();

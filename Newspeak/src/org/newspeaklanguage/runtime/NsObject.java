@@ -33,9 +33,11 @@ public abstract class NsObject {
   // The class is intentionally named NsObject to avoid confusion with the standard Object
   // which we use in type signatures.
 
-  // These now reflect our actual usage of the Java Object as the catch-all type.
-  public static final String INTERNAL_CLASS_NAME = Descriptor.internalClassName(java.lang.Object.class);
-  public static final String TYPE_DESCRIPTOR = "L" + INTERNAL_CLASS_NAME + ";";
+  private static final class Undefined {
+    private Undefined() {}
+  }
+
+  public static final Object UNDEFINED = new Undefined();
 
   public abstract ObjectFactory nsClass();
   

@@ -39,7 +39,7 @@ public class MethodGenerator extends CodeGenerator {
     List<AstNode> body = rootNode.body();
     body.forEach(each -> {
       visit(each);
-      methodWriter.visitInsn(Opcodes.POP);
+      methodWriter.visitInsn(Opcodes.POP2);
     });
     if (body.isEmpty() || !(body.get(body.size() - 1) instanceof Return)) {
       methodWriter.visitVarInsn(Opcodes.ALOAD, 0);

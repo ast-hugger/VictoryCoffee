@@ -63,9 +63,9 @@ public class LocalVarTests {
         new String[]{"arg1", "arg2", "temp1", "temp2"}, 
         methodScope.ownVariableNames().toArray());
     assertEquals(1, arg1.index());
-    assertEquals(2, arg2.index());
-    assertEquals(3, temp1.index());
-    assertEquals(4, temp2.index());
+    assertEquals(3, arg2.index());
+    assertEquals(5, temp1.index());
+    assertEquals(7, temp2.index());
     
     assertFalse(arg1.isBoxed());
     assertFalse(arg2.isBoxed());
@@ -108,9 +108,9 @@ public class LocalVarTests {
         new String[]{"arg1", "arg2", "temp1", "temp2"}, 
         blockScope.ownVariableNames().toArray());
     assertEquals(1, arg1.index());
-    assertEquals(2, arg2.index());
-    assertEquals(3, temp1.index());
-    assertEquals(4, temp2.index());
+    assertEquals(3, arg2.index());
+    assertEquals(5, temp1.index());
+    assertEquals(7, temp2.index());
   }
 
   @Test
@@ -137,7 +137,7 @@ public class LocalVarTests {
     assertArrayEquals(new String[]{"arg2"}, blockScope.ownVariableNames().toArray());
     assertArrayEquals(new String[]{"arg1"}, blockScope.copiedVariableNames().toArray());
     assertEquals(1, blockScope.copiedVariableNamed("arg1").get().index());
-    assertEquals(2, arg2.index());
+    assertEquals(3, arg2.index());
 
     assertFalse(arg1.isBoxed());
     assertFalse(arg2.isBoxed());
@@ -168,7 +168,7 @@ public class LocalVarTests {
     assertArrayEquals(new String[]{"arg2"}, blockScope.ownVariableNames().toArray());
     assertArrayEquals(new String[]{"temp"}, blockScope.copiedVariableNames().toArray());
     assertEquals(1, copiedTemp.index());
-    assertEquals(2, arg2.index());
+    assertEquals(3, arg2.index());
 
     assertTrue(temp.isBoxed());
     assertTrue(copiedTemp.isBoxed());
@@ -213,12 +213,12 @@ public class LocalVarTests {
     LocalVariable innerCopiedTemp = innerBlockScope.copiedVariableNamed("temp").get();
 
     assertEquals(1, arg1.index());
-    assertEquals(2, temp.index());
+    assertEquals(3, temp.index());
     assertEquals(1, outerCopiedArg1.index());
-    assertEquals(2, outerCopiedTemp.index());
+    assertEquals(3, outerCopiedTemp.index());
     assertEquals(1, innerCopiedArg1.index());
-    assertEquals(2, innerCopiedTemp.index());
-    assertEquals(3, arg2.index());
+    assertEquals(3, innerCopiedTemp.index());
+    assertEquals(5, arg2.index());
 
     assertFalse(arg1.isBoxed());
     assertTrue(temp.isBoxed());

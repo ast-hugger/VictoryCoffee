@@ -21,6 +21,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.newspeaklanguage.compiler.Descriptor;
 import org.newspeaklanguage.compiler.NamingPolicy;
 import org.newspeaklanguage.compiler.ast.Block;
 import org.newspeaklanguage.compiler.ast.Category;
@@ -28,18 +29,23 @@ import org.newspeaklanguage.compiler.ast.ClassDecl;
 import org.newspeaklanguage.compiler.ast.Method;
 import org.newspeaklanguage.compiler.ast.SlotDefinition;
 import org.newspeaklanguage.runtime.ClassDefinition;
-import org.newspeaklanguage.runtime.NsObject;
 import org.newspeaklanguage.runtime.ObjectFactory;
 import org.newspeaklanguage.runtime.StandardObject;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 public class ClassGenerator {
-  
-  public static final String GETTER_DESCRIPTOR = "()" + NsObject.TYPE_DESCRIPTOR;
-  public static final String SETTER_DESCRIPTOR = "(" + NsObject.TYPE_DESCRIPTOR + ")" + NsObject.TYPE_DESCRIPTOR;
+
+  // Both getter and setter methods, like all other methods compiled as methods of the implementation class,
+  // have the first unused int argument, which is the int part of the value pair which represented the receiver
+  // on the stack before the dynamic call.
+
+  public static final String GETTER_DESCRIPTOR = "(I)" + Descriptor.OBJECT_TYPE_DESCRIPTOR;
+  public static final String SETTER_DESCRIPTOR
+      = "(I" + Descriptor.OBJECT_TYPE_DESCRIPTOR + Descriptor.INT_TYPE_DESCRIPTOR + ")" + Descriptor.OBJECT_TYPE_DESCRIPTOR;
   
   public static byte[] generate(ClassDecl classNode) {
     ClassGenerator generator = new ClassGenerator(classNode);
@@ -52,8 +58,7 @@ public class ClassGenerator {
   
   private final ClassDecl classNode;
   private final String internalClassName;
-  private final ClassWriter classWriter = new ClassWriter(
-      ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+  private final ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES /*| ClassWriter.COMPUTE_MAXS */);
   private final Map<java.lang.Object, LiteralValue> literals = new HashMap<java.lang.Object, LiteralValue>();
   private final List<StaticFieldDefiner> staticFieldDefiners = new LinkedList<StaticFieldDefiner>();
   
@@ -102,7 +107,7 @@ public class ClassGenerator {
   private void start() {
     // TODO bogus: assuming the superclass is always NsObject
     classWriter.visit(
-        52,
+        Opcodes.V1_8,
         Opcodes.ACC_PUBLIC | Opcodes.ACC_SUPER,
         internalClassName,
         null,
@@ -121,7 +126,13 @@ public class ClassGenerator {
       FieldVisitor fieldVisitor = classWriter.visitField(
           Opcodes.ACC_PUBLIC,
           NamingPolicy.fieldNameForSlot(slot.name()),
-          NsObject.TYPE_DESCRIPTOR,
+          Descriptor.OBJECT_TYPE_DESCRIPTOR,
+          null, null);
+      fieldVisitor.visitEnd();
+      fieldVisitor = classWriter.visitField(
+          Opcodes.ACC_PUBLIC,
+          NamingPolicy.fieldNameForPrimitiveSlot(slot.name()),
+          Descriptor.INT_TYPE_DESCRIPTOR,
           null, null);
       fieldVisitor.visitEnd();
       generateSlotGetter(slot);
@@ -130,65 +141,50 @@ public class ClassGenerator {
       }
     }
   }
-  
+
   /**
-   * Generate accessors for nested classes.
+   * Generate a getter for the specified slot.
    */
-  private void processNestedClasses() {
-    classNode.nestedClasses().forEach(this::generateNestedClassGetter);
-  }
-  
-  private void generateNestedClassGetter(ClassDecl nestedClassDecl) {
-    String selector = NamingPolicy.getterMethodNameForSlot(nestedClassDecl.name());
-    MethodVisitor methodWriter = classWriter.visitMethod(
-        Opcodes.ACC_PUBLIC,
-        selector,
-        GETTER_DESCRIPTOR,
-        null, null);
-    methodWriter.visitCode();
-    
-    methodWriter.visitTypeInsn(Opcodes.NEW, ObjectFactory.INTERNAL_CLASS_NAME);
-    methodWriter.visitInsn(Opcodes.DUP);
-    // The first argument: the object factory (of this factory). Just use null for now
-    methodWriter.visitInsn(Opcodes.ACONST_NULL);
-    // The second argument: the class definition.
-    methodWriter.visitFieldInsn(
-        Opcodes.GETSTATIC, 
-        nestedClassDecl.implementationClassName(),
-        NamingPolicy.CLASS_DEF_FIELD_NAME,
-        ClassDefinition.TYPE_DESCRIPTOR);
-    // The third argument: the containing object of the class--the receiver.
-    methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
-    methodWriter.visitMethodInsn(
-        Opcodes.INVOKESPECIAL, 
-        ObjectFactory.INTERNAL_CLASS_NAME, 
-        "<init>", 
-        ObjectFactory.CONSTRUCTOR_DESCRIPTOR, 
-        false);
-    
-    methodWriter.visitInsn(Opcodes.ARETURN);
-    methodWriter.visitMaxs(0, 0); // args ignored
-    methodWriter.visitEnd();
-  }
-  
   private void generateSlotGetter(SlotDefinition slot) {
-    MethodVisitor methodVisitor = classWriter.visitMethod(
+    MethodVisitor methodWriter = classWriter.visitMethod(
         Opcodes.ACC_PUBLIC,
         NamingPolicy.getterMethodNameForSlot(slot.name()),
         GETTER_DESCRIPTOR,
         null, null);
-    methodVisitor.visitCode();
-    methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-    methodVisitor.visitFieldInsn(
-        Opcodes.GETFIELD, 
-        toInternalFormat(classNode.implementationClassName()), 
+    methodWriter.visitCode();
+    methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
+    methodWriter.visitFieldInsn(
+        Opcodes.GETFIELD,
+        toInternalFormat(classNode.implementationClassName()),
         NamingPolicy.fieldNameForSlot(slot.name()),
-        NsObject.TYPE_DESCRIPTOR);
-    methodVisitor.visitInsn(Opcodes.ARETURN);
-    methodVisitor.visitMaxs(1, 1); // args correct but ignored
-    methodVisitor.visitEnd();
+        Descriptor.OBJECT_TYPE_DESCRIPTOR);
+    methodWriter.visitInsn(Opcodes.DUP);
+    CodeGenerator.generateLoadUndefined(methodWriter);
+    Label objectPresent = new Label();
+    methodWriter.visitJumpInsn(Opcodes.IF_ACMPNE, objectPresent);
+    // the real value is in the primitive int field
+    methodWriter.visitFieldInsn(
+        Opcodes.GETFIELD,
+        toInternalFormat(classNode.implementationClassName()),
+        NamingPolicy.fieldNameForPrimitiveSlot(slot.name()),
+        Descriptor.INT_TYPE_DESCRIPTOR);
+    CodeGenerator.generateCreateReturnPrimitiveValue(methodWriter);
+    methodWriter.visitInsn(Opcodes.ATHROW);
+// objectPresent:
+    methodWriter.visitLabel(objectPresent);
+    // the value to return is already on the stack
+    methodWriter.visitInsn(Opcodes.ARETURN);
+    methodWriter.visitMaxs(-1, -1); // args ignored
+    methodWriter.visitEnd();
   }
-  
+
+  /**
+   * Generate a setter method for the specified slot. The method has the signature of:
+   * <pre>
+   *   public void <setterMethodName>(int unused, Object objectValue, int intValue)
+   * </pre>
+   * So objectValue is local 2 and intValue is local 3.
+   */
   private void generateSlotSetter(SlotDefinition slot) {
     MethodVisitor methodVisitor = classWriter.visitMethod(
         Opcodes.ACC_PUBLIC,
@@ -197,18 +193,67 @@ public class ClassGenerator {
         null, null);
     methodVisitor.visitCode();
     methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-    methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
+    methodVisitor.visitInsn(Opcodes.DUP);
+    // store the Object part
+    methodVisitor.visitVarInsn(Opcodes.ALOAD, 2);
     methodVisitor.visitFieldInsn(
-        Opcodes.PUTFIELD, 
-        toInternalFormat(classNode.implementationClassName()), 
+        Opcodes.PUTFIELD,
+        toInternalFormat(classNode.implementationClassName()),
         NamingPolicy.fieldNameForSlot(slot.name()),
-        NsObject.TYPE_DESCRIPTOR);
+        Descriptor.OBJECT_TYPE_DESCRIPTOR);
+    // store the int part
+    methodVisitor.visitVarInsn(Opcodes.ALOAD, 3);
+    methodVisitor.visitFieldInsn(
+        Opcodes.PUTFIELD,
+        toInternalFormat(classNode.implementationClassName()),
+        NamingPolicy.fieldNameForPrimitiveSlot(slot.name()),
+        Descriptor.INT_TYPE_DESCRIPTOR);
     methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
     methodVisitor.visitInsn(Opcodes.ARETURN);
-    methodVisitor.visitMaxs(2, 2); // args correct but ignored
-    methodVisitor.visitEnd();    
+    methodVisitor.visitMaxs(3, 3); // args correct but ignored
+    methodVisitor.visitEnd();
   }
-  
+
+  /**
+   * Generate accessors for nested classes.
+   */
+  private void processNestedClasses() {
+    classNode.nestedClasses().forEach(this::generateNestedClassGetter);
+  }
+
+  private void generateNestedClassGetter(ClassDecl nestedClassDecl) {
+    String selector = NamingPolicy.getterMethodNameForSlot(nestedClassDecl.name());
+    MethodVisitor methodWriter = classWriter.visitMethod(
+        Opcodes.ACC_PUBLIC,
+        selector,
+        GETTER_DESCRIPTOR,
+        null, null);
+    methodWriter.visitCode();
+
+    methodWriter.visitTypeInsn(Opcodes.NEW, ObjectFactory.INTERNAL_CLASS_NAME);
+    methodWriter.visitInsn(Opcodes.DUP);
+    // The first argument: the object factory (of this factory). Just use null for now
+    methodWriter.visitInsn(Opcodes.ACONST_NULL);
+    // The second argument: the class definition.
+    methodWriter.visitFieldInsn(
+        Opcodes.GETSTATIC,
+        nestedClassDecl.implementationClassName(),
+        NamingPolicy.CLASS_DEF_FIELD_NAME,
+        ClassDefinition.TYPE_DESCRIPTOR);
+    // The third argument: the containing object of the class--the receiver.
+    methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
+    methodWriter.visitMethodInsn(
+        Opcodes.INVOKESPECIAL,
+        ObjectFactory.INTERNAL_CLASS_NAME,
+        "<init>",
+        ObjectFactory.CONSTRUCTOR_DESCRIPTOR,
+        false);
+
+    methodWriter.visitInsn(Opcodes.ARETURN);
+    methodWriter.visitMaxs(0, 0); // args ignored
+    methodWriter.visitEnd();
+  }
+
   private void generateConstructor() {
     MethodVisitor methodVisitor = classWriter.visitMethod(
         Opcodes.ACC_PUBLIC,
@@ -237,7 +282,7 @@ public class ClassGenerator {
         MethodVisitor methodVisitor = classWriter.visitMethod(
             Opcodes.ACC_PUBLIC,
             NamingPolicy.methodNameForSelector(method.messagePattern().selector()),
-            methodTypeDescriptor(method.messagePattern().arity()),
+            Descriptor.ofMethodImplMethod(method.messagePattern().arity()),
             null, null);
         MethodGenerator methodGenerator = new MethodGenerator(this, method, methodVisitor);
         methodGenerator.generate();
@@ -298,10 +343,10 @@ public class ClassGenerator {
     StringBuilder result = new StringBuilder();
     result.append("(");
     for (int i = 0; i < arity; i++) {
-      result.append(NsObject.TYPE_DESCRIPTOR);
+      result.append(Descriptor.OBJECT_TYPE_DESCRIPTOR);
     }
     result.append(")");
-    result.append(NsObject.TYPE_DESCRIPTOR);
+    result.append(Descriptor.OBJECT_TYPE_DESCRIPTOR);
     return result.toString();
   }
   

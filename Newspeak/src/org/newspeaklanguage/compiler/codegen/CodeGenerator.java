@@ -17,7 +17,6 @@
 package org.newspeaklanguage.compiler.codegen;
 
 import java.lang.invoke.MethodHandle;
-import java.rmi.Naming;
 
 import org.newspeaklanguage.compiler.Descriptor;
 import org.newspeaklanguage.compiler.NamingPolicy;
@@ -50,8 +49,10 @@ import org.newspeaklanguage.runtime.Closure;
 import org.newspeaklanguage.runtime.MessageDispatcher;
 import org.newspeaklanguage.runtime.NsObject;
 import org.newspeaklanguage.runtime.ObjectFactory;
+import org.newspeaklanguage.runtime.ReturnPrimitiveValue;
 import org.newspeaklanguage.runtime.StandardObject;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -60,9 +61,9 @@ import org.objectweb.asm.Opcodes;
 // TODO super sends are not implemented
 
 /**
- * The generic method code generator. We generate Java methods to represent both
- * the individual Newspeak methods, and blocks contained in them. Those two
- * tasks are handled by the two subclasses of this class.
+ * The generic method code generator. Generates a Java method to represent either
+ * an individual Newspeak method, or a block contained in one. Two subclasses
+ * of this class handle the specifics of each of those tasks.
  *
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
@@ -74,19 +75,38 @@ abstract class CodeGenerator implements AstNodeVisitor {
    * instruction to load the specified int value.
    */
   public static void generateLoadInt(MethodVisitor methodWriter, int value) {
-    if (0 <= value && value <= 5) {
-      methodWriter.visitInsn(SPECIAL_LOAD_INT_OPCODES[value]);
+    if (-1 <= value && value <= 5) {
+      methodWriter.visitInsn(Opcodes.ICONST_0 + value);
     } else if (-128 <= value && value <= 127) {
       methodWriter.visitIntInsn(Opcodes.BIPUSH, value);
     } else {
       methodWriter.visitIntInsn(Opcodes.SIPUSH, value);
     }
   }
-  private static final int[] SPECIAL_LOAD_INT_OPCODES = new int[] {
-      Opcodes.ICONST_0, Opcodes.ICONST_1, Opcodes.ICONST_2, Opcodes.ICONST_3, Opcodes.ICONST_4, Opcodes.ICONST_5 };
 
+  public static void generateLoadUndefined(MethodVisitor methodWriter) {
+    methodWriter.visitFieldInsn(
+        Opcodes.GETSTATIC,
+        Descriptor.internalClassName(NsObject.class),
+        "UNDEFINED",
+        Descriptor.OBJECT_TYPE_DESCRIPTOR);
+  }
 
+  public static void generateCreateReturnPrimitiveValue(MethodVisitor methodWriter) {
+    methodWriter.visitMethodInsn(
+        Opcodes.INVOKESTATIC,
+        ReturnPrimitiveValue.INTERNAL_CLASS_NAME,
+        "create",
+        ReturnPrimitiveValue.FACTORY_DESCRIPTOR,
+        false
+    );
+  }
+
+  /*
+   * Instance side
+   */
   protected final ClassGenerator classGenerator;
+
   protected final CodeUnit rootNode;
   protected final MethodVisitor methodWriter;
 
@@ -108,18 +128,33 @@ abstract class CodeGenerator implements AstNodeVisitor {
     methodWriter.visitCode();
     generateMethodPrologue();
     generateBody();
-    methodWriter.visitMaxs(0, 0); // args ignored; writer is set to compute
-                                  // these
+    methodWriter.visitMaxs(0, 0); // args ignored; the writer is set up to compute these
     methodWriter.visitEnd();
   }
 
   @Override
   public void visitMethod(Method method) {
-    throw new IllegalStateException("this node should not be visited directly");
+    unexpectedVisit(method);
   }
 
   public void visit(AstNode node) {
     node.accept(this);
+  }
+
+  protected void generateMethodPrologue() {
+    rootNode.scope().forEachTemp(each -> {
+      if (each.isBoxed()) {
+        methodWriter.visitTypeInsn(Opcodes.NEW, Box.INTERNAL_CLASS_NAME);
+        methodWriter.visitInsn(Opcodes.DUP);
+        methodWriter.visitMethodInsn(
+            Opcodes.INVOKESPECIAL,
+            Box.INTERNAL_CLASS_NAME,
+            "<init>",
+            "()V",
+            false);
+        methodWriter.visitVarInsn(Opcodes.ASTORE, each.index());
+      }
+    });
   }
 
   /**
@@ -127,6 +162,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
    * blocks differ in their default return value.
    */
   protected abstract void generateBody();
+
 
   @Override
   public void visitBlock(Block block) {
@@ -152,7 +188,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
       });
     } else {
       generateLoadInt(methodWriter, copiedValueCount);
-      methodWriter.visitTypeInsn(Opcodes.ANEWARRAY, NsObject.INTERNAL_CLASS_NAME);
+      methodWriter.visitTypeInsn(Opcodes.ANEWARRAY, Descriptor.OBJECT_INTERNAL_CLASS_NAME);
       int i = 0;
       for (LocalVariable copied : block.scope().asBlockScope().copiedVariables()) {
         methodWriter.visitInsn(Opcodes.DUP);
@@ -170,16 +206,10 @@ abstract class CodeGenerator implements AstNodeVisitor {
         false);
   }
 
-
   @Override
   public void visitLiteralNumber(LiteralNumber literalNumber) {
+    generateLoadUndefined(methodWriter);
     generateLoadInt(methodWriter, literalNumber.value().intValue());
-    methodWriter.visitMethodInsn(
-        Opcodes.INVOKESTATIC,
-        Descriptor.internalClassName(Integer.class),
-        "valueOf",
-        Descriptor.ofMethod(Integer.class, int.class),
-        false);
   }
 
   @Override
@@ -191,6 +221,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
       classGenerator.addLiteral(literal);
     }
     literal.generateLoad(methodWriter);
+    generateLoadInt(methodWriter, 0);
   }
 
   @Override
@@ -217,57 +248,78 @@ abstract class CodeGenerator implements AstNodeVisitor {
   }
 
   /**
-   * Generate code for access to a lexically visible variable available
-   * as a local in the current method frame (which local may be
-   * a closed over value copied from the outer scope). There are three
-   * major cases: a getter, a regular setter (result is the receiver) and
-   * a double-colon setter (result is the set value). Each of those
-   * has the subcases of a regular and a boxed representation.
+   * Generate code for access to a lexically visible variable. If the variable
+   * is defined in this scope, it's available as a method frame slot.
+   * It it's defined in an outer scope, it's still available as a method frame
+   * slot as a copied down argument. If the original binding is mutable, the
+   * copied down argument is a Box.
+   * <p>
+   * There are three cases of access:
+   * a getter, a regular setter (the result is the receiver) and
+   * a "setter setter" (a double-colon setter, the result is the set value).
+   * Each of those has the subcases of a regular and a boxed representation.
    */
   private void generateLexicalVarReference(MessageSendNoReceiver messageNode) {
     LexicalVarReference meaning = (LexicalVarReference) messageNode.meaning();
-    LocalVariable local = meaning.localVariable(); 
+    LocalVariable local = meaning.localVariable();
     int index = local.index();
     // TODO we can do some peephole optimization here to avoid the effort
     // to keep the result on the stack if the send is a statement and the
     // result is going to be discarded anyway.
     if (NamingPolicy.isSetterSelector(messageNode.selector())) {
+      // A setter, either a regular or a setter setter
       assert messageNode.arity() == 1;
       if (messageNode.isSetterSend()) {
+        // A setter setter (foo::)
         visit(messageNode.arguments().get(0));
-        methodWriter.visitInsn(Opcodes.DUP); // make a copy for the result
+        methodWriter.visitInsn(Opcodes.DUP2); // the result is an Object/int pair
         if (local.isBoxed()) {
-          // :: send, boxed
-          methodWriter.visitVarInsn(Opcodes.ALOAD, index);
+          // foo:: boxed
+          methodWriter.visitVarInsn(Opcodes.ALOAD, index); // stack: Object, int, Box
           methodWriter.visitTypeInsn(Opcodes.CHECKCAST, Box.INTERNAL_CLASS_NAME);
-          methodWriter.visitInsn(Opcodes.SWAP);
-          methodWriter.visitFieldInsn(Opcodes.PUTFIELD, Box.INTERNAL_CLASS_NAME, "value", NsObject.TYPE_DESCRIPTOR);
+          methodWriter.visitInsn(Opcodes.DUP_X2); // stack: Box, Object, int, Box
+          methodWriter.visitInsn(Opcodes.SWAP); // stack: Box, Object, Box, int
+          methodWriter.visitFieldInsn(Opcodes.PUTFIELD, Box.INTERNAL_CLASS_NAME, "intValue", Descriptor.INT_TYPE_DESCRIPTOR);
+          methodWriter.visitFieldInsn(Opcodes.PUTFIELD, Box.INTERNAL_CLASS_NAME, "value", Descriptor.OBJECT_TYPE_DESCRIPTOR);
         } else {
-          // :: send, unboxed
-          methodWriter.visitVarInsn(Opcodes.ASTORE, index);
+          // foo: unboxed
+          methodWriter.visitVarInsn(Opcodes.ISTORE, index + 1); // store the int
+          methodWriter.visitVarInsn(Opcodes.ASTORE, index); // store the object part
         }
-        // a prior copy of expr is now on the stack
+        // the original value pair is now on top
       } else {
+        // foo:
         if (local.isBoxed()) {
-          // : send, boxed
+          // foo: boxed
+          visit(messageNode.arguments().get(0)); // stack: Object, Int
           methodWriter.visitVarInsn(Opcodes.ALOAD, index);
-          methodWriter.visitTypeInsn(Opcodes.CHECKCAST, Box.INTERNAL_CLASS_NAME);
-          visit(messageNode.arguments().get(0));
-          methodWriter.visitFieldInsn(Opcodes.PUTFIELD, Box.INTERNAL_CLASS_NAME, "value", NsObject.TYPE_DESCRIPTOR);
+          methodWriter.visitTypeInsn(Opcodes.CHECKCAST, Box.INTERNAL_CLASS_NAME); // stack: Object, Int, Box
+          methodWriter.visitInsn(Opcodes.DUP_X2); // stack: Box, Object, Int, Box
+          methodWriter.visitInsn(Opcodes.SWAP); // stack: Box, Object, Box, Int
+          methodWriter.visitFieldInsn(Opcodes.PUTFIELD, Box.INTERNAL_CLASS_NAME, "intValue", Descriptor.INT_TYPE_DESCRIPTOR);
+          methodWriter.visitFieldInsn(Opcodes.PUTFIELD, Box.INTERNAL_CLASS_NAME, "value", Descriptor.OBJECT_TYPE_DESCRIPTOR);
         } else {
-          // : send, unboxed
+          // foo: unboxed
           visit(messageNode.arguments().get(0));
+          methodWriter.visitVarInsn(Opcodes.ISTORE, index + 1);
           methodWriter.visitVarInsn(Opcodes.ASTORE, index);
         }
         methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
+        methodWriter.visitInsn(Opcodes.ICONST_0);
       }
     } else {
       // A getter
       assert messageNode.arity() == 0;
-      methodWriter.visitVarInsn(Opcodes.ALOAD, index);
       if (local.isBoxed()) {
+        methodWriter.visitVarInsn(Opcodes.ALOAD, index);
         methodWriter.visitTypeInsn(Opcodes.CHECKCAST, Box.INTERNAL_CLASS_NAME);
-        methodWriter.visitFieldInsn(Opcodes.GETFIELD, Box.INTERNAL_CLASS_NAME, "value", NsObject.TYPE_DESCRIPTOR);
+        methodWriter.visitInsn(Opcodes.DUP); // stack: Box, Box
+        methodWriter.visitFieldInsn(Opcodes.GETFIELD, Box.INTERNAL_CLASS_NAME, "value", Descriptor.OBJECT_TYPE_DESCRIPTOR);
+        methodWriter.visitInsn(Opcodes.SWAP); // stack: Object, Box
+        methodWriter.visitFieldInsn(Opcodes.GETFIELD, Box.INTERNAL_CLASS_NAME, "intValue", Descriptor.INT_TYPE_DESCRIPTOR);
+      } else {
+        methodWriter.visitVarInsn(Opcodes.ALOAD, index);
+        methodWriter.visitVarInsn(Opcodes.ILOAD, index + 1);
       }
     }
   }
@@ -275,34 +327,75 @@ abstract class CodeGenerator implements AstNodeVisitor {
   private void generateSendToEnclosingObject(MessageSendNoReceiver messageNode) {
     SendToEnclosingObject meaning = (SendToEnclosingObject) messageNode.meaning();
     int scopeLevel = meaning.definition().scope().level();
-    if (messageNode.isSetterSend()) {
+    boolean isSetterSend = messageNode.isSetterSend();
+
+    if (isSetterSend) {
       // A setter send should leave the message argument on the stack
       assert messageNode.arity() == 1;
-      visit(messageNode.arguments().get(0));
-      methodWriter.visitInsn(Opcodes.DUP);
-      generateLoadOfEnclosingObject(scopeLevel);
-      methodWriter.visitInsn(Opcodes.SWAP);
-      // Now we have the argument copy above the receiver and the argument;
+      visit(messageNode.arguments().get(0)); // stack: Object, int
+      methodWriter.visitInsn(Opcodes.DUP2); // stack: Object, int, Object, int
+      generateLoadOfEnclosingObject(scopeLevel); // stack: Object, int, Object, int, receiver
+      methodWriter.visitInsn(Opcodes.DUP_X2); // stack: Object, int, receiver, Object, int, receiver
+      methodWriter.visitInsn(Opcodes.POP); // stack: Object, int, receiver, Object, int
+      // In the following line we use a random int we have on the stack as the int value of the receiver pair
+      // because it's there and we don't care about the value, we just need an int there to conform to the
+      // standard method signature. The receiver is always a real object, so the
+      // int part of the receiver value pair is never used.
+      methodWriter.visitInsn(Opcodes.DUP_X1); // stack: Object, int, receiver, int, Object, int
+      // We now have a copy of the argument pair above the receiver and the argument pair;
       // should also pop the send result once we are done.
     } else {
       generateLoadOfEnclosingObject(scopeLevel);
       messageNode.arguments().forEach(this::visit);
     }
+    // do the send
+    Label start = new Label();
+    Label objectResult = new Label();
+    Label handler = new Label();
+    methodWriter.visitTryCatchBlock(start, objectResult, handler, ReturnPrimitiveValue.INTERNAL_CLASS_NAME);
+// start:
+    methodWriter.visitLabel(start);
     methodWriter.visitInvokeDynamicInsn(
         NamingPolicy.methodNameForSelector(messageNode.selector()),
         callSiteTypeDescriptor(messageNode.arity()),
         MessageDispatcher.bootstrapHandle());
-    if (messageNode.isSetterSend()) {
-      // Pop the answer; the copy of the argument is now exposed as the result.
+// objectResult:
+    methodWriter.visitLabel(objectResult); // a real object is on the stack; add a bogus int
+    if (!isSetterSend) {
+      generateLoadInt(methodWriter, 0);
+    } // if a setter send we don't care, the stack is popped anyway to reveal the answer pair
+    Label end = new Label();
+    methodWriter.visitJumpInsn(Opcodes.GOTO, end);
+// handler:
+    methodWriter.visitLabel(handler);
+    // if not a setter send, produce a proper value pair from the int in the exception
+    // if a setter send, we don't care. The stack will be popped anyway
+    if (!isSetterSend) {
+      methodWriter.visitFieldInsn(
+          Opcodes.GETFIELD,
+          ReturnPrimitiveValue.INTERNAL_CLASS_NAME,
+          "value",
+          Descriptor.INT_TYPE_DESCRIPTOR);
+      generateLoadUndefined(methodWriter); // stack: int, Object
+      methodWriter.visitInsn(Opcodes.SWAP);
+    }
+// end:
+    methodWriter.visitLabel(end);
+    if (isSetterSend) {
+      // Pop the answer; the copy of the argument pair is now exposed as the result.
       methodWriter.visitInsn(Opcodes.POP);
     }
   }
 
+  /**
+   * Get the enclosing receiver on the stack with the equivalent of:
+   * {@code this.nsClass.enclosingObjects[scopeLevel]}
+   * {@code this} is an instance of a StandardClass subclass, so no
+   * CHECKCAST is needed prior to getting its nsClass.
+   * <p>
+   *   Note: this only loads the enclosing object, not a full object/int value pair.
+   */
   private void generateLoadOfEnclosingObject(int level) {
-    // get the enclosing receiver on the stack with the equivalent of:
-    // this.nsClass.enclosingObjects[scopeLevel]
-    // 'this' is a subclass of StandardClass, so no CHECKCAST is needed prior to
-    // getting 'nsClass'.
     methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
     methodWriter.visitFieldInsn(
         Opcodes.GETFIELD,
@@ -313,50 +406,113 @@ abstract class CodeGenerator implements AstNodeVisitor {
         Opcodes.GETFIELD,
         ObjectFactory.INTERNAL_CLASS_NAME,
         "enclosingObjects",
-        "[" + StandardObject.TYPE_DESCRIPTOR);
+        StandardObject.ARRAY_TYPE_DESCRIPTOR);
     generateLoadInt(methodWriter, level);
     methodWriter.visitInsn(Opcodes.AALOAD);
   }
 
   private void generateSelfSend(MessageSendNoReceiver messageSend) {
-    if (messageSend.isSetterSend()) {
-      // A setter send should leave the message argument on the stack
+    boolean isSetterSend = messageSend.isSetterSend();
+    if (isSetterSend) {
+      // A setter send should leave the message argument pair on the stack
       assert messageSend.arguments().size() == 1;
-      visit(messageSend.arguments().get(0));
-      methodWriter.visitInsn(Opcodes.DUP);
-      methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
-      methodWriter.visitInsn(Opcodes.SWAP);
-      // Now we have the argument copy above the receiver and the argument;
-      // should also pop the send result once we are done.
+      visit(messageSend.arguments().get(0)); // stack: Object, int
+      methodWriter.visitInsn(Opcodes.DUP2);
+      methodWriter.visitVarInsn(Opcodes.ALOAD, 0); // stack: Object, int, Object, int, receiver
+      methodWriter.visitInsn(Opcodes.DUP_X2); // stack: Object, int, receiver, Object, int, receiver
+      methodWriter.visitInsn(Opcodes.POP); // stack: Object, int, receiver, Object, int
+      // See the comment in #generateSendToEnclosingObject() about this duplication of the int
+      // on the stack as the int value of the receiver.
+      methodWriter.visitInsn(Opcodes.DUP_X1); // stack: Object, int, receiver, int, Object, int
+      // Now we have the argument pair copy above the receiver and the argument pair;
+      // should also pop the send result out of the way once we are done.
     } else {
       methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
+      generateLoadInt(methodWriter, 0);
       messageSend.arguments().forEach(this::visit);
     }
+    // do the send
+    Label start = new Label();
+    Label objectResult = new Label();
+    Label handler = new Label();
+    methodWriter.visitTryCatchBlock(start, objectResult, handler, ReturnPrimitiveValue.INTERNAL_CLASS_NAME);
+// start:
+    methodWriter.visitLabel(start);
     methodWriter.visitInvokeDynamicInsn(
         NamingPolicy.methodNameForSelector(messageSend.selector()),
         callSiteTypeDescriptor(messageSend.arguments().size()),
         MessageDispatcher.bootstrapHandle());
-    if (messageSend.isSetterSend()) {
-      // Pop the answer; the copy of the argument is now exposed as the result.
+// objectResult:
+    methodWriter.visitLabel(objectResult); // object is on the stack; add a bogus int
+    if (!isSetterSend) {
+      generateLoadInt(methodWriter, 0);
+    }
+    Label end = new Label();
+    methodWriter.visitJumpInsn(Opcodes.GOTO, end);
+// handler:
+    methodWriter.visitLabel(handler);
+    // if not a setter send, produce a proper value pair from the int in the exception
+    // if a setter send, we don't care. The stack will be popped anyway
+    if (!isSetterSend) {
+      methodWriter.visitFieldInsn(
+          Opcodes.GETFIELD,
+          ReturnPrimitiveValue.INTERNAL_CLASS_NAME,
+          "value",
+          Descriptor.INT_TYPE_DESCRIPTOR);
+      generateLoadUndefined(methodWriter); // stack: int, Object
+      methodWriter.visitInsn(Opcodes.SWAP);
+    }
+// end:
+    methodWriter.visitLabel(end);
+    if (isSetterSend) {
+      // Pop the answer; the copy of the argument pair is now exposed as the result.
       methodWriter.visitInsn(Opcodes.POP);
     }
   }
 
+  /**
+   * Generate a traditional Smalltalk-style message send to an explicit receiver.
+   * As everywhere, the receiver and each argument are represented by two stack entries.
+   * The answer is returned normally if an Object, or as an exception if an int.
+   * We have to adapt the outcome back into an Object/int pair on the stack.
+   */
   @Override
   public void visitMessageSendWithReceiver(MessageSendWithReceiver sendNode) {
     sendNode.receiver().accept(this);
     for (AstNode arg : sendNode.arguments()) {
       arg.accept(this);
     }
+    Label start = new Label();
+    Label objectResult = new Label();
+    Label handler = new Label();
+    methodWriter.visitTryCatchBlock(start, objectResult, handler, ReturnPrimitiveValue.INTERNAL_CLASS_NAME);
+    methodWriter.visitLabel(start);
     methodWriter.visitInvokeDynamicInsn(
         NamingPolicy.methodNameForSelector(sendNode.selector()),
         callSiteTypeDescriptor(sendNode.arguments().size()),
         MessageDispatcher.bootstrapHandle());
+// objectResult:
+    methodWriter.visitLabel(objectResult); // object is on the stack; add a bogus int
+    generateLoadInt(methodWriter, 0);
+    Label end = new Label();
+    methodWriter.visitJumpInsn(Opcodes.GOTO, end);
+// handler:
+    methodWriter.visitLabel(handler); // exception with the int result is on the stack
+    methodWriter.visitFieldInsn(
+        Opcodes.GETFIELD,
+        ReturnPrimitiveValue.INTERNAL_CLASS_NAME,
+        "value",
+        Descriptor.INT_TYPE_DESCRIPTOR);
+    generateLoadUndefined(methodWriter); // stack: int, Object
+    methodWriter.visitInsn(Opcodes.SWAP);
+// end:
+    methodWriter.visitLabel(end);
   }
 
   @Override
   public void visitLiteralNil(LiteralNil literalNil) {
     methodWriter.visitInsn(Opcodes.ACONST_NULL);
+    generateLoadInt(methodWriter, 0);
   }
 
   @Override
@@ -365,12 +521,14 @@ abstract class CodeGenerator implements AstNodeVisitor {
         Opcodes.GETSTATIC,
         Builtins.INTERNAL_CLASS_NAME,
         literalBoolean.value() ? "TRUE" : "FALSE",
-        NsObject.TYPE_DESCRIPTOR);
+        Descriptor.OBJECT_TYPE_DESCRIPTOR);
+    generateLoadInt(methodWriter, 0);
   }
 
   @Override
   public void visitSelf(Self self) {
     methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
+    generateLoadInt(methodWriter, 0);
   }
 
   @Override
@@ -382,11 +540,23 @@ abstract class CodeGenerator implements AstNodeVisitor {
   public void visitOuter(Outer outer) {
     int scopeLevel = outer.targetClassScope().level();
     generateLoadOfEnclosingObject(scopeLevel);
+    generateLoadInt(methodWriter, 0);
   }
 
   @Override
   public void visitReturn(Return returnNode) {
-    returnNode.expression().accept(this);
+    returnNode.expression().accept(this); // stack: Object, int
+    methodWriter.visitInsn(Opcodes.SWAP);
+    methodWriter.visitInsn(Opcodes.DUP);
+    generateLoadUndefined(methodWriter); // stack: int, Object, Object, Undefined
+    Label objectPresent = new Label();
+    methodWriter.visitJumpInsn(Opcodes.IF_ACMPNE, objectPresent); // stack: int, Object
+    // Object undefined, int is the return value
+    methodWriter.visitInsn(Opcodes.POP); // stack: int
+    generateCreateReturnPrimitiveValue(methodWriter);
+    methodWriter.visitInsn(Opcodes.ATHROW);
+// objectPresent:
+    methodWriter.visitLabel(objectPresent);
     methodWriter.visitInsn(Opcodes.ARETURN);
   }
 
@@ -400,28 +570,23 @@ abstract class CodeGenerator implements AstNodeVisitor {
     unexpectedNode(category);
   }
 
+  /**
+   * Return a descriptor string for a call site of a message send of the given arity.
+   * The arity we understand as the number of method arguments in Newspeak sense, not
+   * counting the receiver. The call site descriptor string should also include the
+   * Object/int pair representing the receiver.
+   */
   private String callSiteTypeDescriptor(int arity) {
     StringBuilder result = new StringBuilder();
     result.append("(");
     for (int i = 0; i < arity + 1; i++) {
-      result.append(NsObject.TYPE_DESCRIPTOR);
+      result
+          .append(Descriptor.OBJECT_TYPE_DESCRIPTOR)
+          .append(Descriptor.INT_TYPE_DESCRIPTOR);
     }
     result.append(")");
-    result.append(NsObject.TYPE_DESCRIPTOR);
+    result.append(Descriptor.OBJECT_TYPE_DESCRIPTOR);
     return result.toString();
-  }
-
-  private void unexpectedNode(AstNode node) {
-    throw new IllegalArgumentException("Unexpected node in a method AST: " + node);
-  }
-
-  private void unexpectedVisit(AstNode node) {
-    throw new IllegalArgumentException(
-        "This method AST node should not be visited directly: " + node);
-  }
-
-  private void unimplemented(AstNode node) {
-    throw new UnsupportedOperationException("Code generation is not yet implemented for " + node);
   }
 
   @Override
@@ -434,23 +599,15 @@ abstract class CodeGenerator implements AstNodeVisitor {
     unexpectedVisit(slotDefinition);
   }
 
-  /**
-   * Put a NIL value into each temp. Put an array of size 1 containing the NIL value
-   * into each temp which is supposed to be boxed.
-   */
-  protected void generateMethodPrologue() {
-    rootNode.scope().forEachTemp(each -> {
-      if (each.isBoxed()) {
-        methodWriter.visitTypeInsn(Opcodes.NEW, Box.INTERNAL_CLASS_NAME);
-        methodWriter.visitInsn(Opcodes.DUP);
-        methodWriter.visitMethodInsn(
-            Opcodes.INVOKESPECIAL,
-            Box.INTERNAL_CLASS_NAME,
-            "<init>",
-            "()V",
-            false);
-        methodWriter.visitVarInsn(Opcodes.ASTORE, each.index());
-      }
-    });
+  private void unexpectedNode(AstNode node) {
+    throw new IllegalArgumentException("Unexpected node in a method AST: " + node);
+  }
+
+  private void unexpectedVisit(AstNode node) {
+    throw new IllegalArgumentException("Unexpected direct visit of node: " + node);
+  }
+
+  private void unimplemented(AstNode node) {
+    throw new UnsupportedOperationException("Code generation is not yet implemented for " + node);
   }
 }

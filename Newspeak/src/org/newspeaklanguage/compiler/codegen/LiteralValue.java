@@ -16,8 +16,7 @@
 
 package org.newspeaklanguage.compiler.codegen;
 
-import org.newspeaklanguage.runtime.Builtins;
-import org.newspeaklanguage.runtime.NsObject;
+import org.newspeaklanguage.compiler.Descriptor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -89,7 +88,7 @@ abstract class LiteralValue implements StaticFieldDefiner {
     FieldVisitor fieldVisitor = classVisitor.visitField(
         Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
         fieldName,
-        NsObject.TYPE_DESCRIPTOR,
+        Descriptor.OBJECT_TYPE_DESCRIPTOR,
         null, null);
     fieldVisitor.visitEnd();
   }
@@ -101,7 +100,7 @@ abstract class LiteralValue implements StaticFieldDefiner {
         Opcodes.PUTSTATIC,
         className, 
         fieldName,
-        NsObject.TYPE_DESCRIPTOR);
+        Descriptor.OBJECT_TYPE_DESCRIPTOR);
   }
   
   protected abstract void generateValueCreation(MethodVisitor methodVisitor);
@@ -111,6 +110,6 @@ abstract class LiteralValue implements StaticFieldDefiner {
         Opcodes.GETSTATIC,
         className,
         fieldName,
-        NsObject.TYPE_DESCRIPTOR);
+        Descriptor.OBJECT_TYPE_DESCRIPTOR);
   }
 }

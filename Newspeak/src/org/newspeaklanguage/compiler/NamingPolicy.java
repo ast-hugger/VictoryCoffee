@@ -59,6 +59,10 @@ public final class NamingPolicy {
     return "$" + slotName;
   }
 
+  public static String fieldNameForPrimitiveSlot(String slotName) {
+    return "$" + slotName + "$int";
+  }
+
   /**
    * Given a Newspeak selector assumed to be a slot getter or setter, return the
    * name of the actual slot. The name is in the original unmangled form.

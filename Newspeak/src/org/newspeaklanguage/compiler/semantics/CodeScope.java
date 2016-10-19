@@ -77,7 +77,8 @@ public abstract class CodeScope extends Scope<CodeScopeEntry> {
   public void assignLocalVariableIndices() {
     int index = firstOwnVariableIndex();
     for (LocalVariable var : ownVariables) {
-      var.setIndex(index++);
+      var.setIndex(index);
+      index += 2; // each var gets 2 slots; one Object and one int
     }
   }
 

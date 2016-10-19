@@ -22,6 +22,7 @@ import org.newspeaklanguage.compiler.ast.AstNode;
 import org.newspeaklanguage.compiler.ast.Block;
 import org.newspeaklanguage.runtime.Builtins;
 import org.newspeaklanguage.runtime.NsObject;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -50,9 +51,21 @@ public class BlockGenerator extends CodeGenerator {
       for (AstNode each : body) {
         visit(each);
         if (++index != size) {
-          methodWriter.visitInsn(Opcodes.POP);
+          methodWriter.visitInsn(Opcodes.POP2);
         }
       }
+      // stack: Object, int
+      methodWriter.visitInsn(Opcodes.SWAP);
+      methodWriter.visitInsn(Opcodes.DUP); // stack: int, Object, Object
+      generateLoadUndefined(methodWriter); // stack: int, Object, Object, Undefined
+      Label objectPresent = new Label();
+      methodWriter.visitJumpInsn(Opcodes.IF_ACMPNE, objectPresent); // stack: int, Object
+      // Object undefined, int is the return value
+      methodWriter.visitInsn(Opcodes.POP); // stack: int
+      generateCreateReturnPrimitiveValue(methodWriter);
+      methodWriter.visitInsn(Opcodes.ATHROW);
+// objectPresent:
+      methodWriter.visitLabel(objectPresent); // stack: int, Object
     }
     methodWriter.visitInsn(Opcodes.ARETURN);
   }

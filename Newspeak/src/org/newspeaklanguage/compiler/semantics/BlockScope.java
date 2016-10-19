@@ -83,7 +83,8 @@ public class BlockScope extends CodeScope {
   public void assignLocalVariableIndices() {
     int index = 1;
     for (LocalVariable var : copiedVariables) {
-      var.setIndex(index++);
+      var.setIndex(index);
+      index += 2; // each gets two slots, one Object and one int
     }
     super.assignLocalVariableIndices();
   }
@@ -91,10 +92,14 @@ public class BlockScope extends CodeScope {
   public void forEachBoxedTemp(Consumer<LocalVariable> action) {
     ownVariables.stream().filter(LocalVariable::isBoxed).forEach(action);
   }
-  
+
+  /**
+   * Return the method frame slot index available for the first variable actually defined
+   * by this scope. Variables of this scope come after the arguments allocated for copied values.
+   */
   @Override
   protected int firstOwnVariableIndex() {
-    return copiedVariables.size() + 1;
+    return copiedVariables.size() * 2 + 1;
   }
 
   // visible for testing
