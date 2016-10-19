@@ -32,7 +32,7 @@ public class TryFibonacci {
 + ")                   \n"
 + "('testing'          \n"
 + "main = (            \n"
-+ "  ^(fib: 30) printString  \n"
++ "  ^(fib: 26) printString  \n"
 + ")  "
 + "fib: n = ("
 + "^n < 2 ifTrue: [1] ifFalse: [(fib: n - 1) + (fib: n - 2)]) \n"
