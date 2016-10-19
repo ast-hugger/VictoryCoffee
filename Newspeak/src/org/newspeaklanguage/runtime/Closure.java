@@ -27,21 +27,23 @@ import java.lang.invoke.MethodHandles;
 public class Closure extends StandardObject {
 
   public static final String INTERNAL_CLASS_NAME = Descriptor.internalClassName(Closure.class);
-  public static final int MAX_POSITIONAL_ARGC = 4;
+  public static final int MAX_POSITIONAL_COPIED_VALUES = 4;
 
   /**
    * Return a descriptor string for a Closure constructor that will accept the specified
    * number of copied values (in addition to the copied self which is always present).
    */
-  public static String constructorDescriptor(int copiedArgCount) {
+  public static String constructorDescriptor(int copiedValueCount) {
     StringBuilder builder = new StringBuilder(100);
     builder
         .append("(")
         .append(Descriptor.ofType(MethodHandle.class))
         .append(Descriptor.ofType(StandardObject.class));
-    if (copiedArgCount <= MAX_POSITIONAL_ARGC) {
-      for (int i = 0; i < copiedArgCount; i++) {
-        builder.append(Descriptor.OBJECT_TYPE_DESCRIPTOR);
+    if (copiedValueCount <= MAX_POSITIONAL_COPIED_VALUES) {
+      for (int i = 0; i < copiedValueCount; i++) {
+        builder
+            .append(Descriptor.OBJECT_TYPE_DESCRIPTOR)
+            .append(Descriptor.INT_TYPE_DESCRIPTOR);
       }
     } else {
       builder.append("[").append(Descriptor.OBJECT_TYPE_DESCRIPTOR);
@@ -65,22 +67,24 @@ public class Closure extends StandardObject {
     this(implMethodHandle.bindTo(copiedSelf));
   }
 
-  public Closure(MethodHandle implMethodHandle, StandardObject copiedSelf, Object copied1) {
-    this(MethodHandles.insertArguments(implMethodHandle, 0, copiedSelf, copied1));
+  public Closure(MethodHandle implMethodHandle, StandardObject copiedSelf,
+                 Object copied1, int int1) {
+    this(MethodHandles.insertArguments(implMethodHandle, 0, copiedSelf, copied1, int1));
   }
 
-  public Closure(MethodHandle implMethodHandle, StandardObject copiedSelf, Object copied1, Object copied2) {
-    this(MethodHandles.insertArguments(implMethodHandle, 0, copiedSelf, copied1, copied2));
+  public Closure(MethodHandle implMethodHandle, StandardObject copiedSelf,
+                 Object copied1, int int1, Object copied2, int int2) {
+    this(MethodHandles.insertArguments(implMethodHandle, 0, copiedSelf, copied1, int1, copied2, int2));
   }
 
-  public Closure(MethodHandle implMethodHandle, StandardObject copiedSelf, Object copied1, Object copied2,
-                 Object copied3) {
-    this(MethodHandles.insertArguments(implMethodHandle, 0, copiedSelf, copied1, copied2, copied3));
+  public Closure(MethodHandle implMethodHandle, StandardObject copiedSelf,
+                 Object copied1, int int1, Object copied2, int int2, Object copied3, int int3) {
+    this(MethodHandles.insertArguments(implMethodHandle, 0, copiedSelf, copied1, int1, copied2, int2, copied3, int3));
   }
 
-  public Closure(MethodHandle implMethodHandle, StandardObject copiedSelf, Object copied1, Object copied2,
-                 Object copied3, Object copied4) {
-    this(MethodHandles.insertArguments(implMethodHandle, 0, copiedSelf, copied1, copied2, copied3, copied4));
+  public Closure(MethodHandle implMethodHandle, StandardObject copiedSelf,
+                 Object copied1, int int1, Object copied2, int int2, Object copied3, int int3, Object copied4, int int4) {
+    this(MethodHandles.insertArguments(implMethodHandle, 0, copiedSelf, copied1, int1, copied2, int2, copied3, int3, copied4, int4));
   }
 
   public Closure(MethodHandle implMethodHandle, StandardObject copiedSelf, Object... copiedValues) {
@@ -93,10 +97,10 @@ public class Closure extends StandardObject {
   private Closure(MethodHandle alreadyBoundHandle) {
     super(null);// TODO set up a class object and pass it in
     this.implementation = alreadyBoundHandle;
-    this.arity = alreadyBoundHandle.type().parameterCount();
+    this.arity = alreadyBoundHandle.type().parameterCount() / 2;
   }
 
-  public Object $value() {
+  public Object $value(int unused) {
     if (arity != 0) {
       throw new RuntimeError("this closure expects " + arity + " arguments, but was called with 0");
     }
@@ -107,45 +111,45 @@ public class Closure extends StandardObject {
     }
   }
 
-  public Object $value$(Object arg) {
+  public Object $value$(int unused, Object arg1, int int1) {
     if (arity != 1) {
       throw new RuntimeError("this closure expects " + arity + " arguments, but was called with 1");
     }
     try {
-      return implementation.invokeExact(arg);
+      return implementation.invokeExact(arg1, int1);
     } catch (Throwable e) {
       throw new RuntimeError("closure invocation error", e);
     }
   }
 
-  public Object $value$value$(Object arg1, Object arg2) {
+  public Object $value$value$(int unused, Object arg1, int int1, Object arg2, int int2) {
     if (arity != 2) {
       throw new RuntimeError("this closure expects " + arity + " arguments, but was called with 2");
     }
     try {
-      return implementation.invokeExact(arg1, arg2);
+      return implementation.invokeExact(arg1, int1, arg2, int2);
     } catch (Throwable e) {
       throw new RuntimeError("closure invocation error", e);
     }
   }
 
-  public Object $value$value$value$(Object arg1, Object arg2, Object arg3) {
+  public Object $value$value$value$(int unused, Object arg1, int int1, Object arg2, int int2, Object arg3, int int3) {
     if (arity != 3) {
       throw new RuntimeError("this closure expects " + arity + " arguments, but was called with 3");
     }
     try {
-      return implementation.invokeExact(arg1, arg2, arg3);
+      return implementation.invokeExact(arg1, int1, arg2, int2, arg3, int3);
     } catch (Throwable e) {
       throw new RuntimeError("closure invocation error", e);
     }
   }
 
-  public Object $value$value$value$value$(Object arg1, Object arg2, Object arg3, Object arg4) {
+  public Object $value$value$value$value$(int unused, Object arg1, int int1, Object arg2, int int2, Object arg3, int int3, Object arg4, int int4) {
     if (arity != 4) {
       throw new RuntimeError("this closure expects " + arity + " arguments, but was called with 4");
     }
     try {
-      return implementation.invokeExact(arg1, arg2, arg3, arg4);
+      return implementation.invokeExact(arg1, int1, arg2, int2, arg3, int3, arg4, int4);
     } catch (Throwable e) {
       throw new RuntimeError("closure invocation error", e);
     }

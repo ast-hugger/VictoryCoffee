@@ -60,15 +60,16 @@ public class BlockDefiner implements StaticFieldDefiner {
   
   public String descriptor() {
     StringBuilder builder = new StringBuilder(200);
-    String nsObject = Descriptor.OBJECT_TYPE_DESCRIPTOR;
     builder.append("(");
     int totalArgCount = blockNode.scope().asBlockScope().copiedVariableCount() + blockNode.arity();
     for (int i = 0; i < totalArgCount; i++ ) {
-      builder.append(nsObject);
+      builder
+          .append(Descriptor.OBJECT_TYPE_DESCRIPTOR)
+          .append(Descriptor.INT_TYPE_DESCRIPTOR);
     }
     builder
         .append(")")
-        .append(nsObject);
+        .append(Descriptor.OBJECT_TYPE_DESCRIPTOR);
     return builder.toString();
   }
 

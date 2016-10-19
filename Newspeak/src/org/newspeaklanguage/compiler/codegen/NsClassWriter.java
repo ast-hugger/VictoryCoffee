@@ -14,26 +14,22 @@
  * limitations under the License.
  */
 
-package org.newspeaklanguage.compiler.semantics;
+package org.newspeaklanguage.compiler.codegen;
 
-import org.newspeaklanguage.compiler.ast.Method;
+import org.newspeaklanguage.compiler.Descriptor;
+import org.objectweb.asm.ClassWriter;
 
-public class MethodScope extends CodeScope {
+/**
+ * @author Vassili Bykov <newspeakbigot@gmail.com>
+ */
+public class NsClassWriter extends ClassWriter {
 
-  MethodScope(Method definition, Scope<? extends ScopeEntry> parent) {
-    super(definition, parent);
+  public NsClassWriter(int flags) {
+    super(flags);
   }
 
   @Override
-  public boolean isMethodScope() { return true; }
-
-  @Override
-  public CodeScope methodScope() {
-    return this;
-  }
-
-  @Override
-  protected int firstOwnVariableIndex() {
-    return 2; // local 1 is the bogus intReceiver
+  protected String getCommonSuperClass(String name1, String name2) {
+    return Descriptor.OBJECT_INTERNAL_CLASS_NAME; // keep it simple, stupid
   }
 }

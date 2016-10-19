@@ -154,6 +154,8 @@ abstract class CodeGenerator implements AstNodeVisitor {
             false);
         methodWriter.visitVarInsn(Opcodes.ASTORE, each.index());
       }
+      generateLoadInt(methodWriter, 0);
+      methodWriter.visitVarInsn(Opcodes.ISTORE, each.index() + 1);
     });
   }
 
@@ -180,21 +182,34 @@ abstract class CodeGenerator implements AstNodeVisitor {
         Descriptor.ofType(MethodHandle.class));
     // push the current receiver
     methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
+    // No need to push a bogus int; Closure constructors are not general purpose methods
+    // and they don't have a leading int receiver argument.
     // push all copied values
-    if (copiedValueCount <= Closure.MAX_POSITIONAL_ARGC) {
+    if (copiedValueCount <= Closure.MAX_POSITIONAL_COPIED_VALUES) {
       block.scope().asBlockScope().forEachCopiedVariable(each -> {
         LocalVariable here = rootNode.scope().localVariableNamed(each.name()).get(); // must be found or the analyzer is broken
         methodWriter.visitVarInsn(Opcodes.ALOAD, here.index());
+        methodWriter.visitVarInsn(Opcodes.ILOAD, here.index() + 1);
       });
     } else {
-      generateLoadInt(methodWriter, copiedValueCount);
+      generateLoadInt(methodWriter, copiedValueCount * 2);
       methodWriter.visitTypeInsn(Opcodes.ANEWARRAY, Descriptor.OBJECT_INTERNAL_CLASS_NAME);
       int i = 0;
       for (LocalVariable copied : block.scope().asBlockScope().copiedVariables()) {
+        LocalVariable here = rootNode.scope().localVariableNamed(copied.name()).get(); // must be found or the analyzer is broken
         methodWriter.visitInsn(Opcodes.DUP);
         generateLoadInt(methodWriter, i++);
-        LocalVariable here = rootNode.scope().localVariableNamed(copied.name()).get(); // must be found or the analyzer is broken
         methodWriter.visitVarInsn(Opcodes.ALOAD, here.index());
+        methodWriter.visitInsn(Opcodes.AASTORE);
+        methodWriter.visitInsn(Opcodes.DUP);
+        generateLoadInt(methodWriter, i++);
+        methodWriter.visitVarInsn(Opcodes.ILOAD, here.index() + 1);
+        methodWriter.visitMethodInsn(
+            Opcodes.INVOKESTATIC,
+            Descriptor.internalClassName(Integer.class),
+            "valueOf",
+            Descriptor.ofMethod(Integer.class, int.class),
+            false);
         methodWriter.visitInsn(Opcodes.AASTORE);
       }
     }
@@ -204,6 +219,8 @@ abstract class CodeGenerator implements AstNodeVisitor {
         "<init>",
         Closure.constructorDescriptor(copiedValueCount),
         false);
+    // the closure is now on the stack, add a bogus intReceiver
+    generateLoadInt(methodWriter, 0);
   }
 
   @Override
@@ -346,44 +363,37 @@ abstract class CodeGenerator implements AstNodeVisitor {
       // should also pop the send result once we are done.
     } else {
       generateLoadOfEnclosingObject(scopeLevel);
+      generateLoadInt(methodWriter, 0);
       messageNode.arguments().forEach(this::visit);
     }
     // do the send
-    Label start = new Label();
     Label objectResult = new Label();
-    Label handler = new Label();
-    methodWriter.visitTryCatchBlock(start, objectResult, handler, ReturnPrimitiveValue.INTERNAL_CLASS_NAME);
-// start:
-    methodWriter.visitLabel(start);
+    Label end = new Label();
     methodWriter.visitInvokeDynamicInsn(
         NamingPolicy.methodNameForSelector(messageNode.selector()),
         callSiteTypeDescriptor(messageNode.arity()),
         MessageDispatcher.bootstrapHandle());
-// objectResult:
-    methodWriter.visitLabel(objectResult); // a real object is on the stack; add a bogus int
-    if (!isSetterSend) {
-      generateLoadInt(methodWriter, 0);
-    } // if a setter send we don't care, the stack is popped anyway to reveal the answer pair
-    Label end = new Label();
-    methodWriter.visitJumpInsn(Opcodes.GOTO, end);
-// handler:
-    methodWriter.visitLabel(handler);
-    // if not a setter send, produce a proper value pair from the int in the exception
-    // if a setter send, we don't care. The stack will be popped anyway
-    if (!isSetterSend) {
+    if (isSetterSend) {
+      methodWriter.visitInsn(Opcodes.POP);
+    } else {
+      methodWriter.visitInsn(Opcodes.DUP);
+      methodWriter.visitTypeInsn(Opcodes.INSTANCEOF, ReturnPrimitiveValue.INTERNAL_CLASS_NAME);
+      methodWriter.visitJumpInsn(Opcodes.IFEQ, objectResult);
+      // the result is a ReturnPrimitiveValue wrapper
+      methodWriter.visitTypeInsn(Opcodes.CHECKCAST, ReturnPrimitiveValue.INTERNAL_CLASS_NAME);
       methodWriter.visitFieldInsn(
           Opcodes.GETFIELD,
           ReturnPrimitiveValue.INTERNAL_CLASS_NAME,
           "value",
           Descriptor.INT_TYPE_DESCRIPTOR);
-      generateLoadUndefined(methodWriter); // stack: int, Object
+      generateLoadUndefined(methodWriter);
       methodWriter.visitInsn(Opcodes.SWAP);
-    }
+      methodWriter.visitJumpInsn(Opcodes.GOTO, end);
+// objectResult:
+      methodWriter.visitLabel(objectResult); // object is on the stack; add a bogus int
+      generateLoadInt(methodWriter, 0);
 // end:
-    methodWriter.visitLabel(end);
-    if (isSetterSend) {
-      // Pop the answer; the copy of the argument pair is now exposed as the result.
-      methodWriter.visitInsn(Opcodes.POP);
+      methodWriter.visitLabel(end);
     }
   }
 
@@ -393,7 +403,7 @@ abstract class CodeGenerator implements AstNodeVisitor {
    * {@code this} is an instance of a StandardClass subclass, so no
    * CHECKCAST is needed prior to getting its nsClass.
    * <p>
-   *   Note: this only loads the enclosing object, not a full object/int value pair.
+   * Note: this only loads the enclosing object, not the full object/int value pair.
    */
   private void generateLoadOfEnclosingObject(int level) {
     methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
@@ -432,41 +442,33 @@ abstract class CodeGenerator implements AstNodeVisitor {
       messageSend.arguments().forEach(this::visit);
     }
     // do the send
-    Label start = new Label();
     Label objectResult = new Label();
-    Label handler = new Label();
-    methodWriter.visitTryCatchBlock(start, objectResult, handler, ReturnPrimitiveValue.INTERNAL_CLASS_NAME);
-// start:
-    methodWriter.visitLabel(start);
+    Label end = new Label();
     methodWriter.visitInvokeDynamicInsn(
         NamingPolicy.methodNameForSelector(messageSend.selector()),
         callSiteTypeDescriptor(messageSend.arguments().size()),
         MessageDispatcher.bootstrapHandle());
-// objectResult:
-    methodWriter.visitLabel(objectResult); // object is on the stack; add a bogus int
-    if (!isSetterSend) {
-      generateLoadInt(methodWriter, 0);
-    }
-    Label end = new Label();
-    methodWriter.visitJumpInsn(Opcodes.GOTO, end);
-// handler:
-    methodWriter.visitLabel(handler);
-    // if not a setter send, produce a proper value pair from the int in the exception
-    // if a setter send, we don't care. The stack will be popped anyway
-    if (!isSetterSend) {
+    if (isSetterSend) {
+      methodWriter.visitInsn(Opcodes.POP);
+    } else {
+      methodWriter.visitInsn(Opcodes.DUP);
+      methodWriter.visitTypeInsn(Opcodes.INSTANCEOF, ReturnPrimitiveValue.INTERNAL_CLASS_NAME);
+      methodWriter.visitJumpInsn(Opcodes.IFEQ, objectResult);
+      // the result is a ReturnPrimitiveValue wrapper
+      methodWriter.visitTypeInsn(Opcodes.CHECKCAST, ReturnPrimitiveValue.INTERNAL_CLASS_NAME);
       methodWriter.visitFieldInsn(
           Opcodes.GETFIELD,
           ReturnPrimitiveValue.INTERNAL_CLASS_NAME,
           "value",
           Descriptor.INT_TYPE_DESCRIPTOR);
-      generateLoadUndefined(methodWriter); // stack: int, Object
+      generateLoadUndefined(methodWriter);
       methodWriter.visitInsn(Opcodes.SWAP);
-    }
+      methodWriter.visitJumpInsn(Opcodes.GOTO, end);
+// objectResult:
+      methodWriter.visitLabel(objectResult); // object is on the stack; add a bogus int
+      generateLoadInt(methodWriter, 0);
 // end:
-    methodWriter.visitLabel(end);
-    if (isSetterSend) {
-      // Pop the answer; the copy of the argument pair is now exposed as the result.
-      methodWriter.visitInsn(Opcodes.POP);
+      methodWriter.visitLabel(end);
     }
   }
 
@@ -482,29 +484,28 @@ abstract class CodeGenerator implements AstNodeVisitor {
     for (AstNode arg : sendNode.arguments()) {
       arg.accept(this);
     }
-    Label start = new Label();
     Label objectResult = new Label();
-    Label handler = new Label();
-    methodWriter.visitTryCatchBlock(start, objectResult, handler, ReturnPrimitiveValue.INTERNAL_CLASS_NAME);
-    methodWriter.visitLabel(start);
+    Label end = new Label();
     methodWriter.visitInvokeDynamicInsn(
         NamingPolicy.methodNameForSelector(sendNode.selector()),
         callSiteTypeDescriptor(sendNode.arguments().size()),
-        MessageDispatcher.bootstrapHandle());
-// objectResult:
-    methodWriter.visitLabel(objectResult); // object is on the stack; add a bogus int
-    generateLoadInt(methodWriter, 0);
-    Label end = new Label();
-    methodWriter.visitJumpInsn(Opcodes.GOTO, end);
-// handler:
-    methodWriter.visitLabel(handler); // exception with the int result is on the stack
+        MessageDispatcher.bootstrapHandle()); // stack: Object
+    methodWriter.visitInsn(Opcodes.DUP); // stack: Object, Object
+    methodWriter.visitTypeInsn(Opcodes.INSTANCEOF, ReturnPrimitiveValue.INTERNAL_CLASS_NAME); // stack: Object, int
+    methodWriter.visitJumpInsn(Opcodes.IFEQ, objectResult); // stack: Object
+    // the result is a ReturnPrimitiveValue wrapper
+    methodWriter.visitTypeInsn(Opcodes.CHECKCAST, ReturnPrimitiveValue.INTERNAL_CLASS_NAME);
     methodWriter.visitFieldInsn(
         Opcodes.GETFIELD,
         ReturnPrimitiveValue.INTERNAL_CLASS_NAME,
         "value",
-        Descriptor.INT_TYPE_DESCRIPTOR);
+        Descriptor.INT_TYPE_DESCRIPTOR); // stack: int
     generateLoadUndefined(methodWriter); // stack: int, Object
-    methodWriter.visitInsn(Opcodes.SWAP);
+    methodWriter.visitInsn(Opcodes.SWAP); // stack: Object, int
+    methodWriter.visitJumpInsn(Opcodes.GOTO, end);
+// objectResult:
+    methodWriter.visitLabel(objectResult); // stack: Object
+    generateLoadInt(methodWriter, 0); // stack: Object, int
 // end:
     methodWriter.visitLabel(end);
   }
@@ -553,8 +554,8 @@ abstract class CodeGenerator implements AstNodeVisitor {
     methodWriter.visitJumpInsn(Opcodes.IF_ACMPNE, objectPresent); // stack: int, Object
     // Object undefined, int is the return value
     methodWriter.visitInsn(Opcodes.POP); // stack: int
-    generateCreateReturnPrimitiveValue(methodWriter);
-    methodWriter.visitInsn(Opcodes.ATHROW);
+    methodWriter.visitInsn(Opcodes.DUP); // need to have the same stack signature at the objectPresent join
+    generateCreateReturnPrimitiveValue(methodWriter); // stack: int, Object
 // objectPresent:
     methodWriter.visitLabel(objectPresent);
     methodWriter.visitInsn(Opcodes.ARETURN);

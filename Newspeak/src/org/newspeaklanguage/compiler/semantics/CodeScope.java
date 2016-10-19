@@ -109,9 +109,7 @@ public abstract class CodeScope extends Scope<CodeScopeEntry> {
     ownVariableNamed(name).get().setIsBoxed(true);
   }
 
-  protected int firstOwnVariableIndex() {
-    return 1;
-  }
+  protected abstract int firstOwnVariableIndex();
 
   @Override
   protected CodeScopeEntry createScopeEntry(String name) {

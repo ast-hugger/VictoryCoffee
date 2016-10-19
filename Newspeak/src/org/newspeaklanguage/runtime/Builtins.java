@@ -73,8 +73,8 @@ public final class Builtins {
     public static Object $ifTrue$ifFalse$(Object self, int unused, Object trueBlock, int unused2, Object falseBlock, int unused3) {
       // FIXME this will barf if the blocks are not blocks, but not with an informative message
       return ((Boolean) self)
-          ? ((Closure) trueBlock).$value()
-          : ((Closure) falseBlock).$value();
+          ? ((Closure) trueBlock).$value(0)
+          : ((Closure) falseBlock).$value(0);
     }
 
     public static Object $printString(Object self, int unused) {
@@ -88,12 +88,12 @@ public final class Builtins {
 
     public static Object $$plus(Object unused, int self, Object arg, int intArg) {
       int result = self + (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue());
-      throw ReturnPrimitiveValue.create(result);
+      return ReturnPrimitiveValue.create(result);
     }
 
     public static Object $$minus(Object unused, int self, Object arg, int intArg) {
       int result = self - (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue());
-      throw ReturnPrimitiveValue.create(result);
+      return ReturnPrimitiveValue.create(result);
     }
 
     public static Object $$lt(Object unused, int self, Object arg, int intArg) {

@@ -24,7 +24,7 @@ import org.newspeaklanguage.compiler.Descriptor;
  *
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  */
-public final class ReturnPrimitiveValue extends RuntimeException {
+public final class ReturnPrimitiveValue {
 
   public static final String INTERNAL_CLASS_NAME = Descriptor.internalClassName(ReturnPrimitiveValue.class);
   public static final String FACTORY_DESCRIPTOR = Descriptor.ofMethod(ReturnPrimitiveValue.class, int.class);

@@ -124,8 +124,9 @@ public class ObjectFactory extends StandardObject {
       throw new IllegalStateException("object creation failed");
     }
   }
-  
-  public Object $new() {
+
+  @SuppressWarnings("unused") // called by generated code
+  public Object $new(int unused) {
     return makeInstance();
   }
 }

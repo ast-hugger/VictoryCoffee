@@ -58,7 +58,7 @@ public class ClassGenerator {
   
   private final ClassDecl classNode;
   private final String internalClassName;
-  private final ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES /*| ClassWriter.COMPUTE_MAXS */);
+  private final ClassWriter classWriter = new NsClassWriter(ClassWriter.COMPUTE_FRAMES);
   private final Map<java.lang.Object, LiteralValue> literals = new HashMap<java.lang.Object, LiteralValue>();
   private final List<StaticFieldDefiner> staticFieldDefiners = new LinkedList<StaticFieldDefiner>();
   
@@ -159,22 +159,22 @@ public class ClassGenerator {
         NamingPolicy.fieldNameForSlot(slot.name()),
         Descriptor.OBJECT_TYPE_DESCRIPTOR);
     methodWriter.visitInsn(Opcodes.DUP);
-    CodeGenerator.generateLoadUndefined(methodWriter);
+    CodeGenerator.generateLoadUndefined(methodWriter); // stack: Object, Object, Undefined
     Label objectPresent = new Label();
-    methodWriter.visitJumpInsn(Opcodes.IF_ACMPNE, objectPresent);
+    methodWriter.visitJumpInsn(Opcodes.IF_ACMPNE, objectPresent); // stack: Object
     // the real value is in the primitive int field
+    methodWriter.visitInsn(Opcodes.POP); // remove so stacks match at the objectPresent join
+    methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
     methodWriter.visitFieldInsn(
         Opcodes.GETFIELD,
         toInternalFormat(classNode.implementationClassName()),
         NamingPolicy.fieldNameForPrimitiveSlot(slot.name()),
         Descriptor.INT_TYPE_DESCRIPTOR);
     CodeGenerator.generateCreateReturnPrimitiveValue(methodWriter);
-    methodWriter.visitInsn(Opcodes.ATHROW);
 // objectPresent:
     methodWriter.visitLabel(objectPresent);
-    // the value to return is already on the stack
     methodWriter.visitInsn(Opcodes.ARETURN);
-    methodWriter.visitMaxs(-1, -1); // args ignored
+    methodWriter.visitMaxs(0, 0); // args ignored
     methodWriter.visitEnd();
   }
 
@@ -202,7 +202,7 @@ public class ClassGenerator {
         NamingPolicy.fieldNameForSlot(slot.name()),
         Descriptor.OBJECT_TYPE_DESCRIPTOR);
     // store the int part
-    methodVisitor.visitVarInsn(Opcodes.ALOAD, 3);
+    methodVisitor.visitVarInsn(Opcodes.ILOAD, 3);
     methodVisitor.visitFieldInsn(
         Opcodes.PUTFIELD,
         toInternalFormat(classNode.implementationClassName()),
