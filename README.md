@@ -1,6 +1,6 @@
 # Victory Coffee #
 
-An implementation of Newspeak on the JVM.
+An implementation of Newspeak on the JVM. No truffles, just raw invokedynamic.
 
 This is a proof-of-concept prototype implementing a subset of Newspeak more or less as it existed at Cadence in late 2008. It has class nesting but not mixins.
 
