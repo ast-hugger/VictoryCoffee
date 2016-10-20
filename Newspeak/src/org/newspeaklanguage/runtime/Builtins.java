@@ -76,6 +76,12 @@ public final class Builtins {
           : ((Closure) falseBlock).$value();
     }
 
+    public static Object $ifTrue$(Object self, Object trueBlock) {
+      return ((Boolean) self)
+          ? ((Closure) trueBlock).$value()
+          : null;
+    }
+
     public static Object $printString(Object self) {
       return ((Boolean) self)
           ? "<true>"
