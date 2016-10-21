@@ -147,7 +147,7 @@ public class ClassGenerator {
    */
   private void generateSlotGetter(SlotDefinition slot) {
     MethodVisitor methodWriter = classWriter.visitMethod(
-        Opcodes.ACC_PUBLIC,
+        Opcodes.ACC_PUBLIC | Opcodes.ACC_SYNTHETIC,
         NamingPolicy.getterMethodNameForSlot(slot.name()),
         GETTER_DESCRIPTOR,
         null, null);
@@ -187,7 +187,7 @@ public class ClassGenerator {
    */
   private void generateSlotSetter(SlotDefinition slot) {
     MethodVisitor methodVisitor = classWriter.visitMethod(
-        Opcodes.ACC_PUBLIC,
+        Opcodes.ACC_PUBLIC | Opcodes.ACC_SYNTHETIC,
         NamingPolicy.setterMethodNameForSlot(slot.name()),
         SETTER_DESCRIPTOR,
         null, null);
