@@ -1,0 +1,12 @@
+class App = ()
+(
+    'testing'
+    main = (
+        ^(fib: 26) printString
+    )
+    fib: n = (
+        ^n < 2
+            ifTrue: [1]
+            ifFalse: [(fib: n - 1) + (fib: n - 2)]
+    )
+)

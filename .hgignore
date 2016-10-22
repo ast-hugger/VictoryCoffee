@@ -7,6 +7,7 @@ syntax: glob
 
 Newspeak/bin
 Tests/bin
+build/
 .classpath
 .project
 .settings

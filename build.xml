@@ -1,0 +1,63 @@
+<project name="VictoryCoffee" default="compile">
+
+    <!-- Make sure this points at the dir with 3rd party jars and names them correctly -->
+
+    <property name="lib.dir"     value="../java"/>
+
+    <path id="classpath">
+        <fileset dir="${lib.dir}">
+            <include name="antlr-4.5.3-complete.jar"/>
+            <include name="asm-5.1/lib/asm-5.1.jar"/>
+        </fileset>
+    </path>
+
+
+    <property name="src.dir"     value="Newspeak/src"/>
+    <property name="test.dir"    value="Tests/src"/>
+    <property name="build.dir"   value="build"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="jar.dir"     value="${build.dir}/jar"/>
+    <property name="grammar.dir" value="${src.dir}/org/newspeaklanguage/compiler/parser"/>
+    <property name="main-class"  value="org.newspeaklanguage.apps.Runner"/>
+
+    <target name="compile" depends="genparser">
+        <mkdir dir="${classes.dir}"/>
+        <javac includeantruntime="false" srcdir="${src.dir}" destdir="${classes.dir}" classpathref="classpath" />
+    </target>
+
+    <target name="genparser" depends="parser-uptodate" unless="uptodate">
+        <java classname="org.antlr.v4.Tool" fork="true" failonerror="true" dir="${grammar.dir}">
+            <arg value="Newspeak.g4"/>
+            <arg value="-visitor"/>
+            <arg value="-no-listener"/>
+            <classpath>
+                <pathelement location="${lib.dir}/antlr-4.5.3-complete.jar"/>
+            </classpath>
+        </java>
+    </target>
+
+    <target name="parser-uptodate">
+        <uptodate srcfile="${grammar.dir}/Newspeak.g4" property="uptodate">
+            <mergemapper to="${grammar.dir}/NewspeakParser.java"/>
+        </uptodate>
+    </target>
+
+    <!-- doesn't work right yet -->
+    <target name="jar" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${build.dir}/${ant.project.name}.jar"
+             basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${main-class}"/>
+            </manifest>
+            <fileset dir="${classes.dir}" includes="**/*.class" />
+            <zipfileset src="${lib.dir}/antlr-4.5.3-complete.jar" />
+            <zipfileset src="${lib.dir}/asm-5.1/lib/asm-5.1.jar" />
+        </jar>
+    </target>
+
+    <target name="clean">
+        <delete dir="build"/>
+    </target>
+
+</project>
