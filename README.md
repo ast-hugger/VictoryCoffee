@@ -1,5 +1,7 @@
 # Victory Coffee #
 
+>'Half a second,' she said. 'Just let me show you what I've brought. Did you bring some of that filthy Victory Coffee? I thought you would. You can chuck it away again, because we shan't be needing it. Look here.' 
+
 An implementation of Newspeak on the JVM. No truffles, just raw
 invokedynamic.
 
@@ -56,5 +58,3 @@ to compile everything and build a compiler app. Then run
 
 to compile and run the Fibonacci example. Which is about as far as the included runtime
 library will take you.
-
-
