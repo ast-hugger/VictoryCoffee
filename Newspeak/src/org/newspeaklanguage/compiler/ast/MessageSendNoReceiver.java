@@ -18,7 +18,7 @@ package org.newspeaklanguage.compiler.ast;
 
 import java.util.List;
 
-import org.newspeaklanguage.compiler.semantics.NameMeaning;
+import org.newspeaklanguage.compiler.semantics.RewrittenNodeVisitor;
 
 /**
  * A message send with implicit receiver. This includes what would count as slot references.
@@ -32,9 +32,9 @@ public class MessageSendNoReceiver extends AstNode {
   protected final List<AstNode> arguments;
   protected final boolean isSetterSend;
   
-  private NameMeaning meaning;
+  private AstNode rewritten;
 
-  public MessageSendNoReceiver(String selector, List<AstNode> arguments, boolean isSetterSend) {
+  public MessageSendNoReceiver(String selector, boolean isSetterSend, List<AstNode> arguments) {
     this.selector = selector;
     this.arguments = arguments;
     this.isSetterSend = isSetterSend;
@@ -57,25 +57,33 @@ public class MessageSendNoReceiver extends AstNode {
   public boolean isName() {
     return arity() == 0;
   }
-  
-  public NameMeaning meaning() {
-    return meaning;
+
+  public AstNode rewritten() {
+    return rewritten;
   }
 
-  public void setMeaning(NameMeaning meaning) {
-    assert this.meaning == null;
-    this.meaning = meaning;
+  public void setRewritten(AstNode rewrittenNode) {
+    this.rewritten = rewrittenNode;
   }
   
   @Override
   public void accept(AstNodeVisitor visitor) {
     visitor.visitMessageSendNoReceiver(this);
   }
+
+  @Override
+  public void accept(RewrittenNodeVisitor visitor) {
+    if (rewritten != null) {
+      rewritten.accept(visitor);
+    } else {
+      super.accept(visitor);
+    }
+  }
   
   @Override
   public String toString() {
     return this.getClass().getSimpleName()
-        + "." + meaning
-        + "(" + selector + ")";
+        + "(" + selector + ")"
+        + "->" + rewritten;
   }
 }

@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.newspeaklanguage.compiler.ast;
+package org.newspeaklanguage.compiler.semantics;
 
-import org.newspeaklanguage.compiler.semantics.RewrittenNodeVisitor;
+import org.newspeaklanguage.compiler.ast.AstNodeVisitor;
 
-public abstract class AstNode {
-  
-  public abstract void accept(AstNodeVisitor visitor);
+/**
+ * @author Vassili Bykov <newspeakbigot@gmail.com>
+ */
+public interface RewrittenNodeVisitor extends AstNodeVisitor {
 
-  public void accept(RewrittenNodeVisitor visitor) {
-    accept((AstNodeVisitor) visitor);
-  }
-
+  void visitEnclosingObjectReference(EnclosingObjectReference enclosingObjectReference);
+  void visitVariableReference(VariableReference localVariableReference);
+  void visitVariableAssignment(VariableAssignment variableAssignment);
 }

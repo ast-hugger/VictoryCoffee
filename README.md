@@ -48,6 +48,11 @@ somewhere containing the following:
 In the `build.xml` file, fix the `{lib.dir}` property to point at that
 directory.
 
+Note that asm-5.1.jar is not in the library directory itself. You get
+this layout when downloading and unpacking the complete (with sources)
+distribution of ASM. If the jar is in the library directory itself,
+fix the paths in `build.xml` which reference it.
+
 Run
 
     ant jar

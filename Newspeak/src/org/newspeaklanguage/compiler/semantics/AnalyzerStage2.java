@@ -16,18 +16,22 @@
 
 package org.newspeaklanguage.compiler.semantics;
 
+import org.newspeaklanguage.compiler.NamingPolicy;
+import org.newspeaklanguage.compiler.ast.AstNode;
 import org.newspeaklanguage.compiler.ast.AstNodeVisitorSkeleton;
 import org.newspeaklanguage.compiler.ast.Block;
 import org.newspeaklanguage.compiler.ast.ClassDecl;
 import org.newspeaklanguage.compiler.ast.MessageSendNoReceiver;
+import org.newspeaklanguage.compiler.ast.MessageSendWithReceiver;
 import org.newspeaklanguage.compiler.ast.Method;
 import org.newspeaklanguage.compiler.ast.NameDefinition;
 import org.newspeaklanguage.compiler.ast.Outer;
+import org.newspeaklanguage.compiler.ast.Self;
 
 /**
- * A visitor for the AST which populates name references
- * ({@link MessageSendNoReceiver} nodes) with their meanings. The AST must have
- * been previously visited by a {@link AnalyzerStage1}.
+ * A visitor for the AST which is mostly concerned with rewriting {@link MessageSendNoReceiver} nodes
+ * to something that reflects their meaning. The AST must have been previously visited by an
+ * {@link AnalyzerStage1}.
  *
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
@@ -100,62 +104,38 @@ public class AnalyzerStage2 extends AstNodeVisitorSkeleton {
   @Override
   public void visitMessageSendNoReceiver(MessageSendNoReceiver messageSend) {
     ScopeEntry lexicalDef = currentScope.lookup(messageSend.selector());
-
-    NameMeaning meaning;
     if (lexicalDef == null) {
-      meaning = new SelfSend();
+      // no lexically visible definition; this is a self send
+      messageSend.setRewritten(rewriteWithReceiver(messageSend, new Self()));
     } else {
-      if (lexicalDef.isImplementedAsLocalVar()) {
-        // if it's a local var, it's a CodeScopeEntry
-        meaning = new LexicalVarReference((CodeScopeEntry) lexicalDef, currentScope);
-        processLocalVarReference(messageSend, (LexicalVarReference) meaning);
+      if (lexicalDef.isImplementableAsLocalVariable()) {
+        AstNode rewritten;
+        if (NamingPolicy.isSetterSelector(messageSend.selector())) {
+          assert messageSend.arguments().size() == 1;
+          rewritten = new VariableAssignment(
+              messageSend.arguments().get(0),
+              messageSend.isSetterSend(),
+              (CodeScopeEntry) lexicalDef,
+              (CodeScope) currentScope);
+        } else {
+          assert messageSend.arguments().size() == 0;
+          rewritten = new VariableReference((CodeScopeEntry) lexicalDef, (CodeScope) currentScope);
+        }
+        messageSend.setRewritten(rewritten);
       } else if (!lexicalDef.scope().equals(nearestClassScope())) {
-        meaning = new SendToEnclosingObject(lexicalDef);
+        // a lexical reference to something outside of the current class
+        int level = lexicalDef.scope().level();
+        messageSend.setRewritten(rewriteWithReceiver(messageSend, new EnclosingObjectReference(level)));
       } else {
-        meaning = new SelfSend();
+        // a lexical reference to something in the current class
+        messageSend.setRewritten(rewriteWithReceiver(messageSend, new Self()));
       }
     }
-    messageSend.setMeaning(meaning);
     super.visitMessageSendNoReceiver(messageSend);
   }
 
-  private void processLocalVarReference(
-      MessageSendNoReceiver sendNode,
-      LexicalVarReference reference)
-  {
-    if (reference.isClean()) {
-      String varName = reference.definition().astNode().name();
-      LocalVariable var = ((CodeScope) currentScope).ownVariableNamed(varName).get();
-      reference.setLocalVariable(var);
-    } else {
-      processCopiedVariable(reference);
-    }
-  }
-
-  /**
-   * The argument is the meaning of a receiverless self send representing a
-   * reference to a lexically visible variable. It should be known as a copied
-   * variable to every scope from the current and up to (but not including) the
-   * defining scope. The local variable added to the current scope to represent
-   * it should be known to the meaning.
-   */
-  private void processCopiedVariable(LexicalVarReference reference) {
-    CodeScope definingScope = (CodeScope) reference.definition().scope();
-    CodeScope here = (CodeScope) currentScope;
-    NameDefinition varNode = reference.definition().astNode();
-    
-    LocalVariable var = ((BlockScope) here).registerCopiedVariable(varNode);
-    reference.setLocalVariable(var);
-    
-    here = (CodeScope) here.parent();
-    while (!here.equals(definingScope)) {
-      ((BlockScope) here).registerCopiedVariable(varNode);
-      here = (CodeScope) here.parent();
-    }
-
-    if (varNode.isMutable()) {
-      here.markVariableAsBoxed(varNode.name());
-    }
+  private MessageSendWithReceiver rewriteWithReceiver(MessageSendNoReceiver node, AstNode receiver) {
+    return new MessageSendWithReceiver(receiver, node.selector(), node.isSetterSend(), node.arguments());
   }
 
   private ClassScope nearestClassScope() {

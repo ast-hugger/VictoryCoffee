@@ -16,27 +16,32 @@
 
 package org.newspeaklanguage.compiler.semantics;
 
-import java.util.Optional;
+import org.newspeaklanguage.compiler.ast.AstNode;
 
-public class SendToEnclosingObject extends NameMeaning {
+/**
+ * @author Vassili Bykov <newspeakbigot@gmail.com>
+ */
+public class VariableAssignment extends VariableReference {
 
-  private final ScopeEntry definition;
+  private final AstNode expression;
+  private final boolean isPassThrough;
 
-  SendToEnclosingObject(ScopeEntry def) {
-    this.definition = def;
+  VariableAssignment(AstNode expression, boolean isPassThrough, CodeScopeEntry definition, CodeScope sourceScope) {
+    super(definition, sourceScope);
+    this.expression = expression;
+    this.isPassThrough = isPassThrough;
   }
 
-  public ScopeEntry definition() {
-    return definition;
+  public AstNode expression() {
+    return expression;
+  }
+
+  public boolean isPassThrough() {
+    return isPassThrough;
   }
 
   @Override
-  public Optional<ScopeEntry> lexicalDefinition() {
-    return Optional.of(definition);
-  }
-  
-  @Override
-  public boolean isSendToEnclosingObject() {
-    return true;
+  public void accept(RewrittenNodeVisitor visitor) {
+    visitor.visitVariableAssignment(this);
   }
 }

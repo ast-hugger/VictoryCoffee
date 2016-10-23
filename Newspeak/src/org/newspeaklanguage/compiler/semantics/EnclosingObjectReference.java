@@ -16,11 +16,31 @@
 
 package org.newspeaklanguage.compiler.semantics;
 
-public class SelfSend extends NameMeaning {
+import org.newspeaklanguage.compiler.ast.AstNode;
+import org.newspeaklanguage.compiler.ast.AstNodeVisitor;
 
-  @Override
-  public boolean isSelfSend() {
-    return true;
+/**
+ * @author Vassili Bykov <newspeakbigot@gmail.com>
+ */
+public class EnclosingObjectReference extends AstNode {
+
+  private final int scopeLevel;
+
+  EnclosingObjectReference(int scopeLevel) {
+    this.scopeLevel = scopeLevel;
   }
 
+  public int scopeLevel() {
+    return scopeLevel;
+  }
+
+  @Override
+  public void accept(AstNodeVisitor visitor) {
+    throw new IllegalArgumentException("This node should not be visited by a regular visitor");
+  }
+
+  @Override
+  public void accept(RewrittenNodeVisitor visitor) {
+    visitor.visitEnclosingObjectReference(this);
+  }
 }

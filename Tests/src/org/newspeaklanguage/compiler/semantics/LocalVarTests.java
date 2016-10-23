@@ -49,15 +49,15 @@ public class LocalVarTests {
     MessageSendNoReceiver temp1ref = NodeFinder.findLocalVarReference("temp1", tree);
     MessageSendNoReceiver temp2ref = NodeFinder.findLocalVarReference("temp2", tree);
 
-    assertEquals(methodScope, arg1ref.meaning().lexicalDefinition().get().scope());
-    assertEquals(methodScope, arg2ref.meaning().lexicalDefinition().get().scope());
-    assertEquals(methodScope, temp1ref.meaning().lexicalDefinition().get().scope());
-    assertEquals(methodScope, temp2ref.meaning().lexicalDefinition().get().scope());
+    assertEquals(methodScope, varOf(arg1ref).definition().scope());
+    assertEquals(methodScope, varOf(arg2ref).definition().scope());
+    assertEquals(methodScope, varOf(temp1ref).definition().scope());
+    assertEquals(methodScope, varOf(temp2ref).definition().scope());
 
-    assertEquals(arg1, arg1ref.meaning().asLexicalVarReference().localVariable());
-    assertEquals(arg2, arg2ref.meaning().asLexicalVarReference().localVariable());
-    assertEquals(temp1, temp1ref.meaning().asLexicalVarReference().localVariable());
-    assertEquals(temp2, temp2ref.meaning().asLexicalVarReference().localVariable());
+    assertEquals(arg1, varOf(arg1ref).localVariable());
+    assertEquals(arg2, varOf(arg2ref).localVariable());
+    assertEquals(temp1, varOf(temp1ref).localVariable());
+    assertEquals(temp2, varOf(temp2ref).localVariable());
 
     assertArrayEquals(
         new String[]{"arg1", "arg2", "temp1", "temp2"}, 
@@ -94,15 +94,15 @@ public class LocalVarTests {
     MessageSendNoReceiver temp1ref = NodeFinder.findLocalVarReference("temp1", tree);
     MessageSendNoReceiver temp2ref = NodeFinder.findLocalVarReference("temp2", tree);
 
-    assertEquals(blockScope, arg1ref.meaning().lexicalDefinition().get().scope());
-    assertEquals(blockScope, arg2ref.meaning().lexicalDefinition().get().scope());
-    assertEquals(blockScope, temp1ref.meaning().lexicalDefinition().get().scope());
-    assertEquals(blockScope, temp2ref.meaning().lexicalDefinition().get().scope());
+    assertEquals(blockScope, varOf(arg1ref).definition().scope());
+    assertEquals(blockScope, varOf(arg2ref).definition().scope());
+    assertEquals(blockScope, varOf(temp1ref).definition().scope());
+    assertEquals(blockScope, varOf(temp2ref).definition().scope());
 
-    assertEquals(arg1, arg1ref.meaning().asLexicalVarReference().localVariable());
-    assertEquals(arg2, arg2ref.meaning().asLexicalVarReference().localVariable());
-    assertEquals(temp1, temp1ref.meaning().asLexicalVarReference().localVariable());
-    assertEquals(temp2, temp2ref.meaning().asLexicalVarReference().localVariable());
+    assertEquals(arg1, varOf(arg1ref).localVariable());
+    assertEquals(arg2, varOf(arg2ref).localVariable());
+    assertEquals(temp1, varOf(temp1ref).localVariable());
+    assertEquals(temp2, varOf(temp2ref).localVariable());
 
     assertArrayEquals(
         new String[]{"arg1", "arg2", "temp1", "temp2"}, 
@@ -128,8 +128,8 @@ public class LocalVarTests {
     MessageSendNoReceiver arg1ref = NodeFinder.findLocalVarReference("arg1", tree);
     MessageSendNoReceiver arg2ref = NodeFinder.findLocalVarReference("arg2", tree);
 
-    assertTrue(arg1ref.meaning().asLexicalVarReference().isCopiable());
-    assertTrue(arg2ref.meaning().asLexicalVarReference().isClean());
+    assertTrue(varOf(arg1ref).isCopiable());
+    assertTrue(varOf(arg2ref).isLocal());
     
     assertArrayEquals(new String[]{"arg1"}, methodScope.ownVariableNames().toArray());
     assertEquals(2, arg1.index());
@@ -158,8 +158,8 @@ public class LocalVarTests {
     MessageSendNoReceiver tempRef = NodeFinder.findLocalVarReference("temp", tree);
     MessageSendNoReceiver arg2ref = NodeFinder.findLocalVarReference("arg2", tree);
 
-    assertFalse(tempRef.meaning().asLexicalVarReference().isClean());
-    assertTrue(arg2ref.meaning().asLexicalVarReference().isClean());
+    assertFalse(varOf(tempRef).isLocal());
+    assertTrue(varOf(arg2ref).isLocal());
     
     assertArrayEquals(new String[]{"temp"}, methodScope.ownVariableNames().toArray());
     assertEquals(2, temp.index());
@@ -196,9 +196,9 @@ public class LocalVarTests {
     MessageSendNoReceiver tempRef = NodeFinder.findLocalVarReference("temp", tree);
     MessageSendNoReceiver arg2ref = NodeFinder.findLocalVarReference("arg2", tree);
 
-    assertFalse(arg1Ref.meaning().asLexicalVarReference().isClean());
-    assertFalse(tempRef.meaning().asLexicalVarReference().isClean());
-    assertTrue(arg2ref.meaning().asLexicalVarReference().isClean());
+    assertFalse(varOf(arg1Ref).isLocal());
+    assertFalse(varOf(tempRef).isLocal());
+    assertTrue(varOf(arg2ref).isLocal());
     
     assertArrayEquals(new String[]{"arg1", "temp"}, methodScope.ownVariableNames().toArray());
     assertArrayEquals(new String[0], outerBlockScope.ownVariableNames().toArray());
@@ -228,5 +228,9 @@ public class LocalVarTests {
     assertTrue(innerCopiedTemp.isBoxed());
     assertFalse(arg2.isBoxed());
   }
-  
+
+  private VariableReference varOf(MessageSendNoReceiver node) {
+    return (VariableReference) node.rewritten();
+  }
+
 }

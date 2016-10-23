@@ -28,8 +28,13 @@ public class MessageSendWithReceiver extends MessageSendNoReceiver {
   
   private final AstNode receiver;
   
-  MessageSendWithReceiver(AstNode receiver, String selector, List<AstNode> arguments) {
-    super(selector, arguments, false);
+  public MessageSendWithReceiver(AstNode receiver, String selector, List<AstNode> arguments) {
+    super(selector, false, arguments);
+    this.receiver = receiver;
+  }
+
+  public MessageSendWithReceiver(AstNode receiver, String selector, boolean isSetterSend, List<AstNode> arguments) {
+    super(selector, isSetterSend, arguments);
     this.receiver = receiver;
   }
 

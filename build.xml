@@ -42,7 +42,6 @@
         </uptodate>
     </target>
 
-    <!-- doesn't work right yet -->
     <target name="jar" depends="compile">
         <mkdir dir="${jar.dir}"/>
         <jar destfile="${build.dir}/${ant.project.name}.jar"

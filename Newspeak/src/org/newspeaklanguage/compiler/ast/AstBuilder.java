@@ -306,7 +306,7 @@ public class AstBuilder implements NewspeakVisitor<AstNode> {
     TerminalNode name = ctx.IDENTIFIER();
     if (name != null) {
       // The IDENTIFIER option
-      return new MessageSendNoReceiver(name.getText(), Collections.emptyList(), false);
+      return new MessageSendNoReceiver(name.getText(), false, Collections.emptyList());
     }
     if (ctx.expression() != null) {
       // The '(' expression ')' option
@@ -331,7 +331,7 @@ public class AstBuilder implements NewspeakVisitor<AstNode> {
     // A setter keyword has two colons at the end; we only need one. 
     String selector = keyword.substring(0, keyword.length() - 1);
     AstNode arg = visit(ctx.expression());
-    return new MessageSendNoReceiver(selector, Arrays.asList(arg), true);
+    return new MessageSendNoReceiver(selector, true, Arrays.asList(arg));
   }
 
   @Override
@@ -372,7 +372,7 @@ public class AstBuilder implements NewspeakVisitor<AstNode> {
     List<AstNode> args = ctx.keywordObject().stream()
         .map(each -> each.accept(this))
         .collect(Collectors.toList());
-    return new MessageSendNoReceiver(selector.get(), args, false); 
+    return new MessageSendNoReceiver(selector.get(), false, args);
   }
 
   @Override

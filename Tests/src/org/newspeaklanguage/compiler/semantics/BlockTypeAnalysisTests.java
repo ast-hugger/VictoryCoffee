@@ -27,24 +27,28 @@ import org.newspeaklanguage.compiler.ast.MessageSendNoReceiver;
 public class BlockTypeAnalysisTests {
 
   @Test
-  public void testCleanReferenceRecognition() {
+  public void testLocalReferenceRecognition() {
     AstNode tree = Compiler.parseAndAnalyze("class Test = ()"
     + "('testing'"
     + "test: foo = ("
     + "  ^[:bar :baz | | temp |"
-    + "   self x: foo." // not clean because  foo is in the outer method
-    + "   [:quux | bar] value." // not clean because bar is in the outer block  
-    + "   baz + temp] " // both are clean because both are in the same scope
+    + "   self x: foo." // not local because  foo is in the outer method
+    + "   [:quux | bar] value." // not local because bar is in the outer block
+    + "   baz + temp] " // both are local because both are in the same scope
     + "     value: 3 value: 4. )"
     + ")");
     MessageSendNoReceiver fooRef = NodeFinder.findLocalVarReference("foo", tree);
     MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
     MessageSendNoReceiver bazRef = NodeFinder.findLocalVarReference("baz", tree);
     MessageSendNoReceiver tempRef = NodeFinder.findLocalVarReference("temp", tree);
-    assertFalse(fooRef.meaning().asLexicalVarReference().isClean());
-    assertFalse(barRef.meaning().asLexicalVarReference().isClean());
-    assertTrue(bazRef.meaning().asLexicalVarReference().isClean());
-    assertTrue(tempRef.meaning().asLexicalVarReference().isClean());
+    assertFalse(varOf(fooRef).isLocal());
+    assertFalse(varOf(barRef).isLocal());
+    assertTrue(varOf(bazRef).isLocal());
+    assertTrue(varOf(tempRef).isLocal());
+  }
+
+  private VariableReference varOf(MessageSendNoReceiver node) {
+    return (VariableReference) node.rewritten();
   }
 
   @Test
@@ -64,10 +68,10 @@ public class BlockTypeAnalysisTests {
     MessageSendNoReceiver temp1Ref = NodeFinder.findLocalVarReference("temp1", tree);
     MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
     MessageSendNoReceiver booRef = NodeFinder.findLocalVarReference("boo", tree);
-    assertTrue(fooRef.meaning().asLexicalVarReference().isCopiable());
-    assertFalse(temp1Ref.meaning().asLexicalVarReference().isCopiable());
-    assertTrue(barRef.meaning().asLexicalVarReference().isCopiable());
-    assertTrue(booRef.meaning().asLexicalVarReference().isCopiable());
+    assertTrue(varOf(fooRef).isCopiable());
+    assertFalse(varOf(temp1Ref).isCopiable());
+    assertTrue(varOf(barRef).isCopiable());
+    assertTrue(varOf(booRef).isCopiable());
   }
 
 }

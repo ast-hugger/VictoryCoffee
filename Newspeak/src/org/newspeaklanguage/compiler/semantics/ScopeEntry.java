@@ -53,12 +53,12 @@ public class ScopeEntry {
   }
 
   /**
-   * Return true if the receiver is implemented as a local variable in a Java
+   * Return true if the receiver is implementable as a local variable in a Java
    * method (potentially copied down from the defining method and into the
    * closure implementation one). Method and block arguments and temps are
    * implemented this way.
    */
-  public boolean isImplementedAsLocalVar() {
+  public boolean isImplementableAsLocalVariable() {
     return definitionScope.isMethodScope() || definitionScope.isBlockScope();
   }
 
