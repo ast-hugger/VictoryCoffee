@@ -25,7 +25,7 @@ public abstract class CodeUnit extends AstNode {
   private final List<SlotDefinition> temps;
   private final List<AstNode> body;
   
-  private CodeScope scope;
+  protected CodeScope scope;
   
   CodeUnit(List<SlotDefinition> temps, List<AstNode> body) {
     this.temps = temps;

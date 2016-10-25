@@ -19,6 +19,12 @@ package org.newspeaklanguage.compiler.semantics;
 import org.newspeaklanguage.compiler.ast.AstNodeVisitor;
 
 /**
+ * A visitor for processing a rewritten syntax tree. The accept() method
+ * of AstNode specialized for this visitor will make it visit rewritten
+ * nodes when they are available instead of the originals. The visitor
+ * should be able to handle nodes inserted by the analyzer and not found
+ * in the original AST produced by the parser.
+ *
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  */
 public interface RewrittenNodeVisitor extends AstNodeVisitor {

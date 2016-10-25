@@ -22,6 +22,10 @@ public abstract class AstNode {
   
   public abstract void accept(AstNodeVisitor visitor);
 
+  /**
+   * Visit nodes of the tree, choosing to visit rewritten nodes instead of the originals
+   * when available.
+   */
   public void accept(RewrittenNodeVisitor visitor) {
     accept((AstNodeVisitor) visitor);
   }

@@ -19,6 +19,7 @@ package org.newspeaklanguage.compiler.ast;
 import java.util.List;
 
 import org.newspeaklanguage.compiler.codegen.BlockDefiner;
+import org.newspeaklanguage.compiler.semantics.BlockScope;
 
 public class Block extends CodeUnit {
   
@@ -32,14 +33,21 @@ public class Block extends CodeUnit {
   
   @Override
   public List<Argument> arguments() { return arguments; }
+
   public int arity() { return arguments.size(); }
+
   public BlockDefiner definer() { return definer; }
   
   public void setDefiner(BlockDefiner definer) {
     assert this.definer == null;
     this.definer = definer;
   }
-  
+
+  @Override
+  public BlockScope scope() {
+    return (BlockScope) scope;
+  }
+
   @Override
   public void accept(AstNodeVisitor visitor) {
     visitor.visitBlock(this);

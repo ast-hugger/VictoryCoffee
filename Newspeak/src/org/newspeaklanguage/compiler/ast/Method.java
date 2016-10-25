@@ -20,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.newspeaklanguage.compiler.semantics.AnalyzerStage1;
+import org.newspeaklanguage.compiler.semantics.MethodScope;
 
 public class Method extends CodeUnit implements NameDefinition {
   
@@ -36,16 +37,24 @@ public class Method extends CodeUnit implements NameDefinition {
   }
   
   public MessagePattern messagePattern() { return messagePattern; }
+
   public String selector() { return messagePattern.selector(); }
+
   @Override
   public List<Argument> arguments() { return messagePattern.arguments(); }
+
   public List<Block> containedBlocks() { return containedBlocks; }
   
   @Override
   public String name() {
     return selector();
   }
-  
+
+  @Override
+  public MethodScope scope() {
+    return (MethodScope) scope;
+  }
+
   /**
    * A method defines a scope entry, so it has to say if the name it defines is
    * a mutable binding or not.

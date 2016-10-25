@@ -57,10 +57,6 @@ public abstract class CodeScope extends Scope<CodeScopeEntry> {
     return (BlockScope) this;
   }
 
-  public MethodScope asMethodScope() {
-    return (MethodScope) this;
-  }
-
   @Override
   public ClassScope outerClassNamed(String name) {
     return parent == null ? null : parent.outerClassNamed(name);

@@ -170,7 +170,7 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
   @Override
   public void visitBlock(Block block) {
     BlockDefiner definer = block.definer();
-    int copiedValueCount = block.scope().asBlockScope().copiedVariableCount();
+    int copiedValueCount = block.scope().copiedVariableCount();
     // Generate a constructor call of Closure in either the positional argument or
     // varargs form, depending on the number of copied values.
     methodWriter.visitTypeInsn(Opcodes.NEW, Closure.INTERNAL_CLASS_NAME);
@@ -187,7 +187,7 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
     // and they don't have a leading int receiver argument.
     // push all copied values
     if (copiedValueCount <= Closure.MAX_POSITIONAL_COPIED_VALUES) {
-      block.scope().asBlockScope().forEachCopiedVariable(each -> {
+      block.scope().forEachCopiedVariable(each -> {
         LocalVariable here = rootNode.scope().localVariableNamed(each.name()).get(); // must be found or the analyzer is broken
         methodWriter.visitVarInsn(Opcodes.ALOAD, here.index());
         methodWriter.visitVarInsn(Opcodes.ILOAD, here.index() + 1);
@@ -196,7 +196,7 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
       generateLoadInt(methodWriter, copiedValueCount * 2);
       methodWriter.visitTypeInsn(Opcodes.ANEWARRAY, Descriptor.OBJECT_INTERNAL_CLASS_NAME);
       int i = 0;
-      for (LocalVariable copied : block.scope().asBlockScope().copiedVariables()) {
+      for (LocalVariable copied : block.scope().copiedVariables()) {
         LocalVariable here = rootNode.scope().localVariableNamed(copied.name()).get(); // must be found or the analyzer is broken
         methodWriter.visitInsn(Opcodes.DUP);
         generateLoadInt(methodWriter, i++);

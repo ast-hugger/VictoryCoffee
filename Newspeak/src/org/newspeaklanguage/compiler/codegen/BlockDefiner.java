@@ -61,7 +61,7 @@ public class BlockDefiner implements StaticFieldDefiner {
   public String descriptor() {
     StringBuilder builder = new StringBuilder(200);
     builder.append("(");
-    int totalArgCount = blockNode.scope().asBlockScope().copiedVariableCount() + blockNode.arity();
+    int totalArgCount = blockNode.scope().copiedVariableCount() + blockNode.arity();
     for (int i = 0; i < totalArgCount; i++ ) {
       builder
           .append(Descriptor.OBJECT_TYPE_DESCRIPTOR)
