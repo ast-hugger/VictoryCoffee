@@ -12,6 +12,7 @@ build/
 .project
 .settings
 *.class
+*.orig
 *~
 *.log
 workspace.xml
