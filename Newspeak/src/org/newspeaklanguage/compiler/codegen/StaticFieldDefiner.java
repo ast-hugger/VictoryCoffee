@@ -23,15 +23,23 @@ import org.objectweb.asm.MethodVisitor;
  * We often need to add a static field to the class being generated,
  * and initialize the field in a certain way. This is necessary for
  * things such as literals, blocks, or runtime bookkeeping. The
- * {@link ClassGenerator} keeps track of all of those using
+ * {@link ClassGenerator} keeps track of those static fields using
  * subtypes of this type.
  *
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  *
  */
 public interface StaticFieldDefiner {
-  
-  public void generateField(ClassWriter classWriter);
-  public void generateClinitFragment(MethodVisitor methodWriter);
+
+  /**
+   * Produce the static field for the value using the supplied {@link ClassWriter}.
+   */
+  void generateField(ClassWriter classWriter);
+
+  /**
+   * Generate a sequence of instructions that will initialize the static field
+   * to the desired value.
+   */
+  void generateClinitFragment(MethodVisitor methodWriter);
 
 }

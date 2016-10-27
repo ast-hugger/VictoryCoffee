@@ -41,6 +41,7 @@ public class BlockDefiner implements StaticFieldDefiner {
   private final Block blockNode;
   /** The method containing the block. */
   private final Method hostMethod;
+  /** The internal form of the name of the class being generated a method of which contains this block. */
   private final String internalClassName;
   /** The name of the method we will generate with the code of this block. */
   private final String methodName;
@@ -76,7 +77,7 @@ public class BlockDefiner implements StaticFieldDefiner {
   @Override
   public void generateField(ClassWriter classWriter) {
     FieldVisitor fieldWriter = classWriter.visitField(
-        Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
+        Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL,
         fieldName(),
         Descriptor.ofType(MethodHandle.class),
         null, null);

@@ -37,7 +37,7 @@ class ClassDefinitionDefiner implements StaticFieldDefiner {
   @Override
   public void generateField(ClassWriter classWriter) {
     FieldVisitor fieldWriter = classWriter.visitField(
-        Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
+        Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL,
         NamingPolicy.CLASS_DEF_FIELD_NAME,
         ClassDefinition.TYPE_DESCRIPTOR,
         null, null);

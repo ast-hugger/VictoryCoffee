@@ -64,11 +64,7 @@ public class CpsMonkey implements RewrittenNodeVisitor {
 
   public static String printSlices(List<CpsSlice> list) {
     StringBuilder builder = new StringBuilder();
-    for (int i = 0; i < list.size(); i++) {
-      CpsSlice current = list.get(i);
-      CpsSlice next = i == list.size() - 1 ? null : list.get(i + 1);
-      current.printDetailsTo(builder, next);
-    }
+    list.forEach(each -> each.printDetailsTo(builder));
     return builder.toString();
   }
 
@@ -139,7 +135,7 @@ public class CpsMonkey implements RewrittenNodeVisitor {
 
   @Override
   public void visitLiteralNumber(LiteralNumber literalNumber) {
-    outboundArgument = new CpsSlice.PervasiveReference(literalNumber);
+    outboundArgument = new CpsSlice.UbiquitousValue(literalNumber);
   }
 
   @Override
@@ -191,27 +187,27 @@ public class CpsMonkey implements RewrittenNodeVisitor {
 
   @Override
   public void visitLiteralNil(LiteralNil literalNil) {
-    outboundArgument = new CpsSlice.PervasiveReference(literalNil);
+    outboundArgument = new CpsSlice.UbiquitousValue(literalNil);
   }
 
   @Override
   public void visitLiteralBoolean(LiteralBoolean literalBoolean) {
-    outboundArgument = new CpsSlice.PervasiveReference(literalBoolean);
+    outboundArgument = new CpsSlice.UbiquitousValue(literalBoolean);
   }
 
   @Override
   public void visitSelf(Self self) {
-    outboundArgument = new CpsSlice.PervasiveReference(self);
+    outboundArgument = new CpsSlice.UbiquitousValue(self);
   }
 
   @Override
   public void visitSuper(Super super1) {
-    outboundArgument = new CpsSlice.PervasiveReference(super1);
+    outboundArgument = new CpsSlice.UbiquitousValue(super1);
   }
 
   @Override
   public void visitOuter(Outer outer) {
-    outboundArgument = new CpsSlice.PervasiveReference(outer);
+    outboundArgument = new CpsSlice.UbiquitousValue(outer);
   }
 
   @Override
@@ -221,7 +217,7 @@ public class CpsMonkey implements RewrittenNodeVisitor {
 
   @Override
   public void visitEnclosingObjectReference(EnclosingObjectReference enclosingObjectReference) {
-    outboundArgument = new CpsSlice.PervasiveReference(enclosingObjectReference);
+    outboundArgument = new CpsSlice.UbiquitousValue(enclosingObjectReference);
   }
 
   @Override

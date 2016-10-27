@@ -158,12 +158,12 @@ public class CpsSlice {
   /**
    * A reference to something that can be loaded no matter its location,
    * not needing to be copied down the chain of slices. Things like
-   * {@code self} or literals are pervasive.
+   * {@code self} or literals are ubiquitous.
    */
-  static class PervasiveReference extends OutboundArgument {
+  static class UbiquitousValue extends OutboundArgument {
     private final AstNode node;
 
-    PervasiveReference(AstNode node) {
+    UbiquitousValue(AstNode node) {
       this.node = node;
     }
 
@@ -175,13 +175,13 @@ public class CpsSlice {
 
   /**
    * A closure is a unique case. It's created on the spot and does not have to be copied
-   * down the chain of slices, so we can consider it a pervasive reference. However, closure
+   * down the chain of slices, so we can consider it a ubiquitous value. However, closure
    * creation requires copying the closed over values, which we do have to pass down. So, it's
-   * a pervasive reference with its own set of outbound arguments. All of the
+   * a ubiquitous value with its own set of outbound arguments. All of the
    * outbound arguments are by definition {@link ClosedOverValue}s. Those are the
    * only thing a block can close over.
    */
-  static class Closure extends PervasiveReference {
+  static class Closure extends UbiquitousValue {
     private final List<ClosedOverValue> closedOverValues = new LinkedList<>();
 
     Closure(Block node) {
@@ -246,7 +246,7 @@ public class CpsSlice {
   }
 
   static interface OutboundArgumentVisitor {
-    void visitPervasiveReference(PervasiveReference pervasiveReference);
+    void visitPervasiveReference(UbiquitousValue ubiquitousValue);
     void visitMethodVarReference(MethodVarReference methodVarReference);
     void visitIntermediateResult(IntermediateResult intermediateResult);
     void visitPassThroughArgument(PassDownArgument passDownArgument);
@@ -310,6 +310,7 @@ public class CpsSlice {
 
   protected final int index;
   private final CpsSlice precedingSlice;
+  private CpsSlice nextSlice;
   private MessageSendWithReceiver terminator;
   private final List<OutboundArgument> terminatorArguments = new LinkedList<>();
   protected final List<PassDownArgument> passDownArguments = new LinkedList<>();
@@ -325,6 +326,10 @@ public class CpsSlice {
 
   public CpsSlice precedingSlice() {
     return precedingSlice;
+  }
+
+  public CpsSlice nextSlice() {
+    return nextSlice;
   }
 
   public void addSlicesTo(List<CpsSlice> list) {
@@ -359,6 +364,7 @@ public class CpsSlice {
   }
 
   protected void linkArgumentsFrom(CpsSlice next) {
+    this.nextSlice = next;
     next.inboundArguments.forEach(this::linkToInboundArgumentOfNextSlice);
     linkArguments();
   }
@@ -383,7 +389,7 @@ public class CpsSlice {
     for (OutboundArgument arg : terminatorArguments) {
       arg.accept(new OutboundArgumentVisitor() {
         @Override
-        public void visitPervasiveReference(PervasiveReference pervasiveReference) {
+        public void visitPervasiveReference(UbiquitousValue ubiquitousValue) {
           // nothing to do
         }
 
@@ -430,7 +436,7 @@ public class CpsSlice {
     inboundArguments.add(inArg);
   }
 
-  public void printDetailsTo(StringBuilder builder, CpsSlice nextSlice) {
+  public void printDetailsTo(StringBuilder builder) {
     builder.append(sliceName()).append("(");
     Map<InboundArgument, String> argNames = new HashMap<>();
     int count = 0;
@@ -457,8 +463,8 @@ public class CpsSlice {
     for (OutboundArgument arg : terminatorArguments) {
       String argName = argNames.get(arg.supplier);
       if (argName == null) {
-        if (arg instanceof PervasiveReference) {
-          argName = ((PervasiveReference) arg).node.toString();
+        if (arg instanceof UbiquitousValue) {
+          argName = ((UbiquitousValue) arg).node.toString();
         } else if (arg.supplier() instanceof MethodVarOrigin) {
           argName = arg.supplier().toString();
         } else {

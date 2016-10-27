@@ -86,7 +86,7 @@ abstract class LiteralValue implements StaticFieldDefiner {
   
   public void generateField(ClassWriter classVisitor) {
     FieldVisitor fieldVisitor = classVisitor.visitField(
-        Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
+        Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL,
         fieldName,
         Descriptor.OBJECT_TYPE_DESCRIPTOR,
         null, null);
