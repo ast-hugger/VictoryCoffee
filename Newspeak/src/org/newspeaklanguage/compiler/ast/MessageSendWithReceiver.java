@@ -48,7 +48,7 @@ public class MessageSendWithReceiver extends MessageSendNoReceiver {
   @Override
   public String toString() {
     return this.getClass().getSimpleName()
-        + "(" + receiver + " " + selector + ")";
+        + "{" + selector + "}";
   }
   
 }

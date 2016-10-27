@@ -31,4 +31,8 @@ public class LiteralString extends AstNode {
     visitor.visitLiteralString(this);
   }
 
+  @Override
+  public String toString() {
+    return "{literal: " + value + "}";
+  }
 }

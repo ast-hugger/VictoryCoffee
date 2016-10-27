@@ -48,9 +48,9 @@ public abstract class CodeScope extends Scope<CodeScopeEntry> {
   CodeScope(CodeUnit definition, Scope<? extends ScopeEntry> parent) {
     super(definition, parent);
     definition.arguments().forEach(
-        each -> ownVariables.add(new LocalVariable(each.name(), false, false)));
+        each -> ownVariables.add(new LocalVariable(each, false, false)));
     definition.temps().forEach(
-        each -> ownVariables.add(new LocalVariable(each.name(), true, false)));
+        each -> ownVariables.add(new LocalVariable(each, true, false)));
   }
 
   public BlockScope asBlockScope() {

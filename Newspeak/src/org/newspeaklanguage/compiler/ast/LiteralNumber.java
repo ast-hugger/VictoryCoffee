@@ -30,4 +30,9 @@ public class LiteralNumber extends AstNode {
   public void accept(AstNodeVisitor visitor) {
     visitor.visitLiteralNumber(this);
   }
+
+  @Override
+  public String toString() {
+    return "{literal: " + value + "}";
+  }
 }

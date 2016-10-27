@@ -56,7 +56,7 @@ public class Block extends CodeUnit {
   @Override
   public String toString() {
     return this.getClass().getSimpleName()
-        + "(" + argumentsString() + ")";
+        + "[" + argumentsString() + "]";
   }
   
   private String argumentsString() {

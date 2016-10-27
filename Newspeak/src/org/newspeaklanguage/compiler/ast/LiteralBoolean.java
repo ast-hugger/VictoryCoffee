@@ -32,4 +32,8 @@ public class LiteralBoolean extends AstNode {
     visitor.visitLiteralBoolean(this);
   }
 
+  @Override
+  public String toString() {
+    return "{literal: " + value + "}";
+  }
 }

@@ -23,4 +23,9 @@ public class Self extends AstNode {
   public void accept(AstNodeVisitor visitor) {
     visitor.visitSelf(this);
   }
+
+  @Override
+  public String toString() {
+    return "{self}";
+  }
 }

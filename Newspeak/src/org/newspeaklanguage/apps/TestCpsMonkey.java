@@ -20,27 +20,31 @@ import org.newspeaklanguage.compiler.ast.AstNode;
 import org.newspeaklanguage.compiler.Compiler;
 import org.newspeaklanguage.compiler.ast.ClassDecl;
 import org.newspeaklanguage.compiler.codegen.CpsMonkey;
+import org.newspeaklanguage.compiler.codegen.CpsSlice;
+
+import java.util.List;
 
 /**
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  */
 public class TestCpsMonkey {
 
-  private static final String source =
-      "class Test = () (" +
-          "'testing'" +
-          "foo: x = (self foo + self bar * x))";
-
-//  private static final String source =
-//      "class Test = () (" +
-//          "'testing'" +
-//          "foo = (self foo + self bar))";
+//  private static final String source = "fib: n = ((fib: n - 1) + (fib: n - 2))";
+  private static final String source = "fib: n = (n < 2 ifTrue: [1] ifFalse: [(fib: n - 1) + (fib: n - 2)])";
+//  private static final String source = "foo = (bar: self foo and: self bar)";
+//  private static final String source = "foo: x = (self foo + self bar * x)";
 
   public static void main(String[] args) {
-    ClassDecl tree = (ClassDecl) Compiler.parseAndAnalyze(source);
+    ClassDecl tree = (ClassDecl) Compiler.parseAndAnalyze(fullClassSource(source));
     AstNode expr = tree.categories().get(0).methods().get(0).body().get(0);
     // set a breakpoint at the following line
-    CpsMonkey monkey = CpsMonkey.convert(expr);
-    System.out.println(monkey.details());
+    List<CpsSlice> slices = CpsMonkey.translate(expr);
+    System.out.println(CpsMonkey.printSlices(slices));
+  }
+
+  private static String fullClassSource(String methodSource) {
+    return "class Test = () (" +
+        "'testing'" +
+        methodSource + ")";
   }
 }

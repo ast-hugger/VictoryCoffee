@@ -43,21 +43,33 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * A CPS monkey assists CodeGenerator by keeping track of what part of the original expression
- * sliced into its CPS pieces we are in, and arranges for code from the generator to go to the right
- * place.
+ * A CPS monkey provides translation services from a normal AST of an expression
+ * into a sequence of CPS slices. A slice a fragment of code that can be encoded
+ * as a single function in CPS style.
  * <p>
- * In a serious corporate context the monkey would be called a builder or a manager.
+ * In a serious corporate context the monkey would be called a visitor, a builder, or a manager.
  *
  * @author Vassili Bykov <newspeakbigot@gmail.com>
  */
 public class CpsMonkey implements RewrittenNodeVisitor {
 
-  public static CpsMonkey convert(AstNode statement) {
-    CpsMonkey instance = new CpsMonkey(statement);
+  public static List<CpsSlice> translate(AstNode expression) {
+    CpsMonkey instance = new CpsMonkey(expression);
     instance.collectSlices();
     instance.linkSliceArguments();
-    return instance;
+    List<CpsSlice> result = new LinkedList<>();
+    instance.currentSlice().addSlicesTo(result);
+    return result;
+  }
+
+  public static String printSlices(List<CpsSlice> list) {
+    StringBuilder builder = new StringBuilder();
+    for (int i = 0; i < list.size(); i++) {
+      CpsSlice current = list.get(i);
+      CpsSlice next = i == list.size() - 1 ? null : list.get(i + 1);
+      current.printDetailsTo(builder, next);
+    }
+    return builder.toString();
   }
 
   /*
@@ -68,7 +80,6 @@ public class CpsMonkey implements RewrittenNodeVisitor {
   private CpsSlice currentSlice = new CpsSlice.InitialSlice();
   /** Transfers to the calling method the result of visiting an argument of a message send */
   private CpsSlice.OutboundArgument outboundArgument;
-
 
   /**
    * Private; use the static utility method.
@@ -97,12 +108,6 @@ public class CpsMonkey implements RewrittenNodeVisitor {
     currentSlice.linkArguments(); // cascades down the whole chain
   }
 
-  public String details() {
-    StringBuilder builder = new StringBuilder();
-    currentSlice.printDetailsTo(builder);
-    return builder.toString();
-  }
-
   protected void visit(AstNode node) {
     node.accept(this);
   }
@@ -119,7 +124,7 @@ public class CpsMonkey implements RewrittenNodeVisitor {
 
   @Override
   public void visitBlock(Block block) {
-    unimplemented(block);
+    outboundArgument = new CpsSlice.Closure(block);
   }
 
   @Override
@@ -134,7 +139,7 @@ public class CpsMonkey implements RewrittenNodeVisitor {
 
   @Override
   public void visitLiteralNumber(LiteralNumber literalNumber) {
-    unimplemented(literalNumber);
+    outboundArgument = new CpsSlice.PervasiveReference(literalNumber);
   }
 
   @Override

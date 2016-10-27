@@ -23,4 +23,8 @@ public class LiteralNil extends AstNode {
     visitor.visitLiteralNil(this);
   }
 
+  @Override
+  public String toString() {
+    return "{nil}";
+  }
 }

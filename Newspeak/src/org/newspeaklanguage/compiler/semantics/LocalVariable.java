@@ -16,6 +16,8 @@
 
 package org.newspeaklanguage.compiler.semantics;
 
+import org.newspeaklanguage.compiler.ast.NameDefinition;
+
 /**
  * Instances of LocalVariable are used by {@link CodeScope scopes} to keep track
  * of the locals the scope has (defines), as either an argument or a temp.
@@ -28,19 +30,23 @@ package org.newspeaklanguage.compiler.semantics;
  */
 public class LocalVariable {
 
-  private final String name;
+  private final NameDefinition definition;
   private final boolean isTemp;
   private boolean isBoxed;
   private int index;
 
-  LocalVariable(String name, boolean isTemp, boolean isBoxed) {
-    this.name = name;
+  LocalVariable(NameDefinition definition, boolean isTemp, boolean isBoxed) {
+    this.definition = definition;
     this.isTemp = isTemp;
     this.isBoxed = isBoxed;
   }
 
+  public NameDefinition definition() {
+    return definition;
+  }
+
   public String name() {
-    return name;
+    return definition.name();
   }
 
   public boolean isTemp() {
@@ -57,10 +63,6 @@ public class LocalVariable {
 
   public int index() {
     return index;
-  }
-
-  public int primitiveIndex() {
-    return index + 1;
   }
 
   public void setIndex(int index) {

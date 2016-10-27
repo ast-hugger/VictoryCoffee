@@ -53,7 +53,7 @@ public class VariableReference extends AstNode {
     } else {
       NameDefinition varNode = definition.astNode();
       // the sourceScope is a BlockScope by definition if the variable is not local
-      localVariable = ((BlockScope) sourceScope).registerCopiedVariable(varNode);
+      localVariable = ((BlockScope) sourceScope).ensureCopiedVariable(varNode);
       propagateCopiedVariable(varNode);
     }
   }
@@ -62,7 +62,7 @@ public class VariableReference extends AstNode {
     CodeScope here = (CodeScope) sourceScope.parent();
     CodeScope definingScope = (CodeScope) definition.scope();
     while (!here.equals(definingScope)) {
-      ((BlockScope) here).registerCopiedVariable(varNode);
+      ((BlockScope) here).ensureCopiedVariable(varNode);
       here = (CodeScope) here.parent();
     }
     if (varNode.isMutable()) {

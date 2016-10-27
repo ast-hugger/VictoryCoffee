@@ -17,7 +17,9 @@
 package org.newspeaklanguage.compiler.codegen;
 
 import org.newspeaklanguage.compiler.ast.AstNode;
+import org.newspeaklanguage.compiler.ast.Block;
 import org.newspeaklanguage.compiler.ast.MessageSendWithReceiver;
+import org.newspeaklanguage.compiler.ast.NameDefinition;
 import org.newspeaklanguage.compiler.semantics.VariableReference;
 
 import java.util.Collection;
@@ -25,6 +27,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 
 /**
  * A slice is a fragment of an expression coverted to CPS
@@ -67,12 +70,30 @@ public class CpsSlice {
       OutboundArgument target = arg.finalDestination();
       if (target instanceof MethodVarReference) {
         PassDownArgument var = new PassDownArgument(arg);
-        MethodVarSource varSource = new MethodVarSource(var, ((MethodVarReference) target).node.definition().name());
-        var.setSource(varSource);
+        MethodVarOrigin varSource = new MethodVarOrigin(var, ((MethodVarReference) target).node.definition().name());
+        passDownArguments.add(var);
+      } if (target instanceof ClosedOverValue) {
+        PassDownArgument var = new PassDownArgument(arg);
+        MethodVarOrigin varSource = new MethodVarOrigin(var, ((ClosedOverValue) target).nameDefinition().name());
         passDownArguments.add(var);
       } else {
         super.linkToInboundArgumentOfNextSlice(arg);
       }
+    }
+
+    @Override
+    protected void processTerminatorMethodVarReference(MethodVarReference ref) {
+      MethodVarOrigin source = new MethodVarOrigin(ref, ref.node.definition().name());
+    }
+
+    @Override
+    protected void processClosedOverValue(ClosedOverValue value) {
+      MethodVarOrigin source = new MethodVarOrigin(value, value.nameDefinition().name());
+    }
+
+    @Override
+    public String sliceName() {
+      return "InitialSlice";
     }
   }
   /**
@@ -152,16 +173,66 @@ public class CpsSlice {
     }
   }
 
+  /**
+   * A closure is a unique case. It's created on the spot and does not have to be copied
+   * down the chain of slices, so we can consider it a pervasive reference. However, closure
+   * creation requires copying the closed over values, which we do have to pass down. So, it's
+   * a pervasive reference with its own set of outbound arguments. All of the
+   * outbound arguments are by definition {@link ClosedOverValue}s. Those are the
+   * only thing a block can close over.
+   */
+  static class Closure extends PervasiveReference {
+    private final List<ClosedOverValue> closedOverValues = new LinkedList<>();
+
+    Closure(Block node) {
+      super(node);
+      node.scope().copiedVariables().forEach(each -> {
+        ClosedOverValue arg = new ClosedOverValue(each.definition());
+        closedOverValues.add(arg);
+      });
+    }
+
+    public List<ClosedOverValue> closedOverValues() {
+      return closedOverValues;
+    }
+
+    @Override
+    public void accept(OutboundArgumentVisitor visitor) {
+      visitor.visitClosure(this);
+    }
+  }
+
+  static class ClosedOverValue extends OutboundArgument {
+    private final NameDefinition nameDefinition;
+
+    public ClosedOverValue(NameDefinition nameDefinition) {
+      this.nameDefinition = nameDefinition;
+    }
+
+    public NameDefinition nameDefinition() {
+      return nameDefinition;
+    }
+
+    @Override
+    public void accept(OutboundArgumentVisitor visitor) {
+      visitor.visitClosedOverValue(this);
+    }
+  }
+
+  /**
+   * An argument passed to the next slice as a bound argument of the continuation
+   * which is passed to the terminator message send of this slice.
+   */
   static class PassDownArgument extends OutboundArgument {
-    private InboundArgument source;
+
+    /**
+     * The incoming argument of the next slice which receives the value of this
+     * pass down argument.
+     */
     private final InboundArgument destination;
 
     PassDownArgument(InboundArgument destination) {
       this.destination = destination;
-    }
-
-    public void setSource(InboundArgument source) {
-      this.source = source;
     }
 
     public OutboundArgument finalDestination() {
@@ -179,9 +250,16 @@ public class CpsSlice {
     void visitMethodVarReference(MethodVarReference methodVarReference);
     void visitIntermediateResult(IntermediateResult intermediateResult);
     void visitPassThroughArgument(PassDownArgument passDownArgument);
+    void visitClosedOverValue(ClosedOverValue closedOverValue);
+    void visitClosure(Closure closure);
   }
 
-
+  /**
+   * An argument accepted by the slice. A slice always has at least one argument,
+   * which is the result of the prior slice. It can have additional arguments
+   * (coming before the prior result one) which are the PassDownArguments
+   * bound by the prior slice.
+   */
   static class InboundArgument {
     private final OutboundArgument destination;
     private int index;
@@ -207,12 +285,22 @@ public class CpsSlice {
     }
   }
 
-  static class MethodVarSource extends InboundArgument {
+  /**
+   * Used only in the InitialSlice, this represents a fetch of a value of the method
+   * local variable (an argument or a temp) which is then passed down to a downstream
+   * slice which uses it.
+   */
+  static class MethodVarOrigin extends InboundArgument {
     private final String name;
 
-    MethodVarSource(OutboundArgument destination, String name) {
+    MethodVarOrigin(OutboundArgument destination, String name) {
       super(destination);
       this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return "{local: " + name + "}";
     }
   }
 
@@ -237,6 +325,13 @@ public class CpsSlice {
 
   public CpsSlice precedingSlice() {
     return precedingSlice;
+  }
+
+  public void addSlicesTo(List<CpsSlice> list) {
+    if (precedingSlice != null) {
+      precedingSlice.addSlicesTo(list);
+    }
+    list.add(this);
   }
 
   public void addArgumentHandles(Collection<OutboundArgument> outboundArguments) {
@@ -268,20 +363,22 @@ public class CpsSlice {
     linkArguments();
   }
 
-  protected void linkToInboundArgumentOfNextSlice(InboundArgument arg) {
-    PassDownArgument outArg = new PassDownArgument(arg);
-    OutboundArgument destination = arg.destination;
+  protected void linkToInboundArgumentOfNextSlice(InboundArgument argOfNext) {
+    PassDownArgument outArg = new PassDownArgument(argOfNext);
+    OutboundArgument destination = argOfNext.finalDestination();
     if (destination instanceof IntermediateResult && precedingSlice.result().equals(destination)) {
       inboundResult = new InboundArgument(outArg);
-      outArg.setSource(inboundResult);
     } else {
       InboundArgument inArg = new InboundArgument(outArg);
-      outArg.setSource(inArg);
-      passDownArguments.add(outArg);
       inboundArguments.add(inArg);
     }
+    passDownArguments.add(outArg);
   }
 
+  /**
+   * Examine terminator arguments of this slice and for all non-pervasive ones,
+   * set up an incoming argument that will supply a value for the terminator one.
+   */
   private void linkTerminatorArguments() {
     for (OutboundArgument arg : terminatorArguments) {
       arg.accept(new OutboundArgumentVisitor() {
@@ -292,8 +389,7 @@ public class CpsSlice {
 
         @Override
         public void visitMethodVarReference(MethodVarReference methodVarReference) {
-          InboundArgument arg = new InboundArgument(methodVarReference);
-          inboundArguments.add(arg);
+          processTerminatorMethodVarReference(methodVarReference);
         }
 
         @Override
@@ -308,18 +404,34 @@ public class CpsSlice {
 
         @Override
         public void visitPassThroughArgument(PassDownArgument passDownArgument) {
-          throw new IllegalArgumentException("Unexpected argument type");
+          throw new IllegalArgumentException("This node type is unexpected among terminator call arguments");
+        }
+
+        @Override
+        public void visitClosedOverValue(ClosedOverValue closedOverValue) {
+          processClosedOverValue(closedOverValue);
+        }
+
+        @Override
+        public void visitClosure(Closure closure) {
+          closure.closedOverValues().forEach(each -> each.accept(this));
         }
       });
     }
   }
 
-  public void printDetailsTo(StringBuilder builder) {
-    if (precedingSlice != null) {
-      precedingSlice.printDetailsTo(builder);
-    }
+  protected void processTerminatorMethodVarReference(MethodVarReference ref) {
+    InboundArgument arg = new InboundArgument(ref);
+    inboundArguments.add(arg);
+  }
 
-    builder.append("Slice$").append(index).append("(");
+  protected void processClosedOverValue(ClosedOverValue value) {
+    InboundArgument inArg = new InboundArgument(value);
+    inboundArguments.add(inArg);
+  }
+
+  public void printDetailsTo(StringBuilder builder, CpsSlice nextSlice) {
+    builder.append(sliceName()).append("(");
     Map<InboundArgument, String> argNames = new HashMap<>();
     int count = 0;
     for (InboundArgument arg : inboundArguments) {
@@ -339,6 +451,7 @@ public class CpsSlice {
     }
     builder.append(")\n\t");
 
+    // print the terminator call
     builder.append(terminator.selector() + "(");
     count = 0;
     for (OutboundArgument arg : terminatorArguments) {
@@ -346,6 +459,8 @@ public class CpsSlice {
       if (argName == null) {
         if (arg instanceof PervasiveReference) {
           argName = ((PervasiveReference) arg).node.toString();
+        } else if (arg.supplier() instanceof MethodVarOrigin) {
+          argName = arg.supplier().toString();
         } else {
           argName = "?";
         }
@@ -356,26 +471,42 @@ public class CpsSlice {
       builder.append(argName);
     }
 
-    // pass down (continuation bound) args
+    // print the pass-down (continuation-bound) args
     if (count++ > 0) {
       builder.append(", ");
     }
-    builder.append("k(");
+    builder.append(nextSlice == null ? "k(" : nextSlice.sliceName() + ".boundTo(");
     count = 0;
     for (PassDownArgument arg : passDownArguments) {
       if (count++ > 0) {
         builder.append(", ");
       }
-      String name = argNames.get(arg.source);
+      String name = argNames.get(arg.supplier());
       if (name == null) {
-        if (arg.source instanceof MethodVarSource) {
-          name = ((MethodVarSource) arg.source).name;
+        if (arg.supplier() instanceof MethodVarOrigin) {
+          name = arg.supplier().toString();
         } else
           name = "?";
       }
       builder.append(name);
     }
     builder.append(")");
-    builder.append(")\n");
+    builder.append(")\n\n");
+  }
+
+  protected String sliceName() {
+    return "Slice$" + index;
+  }
+
+  private <T> void printArgumentList(StringBuilder builder, List<T> args, BiFunction<Integer, T, String> elementPrinter) {
+    int count = 0;
+    builder.append("(");
+    for (T arg : args) {
+      if (count++ > 0) {
+        builder.append(", ");
+      }
+      builder.append(elementPrinter.apply(count, arg));
+    }
+    builder.append(")");
   }
 }

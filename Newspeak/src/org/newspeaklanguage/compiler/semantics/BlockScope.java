@@ -55,9 +55,9 @@ public class BlockScope extends CodeScope {
     return local.isPresent() ? local : copiedVariableNamed(name);
   }
 
-  public LocalVariable registerCopiedVariable(NameDefinition def) {
+  public LocalVariable ensureCopiedVariable(NameDefinition def) {
     return find(def.name(), copiedVariables).orElseGet(() -> {
-      LocalVariable newVar = new LocalVariable(def.name(), false, def.isMutable());
+      LocalVariable newVar = new LocalVariable(def, false, def.isMutable());
       copiedVariables.add(newVar);
       return newVar;
     });
