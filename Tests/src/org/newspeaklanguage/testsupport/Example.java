@@ -16,11 +16,15 @@
 
 package org.newspeaklanguage.testsupport;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.util.List;
 
 import org.newspeaklanguage.compiler.Compiler;
 import org.newspeaklanguage.compiler.NamingPolicy;
+import org.newspeaklanguage.compiler.codegen.CpsMonkey;
 import org.newspeaklanguage.runtime.Builtins;
 import org.newspeaklanguage.runtime.ClassDefinition;
 import org.newspeaklanguage.runtime.NewspeakClassLoader;
@@ -134,14 +138,28 @@ public class Example {
     module = topFactory.makeInstance();
     testResult = invoke(module, NamingPolicy.methodNameForSelector("test"));
   }
+
+
   
   protected static Object invoke(NsObject object, String methodName) {
     try {
-      Method method = object.getClass().getMethod(methodName, int.class);
-      return method.invoke(object, 0);
+      Method method = object.getClass().getMethod(methodName, MethodHandle.class);
+      MethodHandle k = MethodHandles.lookup()
+          .findStatic(Example.class, "acceptResult", CpsMonkey.CONTINUATION_TYPE);
+      method.invoke(object, k);
+      return lastResult;
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }
   }
+
+  private static Object lastResult;
+
+  @SuppressWarnings("unused") // called via continuation plumbing
+  private static void acceptResult(Object objectResult, int intResult) {
+    lastResult = objectResult == NsObject.UNDEFINED ? intResult : objectResult;
+  }
+
+
 
 }

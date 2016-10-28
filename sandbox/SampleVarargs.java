@@ -7,7 +7,7 @@ public class SampleVarargs {
 	Object r = Integer.valueOf(42);
 	Object a1 = Integer.valueOf("one");
 	Object a2 = Integer.valueOf("two");
-	SampleVarargs s = new SampleVarargs(r, a1, a2);
+	SampleVarargs s = new SampleVarargs(r, a1, a2, 1, 42);
     }
 }
     

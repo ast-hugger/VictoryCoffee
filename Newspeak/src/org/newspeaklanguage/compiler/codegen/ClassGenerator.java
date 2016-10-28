@@ -59,8 +59,8 @@ public class ClassGenerator {
   private final ClassDecl classNode;
   private final String internalClassName;
   private final ClassWriter classWriter = new NsClassWriter(ClassWriter.COMPUTE_FRAMES);
-  private final Map<java.lang.Object, LiteralValue> literals = new HashMap<java.lang.Object, LiteralValue>();
-  private final List<StaticFieldDefiner> staticFieldDefiners = new LinkedList<StaticFieldDefiner>();
+  private final Map<java.lang.Object, LiteralValue> literals = new HashMap<>();
+  private final List<StaticFieldDefiner> staticFieldDefiners = new LinkedList<>();
   
   private ClassGenerator(ClassDecl classNode) {
     this.classNode = classNode;
@@ -73,6 +73,10 @@ public class ClassGenerator {
   
   public ClassWriter classWriter() {
     return classWriter;
+  }
+
+  public void addStaticFieldDefiner(StaticFieldDefiner definer) {
+    staticFieldDefiners.add(definer);
   }
   
   public byte[] generate() {
@@ -97,7 +101,7 @@ public class ClassGenerator {
       literal.setFieldName(allocateLiteralFieldName(literal));
     }
     literals.put(literal.key(), literal);
-    staticFieldDefiners.add(literal);
+    addStaticFieldDefiner(literal);
   }
   
   private String allocateLiteralFieldName(LiteralValue literal) {
@@ -118,7 +122,7 @@ public class ClassGenerator {
   private void setupClassDefField() {
     ClassDefinitionDefiner classDef = new ClassDefinitionDefiner(classNode);
     classDef.generateField(classWriter);
-    staticFieldDefiners.add(classDef);
+    addStaticFieldDefiner(classDef);
   }
   
   private void processSlots() {
@@ -279,12 +283,13 @@ public class ClassGenerator {
     for (Category category : classNode.categories()) {
       for (Method method : category.methods()) {
         preprocessBlocksInMethod(method);
+        String methodName = NamingPolicy.methodNameForSelector(method.messagePattern().selector());
         MethodVisitor methodVisitor = classWriter.visitMethod(
             Opcodes.ACC_PUBLIC,
-            NamingPolicy.methodNameForSelector(method.messagePattern().selector()),
+            methodName,
             Descriptor.ofMethodImplMethod(method.messagePattern().arity()),
             null, null);
-        MethodGenerator methodGenerator = new MethodGenerator(this, method, methodVisitor);
+        MethodGenerator methodGenerator = new MethodGenerator(this, method, methodName, methodVisitor);
         methodGenerator.generate();
       }
     }
@@ -297,7 +302,7 @@ public class ClassGenerator {
       BlockDefiner definer = new BlockDefiner(block, method, internalClassName, implMethodName);
       block.setDefiner(definer);
       definer.generateField(classWriter);
-      staticFieldDefiners.add(definer);
+      addStaticFieldDefiner(definer);
     }
     for (Block block : method.containedBlocks()) {
       generateBlockImplementation(block.definer());

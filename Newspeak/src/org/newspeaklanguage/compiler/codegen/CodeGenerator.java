@@ -17,7 +17,9 @@
 package org.newspeaklanguage.compiler.codegen;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 
+import com.sun.org.apache.bcel.internal.generic.ILOAD;
 import org.newspeaklanguage.compiler.Descriptor;
 import org.newspeaklanguage.compiler.NamingPolicy;
 import org.newspeaklanguage.compiler.ast.Argument;
@@ -106,8 +108,8 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
   /*
    * Instance side
    */
-  protected final ClassGenerator classGenerator;
 
+  protected final ClassGenerator classGenerator;
   protected final CodeUnit rootNode;
   protected final MethodVisitor methodWriter;
 
@@ -166,6 +168,172 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
    */
   protected abstract void generateBody();
 
+  /**
+   * This is invoked either on an {@link CpsSlice.InitialSlice} in the context of the
+   * host method, or on a regular {@link CpsSlice} in the context of a method generated
+   * specifically for this slice. The method is an instance method of the class being
+   * generated. If the slice has N inbound arguments, the method has a total of
+   * {@code 2 * (N + 1) + 1} arguments. The first argument is a MethodHandle of
+   * the expression contunuation. It's followed by N Object+int argument pairs for
+   * inbound arguments. Those are followed by 1 Object+int pair carrying the result
+   * of the preceding slice.
+   *
+   */
+  protected void generateSliceCode(CpsSlice slice) {
+    // Load and bind the continuation
+    if (slice.nextSlice() == null) {
+      // if no next slice, the k argument is the continuation
+      methodWriter.visitVarInsn(Opcodes.ALOAD, 1);
+    } else {
+      methodWriter.visitFieldInsn(
+          Opcodes.GETSTATIC,
+          classGenerator().internalClassName(),
+          slice.nextSlice().definer().fieldOrMethodName(),
+          CpsMonkey.CONTINUATION_DESCRIPTOR
+      );
+      if (slice.passDownArguments().isEmpty()) {
+        generateBindContinuationOnly();
+      } else {
+        generateBindContinuationAndPassDowns(slice);
+      }
+    }
+    // stack: continuation
+    generateLoadTerminatorArguments(slice); // with the receiver as the first one
+    generateCallTerminator(slice);
+  }
+
+  private void generateBindContinuationOnly() {
+    methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
+    methodWriter.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        Descriptor.internalClassName(MethodHandle.class),
+        "bindTo",
+        Descriptor.ofMethod(MethodHandle.class, Object.class),
+        false
+    );
+    methodWriter.visitVarInsn(Opcodes.ALOAD, 1);
+    methodWriter.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        Descriptor.internalClassName(MethodHandle.class),
+        "bindTo",
+        Descriptor.ofMethod(MethodHandle.class, Object.class),
+        false
+    );
+  }
+
+  private void generateBindContinuationAndPassDowns(CpsSlice slice) {
+    // need to bind the continuation and other stuff, have to use .insertArguments()
+    generateLoadInt(methodWriter, 0); // second argument to insertArguments()
+    // create the array for the 3rd argument of insertArgument()
+    generateLoadInt(methodWriter, slice.passDownArguments().size() * 2 + 2);
+    methodWriter.visitTypeInsn(Opcodes.ANEWARRAY, Descriptor.OBJECT_INTERNAL_CLASS_NAME);
+    // populate the array: first the receiver
+    methodWriter.visitInsn(Opcodes.DUP);
+    generateLoadInt(methodWriter, 0);
+    methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
+    methodWriter.visitInsn(Opcodes.AASTORE);
+    // next the expression continuation
+    methodWriter.visitInsn(Opcodes.DUP);
+    generateLoadInt(methodWriter, 1);
+    methodWriter.visitVarInsn(Opcodes.ALOAD, 1);
+    methodWriter.visitInsn(Opcodes.AASTORE);
+    // and now the passed down arguments
+    int arrayIndex = 2;
+    for (CpsSlice.PassDownArgument each : slice.passDownArguments()) {
+      int rawIndex = each.supplier().index() * 2;
+      methodWriter.visitInsn(Opcodes.DUP);
+      generateLoadInt(methodWriter, arrayIndex++);
+      methodWriter.visitVarInsn(Opcodes.ALOAD, rawIndex);
+      methodWriter.visitInsn(Opcodes.AASTORE);
+      methodWriter.visitInsn(Opcodes.DUP);
+      generateLoadInt(methodWriter, arrayIndex++);
+      methodWriter.visitVarInsn(Opcodes.ILOAD, rawIndex + 1);
+      methodWriter.visitMethodInsn(
+          Opcodes.INVOKESTATIC,
+          Descriptor.internalClassName(Integer.class),
+          "valueOf",
+          Descriptor.ofMethod(Integer.class, int.class),
+          false
+      );
+      methodWriter.visitInsn(Opcodes.AASTORE);
+    }
+    methodWriter.visitMethodInsn(
+        Opcodes.INVOKESTATIC,
+        Descriptor.internalClassName(MethodHandles.class),
+        "insertArguments",
+        Descriptor.ofMethod(MethodHandle.class, MethodHandle.class, int.class, Object[].class),
+        false
+    );
+  }
+
+
+  private void generateLoadTerminatorArguments(CpsSlice slice) {
+    for (CpsSlice.OutboundArgument arg : slice.terminatorArguments()) {
+      arg.accept(new CpsSlice.OutboundArgumentVisitor() {
+        @Override
+        public void visitUbiquitousValue(CpsSlice.UbiquitousValue ubiquitousValue) {
+          visit(ubiquitousValue.node());
+        }
+
+        @Override
+        public void visitMethodVarReference(CpsSlice.MethodVarReference methodVarReference) {
+          CpsSlice.InboundArgument arg = methodVarReference.supplier();
+          int baseIndex = arg.index() * 2;
+          methodWriter.visitVarInsn(Opcodes.ALOAD, baseIndex);
+          methodWriter.visitVarInsn(Opcodes.ILOAD, baseIndex + 1);
+        }
+
+        @Override
+        public void visitIntermediateResult(CpsSlice.IntermediateResult intermediateResult) {
+          CpsSlice.InboundArgument arg = intermediateResult.supplier();
+          int baseIndex = arg.index() * 2;
+          methodWriter.visitVarInsn(Opcodes.ALOAD, baseIndex);
+          methodWriter.visitVarInsn(Opcodes.ILOAD, baseIndex + 1);
+        }
+
+        @Override
+        public void visitPassThroughArgument(CpsSlice.PassDownArgument passDownArgument) {
+          throw new IllegalArgumentException("this type of argument cannot be a terminator argument");
+        }
+
+        @Override
+        public void visitClosedOverValue(CpsSlice.ClosedOverValue closedOverValue) {
+          throw new IllegalArgumentException("this type of argument cannot be a terminator argument");
+        }
+
+        @Override
+        public void visitClosure(CpsSlice.Closure closure) {
+          throw new UnsupportedOperationException("not implemented yet");
+        }
+      });
+    }
+  }
+
+  private void generateCallTerminator(CpsSlice slice) {
+    MessageSendWithReceiver terminator = slice.terminator();
+    methodWriter.visitInvokeDynamicInsn(
+        NamingPolicy.methodNameForSelector(terminator.selector()),
+        cpsCallSiteTypeDescriptor(terminator),
+        MessageDispatcher.bootstrapHandle()); // stack: Object
+  }
+
+  private String cpsCallSiteTypeDescriptor(MessageSendWithReceiver node) {
+    StringBuilder result = new StringBuilder();
+    result.append("(");
+    result.append(Descriptor.ofType(MethodHandle.class));
+    for (int i = 0; i < node.arity() + 1 /* plus the receiver */; i++) {
+      result
+          .append(Descriptor.OBJECT_TYPE_DESCRIPTOR)
+          .append(Descriptor.INT_TYPE_DESCRIPTOR);
+    }
+    result.append(")V");
+    return result.toString();
+
+  }
+
+  /*
+   * The visitor interface methods
+   */
 
   @Override
   public void visitBlock(Block block) {

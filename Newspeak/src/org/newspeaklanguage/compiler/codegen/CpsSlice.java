@@ -20,6 +20,12 @@ import org.newspeaklanguage.compiler.ast.AstNode;
 import org.newspeaklanguage.compiler.ast.Block;
 import org.newspeaklanguage.compiler.ast.MessageSendWithReceiver;
 import org.newspeaklanguage.compiler.ast.NameDefinition;
+import org.newspeaklanguage.compiler.semantics.CodeScope;
+import org.newspeaklanguage.compiler.semantics.CodeScopeEntry;
+import org.newspeaklanguage.compiler.semantics.LocalVariable;
+import org.newspeaklanguage.compiler.semantics.MethodScope;
+import org.newspeaklanguage.compiler.semantics.Scope;
+import org.newspeaklanguage.compiler.semantics.ScopeEntry;
 import org.newspeaklanguage.compiler.semantics.VariableReference;
 
 import java.util.Collection;
@@ -61,8 +67,22 @@ import java.util.function.BiFunction;
 public class CpsSlice {
 
   static class InitialSlice extends CpsSlice {
+    private final List<MethodVarOrigin> originatingVars = new LinkedList<>();
+
     InitialSlice() {
       super(null);
+    }
+
+    @Override
+    public void linkArguments() {
+      super.linkArguments();
+      originatingVars.forEach(each -> {
+        // FIXME the following will not work for ClosedOverValues
+        MethodVarReference finalDestination = (MethodVarReference) each.finalDestination();
+        CodeScope scope = (CodeScope) finalDestination.node.definition().scope();
+        int rawIndex = scope.localVariableNamed(each.name).get().index();
+        each.setIndex(rawIndex / 2);
+      });
     }
 
     @Override
@@ -71,10 +91,12 @@ public class CpsSlice {
       if (target instanceof MethodVarReference) {
         PassDownArgument var = new PassDownArgument(arg);
         MethodVarOrigin varSource = new MethodVarOrigin(var, ((MethodVarReference) target).node.definition().name());
+        originatingVars.add(varSource);
         passDownArguments.add(var);
       } if (target instanceof ClosedOverValue) {
         PassDownArgument var = new PassDownArgument(arg);
         MethodVarOrigin varSource = new MethodVarOrigin(var, ((ClosedOverValue) target).nameDefinition().name());
+        originatingVars.add(varSource);
         passDownArguments.add(var);
       } else {
         super.linkToInboundArgumentOfNextSlice(arg);
@@ -84,11 +106,13 @@ public class CpsSlice {
     @Override
     protected void processTerminatorMethodVarReference(MethodVarReference ref) {
       MethodVarOrigin source = new MethodVarOrigin(ref, ref.node.definition().name());
+      originatingVars.add(source);
     }
 
     @Override
     protected void processClosedOverValue(ClosedOverValue value) {
       MethodVarOrigin source = new MethodVarOrigin(value, value.nameDefinition().name());
+      originatingVars.add(source);
     }
 
     @Override
@@ -167,9 +191,13 @@ public class CpsSlice {
       this.node = node;
     }
 
+    public AstNode node() {
+      return node;
+    }
+
     @Override
     public void accept(OutboundArgumentVisitor visitor) {
-      visitor.visitPervasiveReference(this);
+      visitor.visitUbiquitousValue(this);
     }
   }
 
@@ -246,7 +274,7 @@ public class CpsSlice {
   }
 
   static interface OutboundArgumentVisitor {
-    void visitPervasiveReference(UbiquitousValue ubiquitousValue);
+    void visitUbiquitousValue(UbiquitousValue ubiquitousValue);
     void visitMethodVarReference(MethodVarReference methodVarReference);
     void visitIntermediateResult(IntermediateResult intermediateResult);
     void visitPassThroughArgument(PassDownArgument passDownArgument);
@@ -304,24 +332,37 @@ public class CpsSlice {
     }
   }
 
+
   /*
-   * Instance side
+   *                                           Instance side
    */
+
 
   protected final int index;
   private final CpsSlice precedingSlice;
   private CpsSlice nextSlice;
+  /** The message send performed as the last instruction of the slice. */
   private MessageSendWithReceiver terminator;
+  /** Arguments passed to the terminator message send. These don't include the receiver and the continuation. */
   private final List<OutboundArgument> terminatorArguments = new LinkedList<>();
+  /** Arguments passed to the continuation of the terminator (i.e. to the next slice) by binding them
+   * to the continuation.
+   */
   protected final List<PassDownArgument> passDownArguments = new LinkedList<>();
   private IntermediateResult result;
+  /** The arguments passed by the previous slice by binding them to the terminator call continuation. */
   private final List<InboundArgument> inboundArguments = new LinkedList<>();
   /** The argument for the result received by this continuation. */
   private InboundArgument inboundResult;
+  private CpsSliceDefiner definer; // set by the definer when it's created
 
   CpsSlice(CpsSlice precedingSlice) {
     this.precedingSlice = precedingSlice;
     this.index = precedingSlice == null ? 0 : precedingSlice.index + 1;
+  }
+
+  public int index() {
+    return index;
   }
 
   public CpsSlice precedingSlice() {
@@ -332,6 +373,10 @@ public class CpsSlice {
     return nextSlice;
   }
 
+  public int arity() {
+    return inboundArguments.size() + 1; // +1 is the inbound result
+  }
+
   public void addSlicesTo(List<CpsSlice> list) {
     if (precedingSlice != null) {
       precedingSlice.addSlicesTo(list);
@@ -339,13 +384,25 @@ public class CpsSlice {
     list.add(this);
   }
 
-  public void addArgumentHandles(Collection<OutboundArgument> outboundArguments) {
+  public void addTerminatorArguments(Collection<OutboundArgument> outboundArguments) {
     this.terminatorArguments.addAll(outboundArguments);
+  }
+
+  public MessageSendWithReceiver terminator() {
+    return terminator;
   }
 
   public void setTerminator(MessageSendWithReceiver terminator) {
     assert terminator.arity() + 1 /* the receiver */ == terminatorArguments.size();
     this.terminator = terminator;
+  }
+
+  public List<OutboundArgument> terminatorArguments() {
+    return terminatorArguments;
+  }
+
+  public List<PassDownArgument> passDownArguments() {
+    return passDownArguments;
   }
 
   public IntermediateResult result() {
@@ -356,10 +413,33 @@ public class CpsSlice {
     this.result = result;
   }
 
+  public CpsSliceDefiner definer() {
+    return definer;
+  }
+
+  public void setDefiner(CpsSliceDefiner definer) {
+    this.definer = definer;
+  }
+
   public void linkArguments() {
     linkTerminatorArguments();
     if (precedingSlice != null) {
       precedingSlice.linkArgumentsFrom(this);
+    }
+    allocateInboundArgumentIndices();
+  }
+
+  /**
+   * Allocate indices starting with 1, so that a simple multiplication by 2 will yield
+   * the actual raw index (0 = receiver, 1 = continuation, 2 and 3 = first arg, ...)
+   */
+  private void allocateInboundArgumentIndices() {
+    int index = 1;
+    for (InboundArgument arg : inboundArguments) {
+      arg.setIndex(index++);
+    }
+    if (inboundResult != null) {
+      inboundResult.setIndex(index);
     }
   }
 
@@ -389,7 +469,7 @@ public class CpsSlice {
     for (OutboundArgument arg : terminatorArguments) {
       arg.accept(new OutboundArgumentVisitor() {
         @Override
-        public void visitPervasiveReference(UbiquitousValue ubiquitousValue) {
+        public void visitUbiquitousValue(UbiquitousValue ubiquitousValue) {
           // nothing to do
         }
 

@@ -18,6 +18,7 @@ package org.newspeaklanguage.compiler;
 
 import org.newspeaklanguage.runtime.NsObject;
 
+import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 
 /**
@@ -31,6 +32,8 @@ public final class Descriptor {
   public static final String OBJECT_INTERNAL_CLASS_NAME = internalClassName(Object.class);
   public static final String OBJECT_TYPE_DESCRIPTOR = ofType(Object.class);
   public static final String INT_TYPE_DESCRIPTOR = "I";
+  public static final String METHOD_HANDLE_INTERNAL_CLASS_NAME = internalClassName(MethodHandle.class);
+  public static final String METHOD_HANDLE_TYPE_DESCRIPTOR = ofType(MethodHandle.class);
 
   public static String internalClassName(Class<?> klass) {
     return klass.getName().replace('.', '/');
@@ -50,24 +53,20 @@ public final class Descriptor {
   /**
    * Return a method descriptor string for a Java method implementing
    * a Newspeak method of the specified arity. The implementation has
-   * twice the number of arguments; each Newspeak argument becomes an
-   * Object/primitive int pair. Also, the int of the Object/int pair
-   * for the receiver becomes an unused first argument.
+   * a MethodHandle of the continuation to accept the result as the first argument,
+   * and an Object+int pair for each argument.
    */
   public static String ofMethodImplMethod(int arity) {
     StringBuilder result = new StringBuilder();
     result
         .append("(")
-        .append(INT_TYPE_DESCRIPTOR);
+        .append(METHOD_HANDLE_TYPE_DESCRIPTOR);
     for (int i = 0; i < arity; i++) {
       result
           .append(OBJECT_TYPE_DESCRIPTOR)
           .append(INT_TYPE_DESCRIPTOR);
     }
-    result.append(")");
-    // One or the other: return 'I' normally and object via an exception or the other way around:
-//    result.append(Descriptor.INT_TYPE_DESCRIPTOR);
-    result.append(Descriptor.OBJECT_TYPE_DESCRIPTOR);
+    result.append(")V");
     return result.toString();
   }
 

@@ -18,6 +18,8 @@ package org.newspeaklanguage.runtime;
 
 import org.newspeaklanguage.compiler.Descriptor;
 
+import java.lang.invoke.MethodHandle;
+
 /**
  * This class is a holder of a set of static classes used to give apparent
  * Newspeak behavior to built-in Java artifacts such as wrappers, Strings,
@@ -46,10 +48,12 @@ public final class Builtins {
     private ObjectMethods() { // no instances, this and the subclasses are just repositories of static methods
     }
 
+    @SuppressWarnings("unused") // called by compiled code
     public static Object $class(Object self, int unused) {
       return null;
     }
 
+    @SuppressWarnings("unused") // called by compiled code
     public static Object $printString(Object self, int unused) {
       String className = self.getClass().getSimpleName();
       String article = isVowel(className.charAt(0)) ? "an " : "a ";
@@ -63,6 +67,7 @@ public final class Builtins {
 
   public static final class UndefinedObjectMethods extends ObjectMethods {
 
+    @SuppressWarnings("unused") // called by compiled code
     public static Object $printString(Object self, int unused) {
       return "<nil>";
     }
@@ -70,6 +75,7 @@ public final class Builtins {
 
   public abstract static class BooleanMethods extends ObjectMethods {
 
+    @SuppressWarnings("unused") // called by compiled code
     public static Object $ifTrue$ifFalse$(Object self, int unused, Object trueBlock, int unused2, Object falseBlock, int unused3) {
       // FIXME this will barf if the blocks are not blocks, but not with an informative message
       return ((Boolean) self)
@@ -77,6 +83,7 @@ public final class Builtins {
           : ((Closure) falseBlock).$value(0);
     }
 
+    @SuppressWarnings("unused") // called by compiled code
     public static Object $printString(Object self, int unused) {
       return ((Boolean) self)
           ? "<true>"
@@ -86,28 +93,34 @@ public final class Builtins {
 
   public static final class IntMethods extends ObjectMethods {
 
+    @SuppressWarnings("unused") // called by compiled code
     public static Object $$plus(Object unused, int self, Object arg, int intArg) {
       int result = self + (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue());
       return ReturnPrimitiveValue.create(result);
     }
 
+    @SuppressWarnings("unused") // called by compiled code
     public static Object $$minus(Object unused, int self, Object arg, int intArg) {
       int result = self - (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue());
       return ReturnPrimitiveValue.create(result);
     }
 
+    @SuppressWarnings("unused") // called by compiled code
     public static Object $$lt(Object unused, int self, Object arg, int intArg) {
       return (Boolean) (self < (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue()));
     }
 
+    @SuppressWarnings("unused") // called by compiled code
     public static Object $$gt(Object unused, int self, Object arg, int intArg) {
       return (Boolean) (self > (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue()));
     }
 
+    @SuppressWarnings("unused") // called by compiled code
     public static Object $$eq(Object unused, int self, Object arg, int intArg) {
       return (Boolean) (self == (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue()));
     }
 
+    @SuppressWarnings("unused") // called by compiled code
     public static Object $printString(Object unused, int self) {
       return "<" + self + ">";
     }
@@ -115,29 +128,35 @@ public final class Builtins {
 
   public static final class NumberMethods extends ObjectMethods {
 
+    @SuppressWarnings("unused") // called by compiled code
     public static Object $$plus(Object self, int unused, Object arg, int intArg) {
       return ((Number) self).intValue() + (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue());
     }
 
+    @SuppressWarnings("unused") // called by compiled code
     public static Object $$minus(Object self, int unused, Object arg, int intArg) {
       return ((Number) self).intValue() - (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue());
     }
 
+    @SuppressWarnings("unused") // called by compiled code
     public static Object $$lt(Object self, int unused, Object arg, int intArg) {
       return ((Number) self).intValue() < (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue())
           ? TRUE : FALSE;
     }
 
+    @SuppressWarnings("unused") // called by compiled code
     public static Object $$gt(Object self, int unused, Object arg, int intArg) {
       return ((Number) self).intValue() > (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue())
           ? TRUE : FALSE;
     }
 
+    @SuppressWarnings("unused") // called by compiled code
     public static Object $$eq(Object self, int unused, Object arg, int intArg) {
       return ((Number) self).intValue() == (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue())
           ? TRUE : FALSE;
     }
 
+    @SuppressWarnings("unused") // called by compiled code
     public static Object $printString(Object self, int unused) {
       return "<" + ((Number) self).intValue() + ">";
     }
@@ -146,14 +165,17 @@ public final class Builtins {
 
   public static final class StringMethods extends ObjectMethods {
 
-    public static Object $$plus(Object self, int unused, Object another, int intAnother) {
-      // TODO for now just assuming another is also a string
+    @SuppressWarnings("unused") // called by compiled code
+    public static void $$plus(MethodHandle k, Object self, int unused, Object another, int intAnother)
+        throws Throwable
+    {
       String right = another == NsObject.UNDEFINED ? Integer.toString(intAnother) : (String) another;
-      return ((String) self) + right;
+      k.invokeExact((Object) (self + right), 0);
     }
 
-    public static Object $printString(Object self, int unused) {
-      return "'" + ((String) self) + "'";
+    @SuppressWarnings("unused") // called by compiled code
+    public static void $printString(MethodHandle k, Object self, int unused) throws Throwable {
+      k.invokeExact((Object) ("'" + self + "'"), 0);
     }
   }
 

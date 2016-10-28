@@ -79,6 +79,8 @@ public class MethodTests {
   
   @Test
   public void testTemps() {
+    // FIXME the CPS code generator produces crazy code for the first two assignments,
+    // which works but doesn't have to be so involved.
     Example test = Example.testMethod(
         "test = ("
         + "  | foo bar |"

@@ -16,6 +16,7 @@
 
 package org.newspeaklanguage.compiler.codegen;
 
+import org.newspeaklanguage.compiler.Descriptor;
 import org.newspeaklanguage.compiler.ast.Argument;
 import org.newspeaklanguage.compiler.ast.AstNode;
 import org.newspeaklanguage.compiler.ast.Block;
@@ -38,7 +39,12 @@ import org.newspeaklanguage.compiler.semantics.EnclosingObjectReference;
 import org.newspeaklanguage.compiler.semantics.RewrittenNodeVisitor;
 import org.newspeaklanguage.compiler.semantics.VariableAssignment;
 import org.newspeaklanguage.compiler.semantics.VariableReference;
+import org.newspeaklanguage.runtime.RuntimeError;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -53,9 +59,33 @@ import java.util.List;
  */
 public class CpsMonkey implements RewrittenNodeVisitor {
 
+  public static final String INTERNAL_CLASS_NAME = Descriptor.internalClassName(CpsMonkey.class);
+  public static final MethodType CONTINUATION_TYPE = MethodType.methodType(void.class, Object.class, int.class);
+  public static final String CONTINUATION_DESCRIPTOR = Descriptor.ofType(MethodHandle.class);
+
+  public static final MethodHandle TERMINATING_CONTINUATION;
+  static {
+    try {
+      TERMINATING_CONTINUATION = MethodHandles.lookup()
+          .findStatic(CpsMonkey.class, "terminatingContinuation", CONTINUATION_TYPE);
+    } catch (NoSuchMethodException | IllegalAccessException e) {
+      throw new RuntimeError("error initializing TERMINATING_CONTINUATION", e);
+    }
+  }
+
+  public static void terminatingContinuation(Object objectResult, int intResult) {
+
+  }
+
   public static List<CpsSlice> translate(AstNode expression) {
     CpsMonkey instance = new CpsMonkey(expression);
     instance.collectSlices();
+    if (instance.currentSlice().terminator() == null) {
+      // a slice can have no terminator only if it's the only slice, and the expression
+      // is simple and involves no message sends
+      assert instance.currentSlice() instanceof CpsSlice.InitialSlice;
+      return Collections.emptyList();
+    }
     instance.linkSliceArguments();
     List<CpsSlice> result = new LinkedList<>();
     instance.currentSlice().addSlicesTo(result);
@@ -72,7 +102,7 @@ public class CpsMonkey implements RewrittenNodeVisitor {
    * Instance side
    */
 
-  private final AstNode statement;
+  private final AstNode expression;
   private CpsSlice currentSlice = new CpsSlice.InitialSlice();
   /** Transfers to the calling method the result of visiting an argument of a message send */
   private CpsSlice.OutboundArgument outboundArgument;
@@ -80,8 +110,12 @@ public class CpsMonkey implements RewrittenNodeVisitor {
   /**
    * Private; use the static utility method.
    */
-  private CpsMonkey(AstNode statement) {
-    this.statement = statement;
+  private CpsMonkey(AstNode expression) {
+    this.expression = expression;
+  }
+
+  public AstNode expression() {
+    return expression;
   }
 
   public CpsSlice currentSlice() {
@@ -89,7 +123,7 @@ public class CpsMonkey implements RewrittenNodeVisitor {
   }
 
   public void collectSlices() {
-    visit(statement);
+    visit(expression);
     // If the currentSlice is not the initial one, then it's an empty
     // (no terminating node) slice created by the final visit of the
     // topmost message send node in the expression. Logically, the slice
@@ -140,7 +174,7 @@ public class CpsMonkey implements RewrittenNodeVisitor {
 
   @Override
   public void visitLiteralString(LiteralString literalString) {
-    unimplemented(literalString);
+    outboundArgument = new CpsSlice.UbiquitousValue(literalString);
   }
 
   @Override
@@ -167,8 +201,8 @@ public class CpsMonkey implements RewrittenNodeVisitor {
       assert outboundArgument != null;
       args.add(outboundArgument);
     }
+    currentSlice.addTerminatorArguments(args); // set arguments first so we can validate the arity of terminator
     currentSlice.setTerminator(node);
-    currentSlice.addArgumentHandles(args);
     CpsSlice.IntermediateResult result = new CpsSlice.IntermediateResult(node.selector());
     currentSlice.setResult(result);
     beginNewSlice();

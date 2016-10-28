@@ -20,6 +20,9 @@ import java.util.List;
 
 import org.newspeaklanguage.compiler.semantics.CodeScope;
 
+/**
+ * Captures the common features of methods and blocks.
+ */
 public abstract class CodeUnit extends AstNode {
   
   private final List<SlotDefinition> temps;
@@ -31,13 +34,27 @@ public abstract class CodeUnit extends AstNode {
     this.temps = temps;
     this.body = body;
   }
-  
-  
+
   public abstract List<Argument> arguments();
-  public List<SlotDefinition> temps() { return temps; }
-  public List<AstNode> body() { return body; }
-  
-  public CodeScope scope() { return scope; }
-  public void setScope(CodeScope scope) { this.scope = scope; }
+
+  public int arity() {
+    return arguments().size();
+  }
+
+  public List<SlotDefinition> temps() {
+    return temps;
+  }
+
+  public List<AstNode> body() {
+    return body;
+  }
+
+  public CodeScope scope() {
+    return scope;
+  }
+
+  public void setScope(CodeScope scope) {
+    this.scope = scope;
+  }
 
 }
