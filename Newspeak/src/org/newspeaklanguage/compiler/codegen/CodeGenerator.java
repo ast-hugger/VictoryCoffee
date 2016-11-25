@@ -19,7 +19,6 @@ package org.newspeaklanguage.compiler.codegen;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 
-import com.sun.org.apache.bcel.internal.generic.ILOAD;
 import org.newspeaklanguage.compiler.Descriptor;
 import org.newspeaklanguage.compiler.NamingPolicy;
 import org.newspeaklanguage.compiler.ast.Argument;

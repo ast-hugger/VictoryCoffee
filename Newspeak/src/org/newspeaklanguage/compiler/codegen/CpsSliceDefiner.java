@@ -16,7 +16,6 @@
 
 package org.newspeaklanguage.compiler.codegen;
 
-import com.sun.org.apache.xml.internal.security.Init;
 import org.newspeaklanguage.compiler.Descriptor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
