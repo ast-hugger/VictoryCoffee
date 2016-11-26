@@ -47,6 +47,7 @@ import org.newspeaklanguage.compiler.semantics.VariableReference;
 import org.newspeaklanguage.runtime.Box;
 import org.newspeaklanguage.runtime.Builtins;
 import org.newspeaklanguage.runtime.Closure;
+import org.newspeaklanguage.runtime.IntReturnStack;
 import org.newspeaklanguage.runtime.MessageDispatcher;
 import org.newspeaklanguage.runtime.NsObject;
 import org.newspeaklanguage.runtime.ObjectFactory;
@@ -101,6 +102,33 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
         ReturnPrimitiveValue.FACTORY_DESCRIPTOR,
         false
     );
+  }
+
+  public static void prepareToReturnIntFromPairOnStack(MethodVisitor methodWriter) {
+    // initial stack: int, Object=Undefined
+    methodWriter.visitInsn(Opcodes.SWAP);
+    // stack: Object=Undefined, int
+    methodWriter.visitMethodInsn(
+        Opcodes.INVOKESTATIC,
+        IntReturnStack.INTERNAL_CLASS_NAME,
+        "push",
+        IntReturnStack.PUSH_DESCRIPTOR,
+        false
+    );
+    // stack: Object=Undefined, which is what we want on return
+  }
+
+  public static void prepareToReturnSingleIntOnStack(MethodVisitor methodWriter) {
+    // initial stack: int
+    methodWriter.visitMethodInsn(
+        Opcodes.INVOKESTATIC,
+        IntReturnStack.INTERNAL_CLASS_NAME,
+        "push",
+        IntReturnStack.PUSH_DESCRIPTOR,
+        false
+    );
+    generateLoadUndefined(methodWriter);
+    // stack: Object=Undefined, which is what we want on return
   }
 
   /*

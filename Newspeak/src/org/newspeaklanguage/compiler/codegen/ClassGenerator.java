@@ -162,7 +162,7 @@ public class ClassGenerator {
     CodeGenerator.generateLoadUndefined(methodWriter); // stack: Object, Object, Undefined
     Label objectPresent = new Label();
     methodWriter.visitJumpInsn(Opcodes.IF_ACMPNE, objectPresent); // stack: Object
-    // the real value is in the primitive int field
+    // equal; the real value is in the primitive int field
     methodWriter.visitInsn(Opcodes.POP); // remove so stacks match at the objectPresent join
     methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
     methodWriter.visitFieldInsn(
