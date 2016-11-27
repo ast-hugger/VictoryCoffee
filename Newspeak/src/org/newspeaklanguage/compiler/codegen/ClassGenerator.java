@@ -39,13 +39,9 @@ import org.objectweb.asm.Opcodes;
 
 public class ClassGenerator {
 
-  // Both getter and setter methods, like all other methods compiled as methods of the implementation class,
-  // have the first unused int argument, which is the int part of the value pair which represented the receiver
-  // on the stack before the dynamic call.
-
-  public static final String GETTER_DESCRIPTOR = "(I)" + Descriptor.OBJECT_TYPE_DESCRIPTOR;
+  public static final String GETTER_DESCRIPTOR = "()" + Descriptor.OBJECT_TYPE_DESCRIPTOR;
   public static final String SETTER_DESCRIPTOR
-      = "(I" + Descriptor.OBJECT_TYPE_DESCRIPTOR + Descriptor.INT_TYPE_DESCRIPTOR + ")" + Descriptor.OBJECT_TYPE_DESCRIPTOR;
+      = "(" + Descriptor.INT_TYPE_DESCRIPTOR + Descriptor.OBJECT_TYPE_DESCRIPTOR + ")" + Descriptor.OBJECT_TYPE_DESCRIPTOR;
   
   public static byte[] generate(ClassDecl classNode) {
     ClassGenerator generator = new ClassGenerator(classNode);
@@ -143,7 +139,11 @@ public class ClassGenerator {
   }
 
   /**
-   * Generate a getter for the specified slot.
+   * Generate a getter for the specified slot. Signature:
+   * <pre>
+   *   public Object <getterMethodName>()
+   * </pre>
+   *
    */
   private void generateSlotGetter(SlotDefinition slot) {
     MethodVisitor methodWriter = classWriter.visitMethod(
@@ -152,38 +152,41 @@ public class ClassGenerator {
         GETTER_DESCRIPTOR,
         null, null);
     methodWriter.visitCode();
+    // fetch the object-valued field
     methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
     methodWriter.visitFieldInsn(
         Opcodes.GETFIELD,
         toInternalFormat(classNode.implementationClassName()),
         NamingPolicy.fieldNameForSlot(slot.name()),
         Descriptor.OBJECT_TYPE_DESCRIPTOR);
+    // check for undefined
     methodWriter.visitInsn(Opcodes.DUP);
     CodeGenerator.generateLoadUndefined(methodWriter); // stack: Object, Object, Undefined
     Label objectPresent = new Label();
     methodWriter.visitJumpInsn(Opcodes.IF_ACMPNE, objectPresent); // stack: Object
     // equal; the real value is in the primitive int field
-    methodWriter.visitInsn(Opcodes.POP); // remove so stacks match at the objectPresent join
+    methodWriter.visitInsn(Opcodes.POP); // stack: <empty>
+    // load the int
     methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
     methodWriter.visitFieldInsn(
         Opcodes.GETFIELD,
         toInternalFormat(classNode.implementationClassName()),
         NamingPolicy.fieldNameForPrimitiveSlot(slot.name()),
-        Descriptor.INT_TYPE_DESCRIPTOR);
-    CodeGenerator.generateCreateReturnPrimitiveValue(methodWriter);
+        Descriptor.INT_TYPE_DESCRIPTOR); // stack: int
+    CodeGenerator.prepareToReturnSingleIntOnStack(methodWriter); // stack: object=Undefined
 // objectPresent:
     methodWriter.visitLabel(objectPresent);
     methodWriter.visitInsn(Opcodes.ARETURN);
-    methodWriter.visitMaxs(0, 0); // args ignored
+    methodWriter.visitMaxs(-1, -1); // args ignored
     methodWriter.visitEnd();
   }
 
   /**
    * Generate a setter method for the specified slot. The method has the signature of:
    * <pre>
-   *   public void <setterMethodName>(int unused, Object objectValue, int intValue)
+   *   public Object <setterMethodName>(int intValue, Object objectValue)
    * </pre>
-   * So objectValue is local 2 and intValue is local 3.
+   * So objectValue is local 2 and intValue is local 1.
    */
   private void generateSlotSetter(SlotDefinition slot) {
     MethodVisitor methodVisitor = classWriter.visitMethod(
@@ -194,6 +197,13 @@ public class ClassGenerator {
     methodVisitor.visitCode();
     methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
     methodVisitor.visitInsn(Opcodes.DUP);
+    // store the int part
+    methodVisitor.visitVarInsn(Opcodes.ILOAD, 1);
+    methodVisitor.visitFieldInsn(
+        Opcodes.PUTFIELD,
+        toInternalFormat(classNode.implementationClassName()),
+        NamingPolicy.fieldNameForPrimitiveSlot(slot.name()),
+        Descriptor.INT_TYPE_DESCRIPTOR);
     // store the Object part
     methodVisitor.visitVarInsn(Opcodes.ALOAD, 2);
     methodVisitor.visitFieldInsn(
@@ -201,16 +211,9 @@ public class ClassGenerator {
         toInternalFormat(classNode.implementationClassName()),
         NamingPolicy.fieldNameForSlot(slot.name()),
         Descriptor.OBJECT_TYPE_DESCRIPTOR);
-    // store the int part
-    methodVisitor.visitVarInsn(Opcodes.ILOAD, 3);
-    methodVisitor.visitFieldInsn(
-        Opcodes.PUTFIELD,
-        toInternalFormat(classNode.implementationClassName()),
-        NamingPolicy.fieldNameForPrimitiveSlot(slot.name()),
-        Descriptor.INT_TYPE_DESCRIPTOR);
     methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
     methodVisitor.visitInsn(Opcodes.ARETURN);
-    methodVisitor.visitMaxs(3, 3); // args correct but ignored
+    methodVisitor.visitMaxs(-1, -1); // args correct but ignored
     methodVisitor.visitEnd();
   }
 

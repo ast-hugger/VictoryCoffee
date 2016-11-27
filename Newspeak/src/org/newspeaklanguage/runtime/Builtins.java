@@ -146,13 +146,13 @@ public final class Builtins {
 
   public static final class StringMethods extends ObjectMethods {
 
-    public static Object $$plus(Object self, int unused, Object another, int intAnother) {
+    public static Object $$plus(int unused, Object self, int intAnother, Object another) {
       // TODO for now just assuming another is also a string
       String right = another == NsObject.UNDEFINED ? Integer.toString(intAnother) : (String) another;
       return ((String) self) + right;
     }
 
-    public static Object $printString(Object self, int unused) {
+    public static Object $printString(int unused, Object self) {
       return "'" + ((String) self) + "'";
     }
   }

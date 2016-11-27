@@ -34,6 +34,6 @@ public class MethodScope extends CodeScope {
 
   @Override
   protected int firstOwnVariableIndex() {
-    return 2; // local 1 is the bogus intReceiver
+    return 1;
   }
 }

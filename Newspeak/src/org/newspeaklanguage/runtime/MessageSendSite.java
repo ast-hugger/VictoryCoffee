@@ -75,6 +75,24 @@ public final class MessageSendSite extends MutableCallSite {
     MethodHandle typeCheck = here
         .findStatic(here.lookupClass(), "checkClass", CHECK_CLASS_TYPE)
         .bindTo(expectedClass);
+    typeCheck = MethodHandles.dropArguments(typeCheck, 0, int.class);
+    typeCheck = typeCheck.asType(
+        typeCheck.type().changeParameterType(0, this.type().parameterType(0)));
+    specialization = MethodHandles.dropArguments(specialization, 0, int.class);
+    MethodHandle cacheNode =
+        MethodHandles.guardWithTest(typeCheck, specialization, getTarget());
+    setTarget(cacheNode);
+    depth++;
+//    System.out.println(expectedClass + ", " + depth + ", " + methodName);
+  }
+
+  public void addInlineCacheStatic(Class<?> expectedClass, MethodHandle specialization)
+      throws NoSuchMethodException, IllegalAccessException
+  {
+    Lookup here = MethodHandles.lookup();
+    MethodHandle typeCheck = here
+        .findStatic(here.lookupClass(), "checkClass", CHECK_CLASS_TYPE)
+        .bindTo(expectedClass);
     typeCheck = typeCheck.asType(
         typeCheck.type().changeParameterType(0, this.type().parameterType(0)));
     MethodHandle cacheNode =

@@ -137,8 +137,8 @@ public class Example {
   
   protected static Object invoke(NsObject object, String methodName) {
     try {
-      Method method = object.getClass().getMethod(methodName, int.class);
-      return method.invoke(object, 0);
+      Method method = object.getClass().getMethod(methodName);
+      return method.invoke(object);
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }

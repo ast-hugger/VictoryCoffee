@@ -131,6 +131,16 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
     // stack: Object=Undefined, which is what we want on return
   }
 
+  public static void generateLoadIntFromStack(MethodVisitor methodWriter) {
+    methodWriter.visitMethodInsn(
+        Opcodes.INVOKESTATIC,
+        IntReturnStack.INTERNAL_CLASS_NAME,
+        "pop",
+        IntReturnStack.POP_DESCRIPTOR,
+        false
+    );
+  }
+
   /*
    * Instance side
    */
@@ -181,10 +191,10 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
             "<init>",
             "()V",
             false);
-        methodWriter.visitVarInsn(Opcodes.ASTORE, each.index());
+        methodWriter.visitVarInsn(Opcodes.ASTORE, each.index() + 1);
       }
       generateLoadInt(methodWriter, 0);
-      methodWriter.visitVarInsn(Opcodes.ISTORE, each.index() + 1);
+      methodWriter.visitVarInsn(Opcodes.ISTORE, each.index());
     });
   }
 
@@ -197,10 +207,11 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
 
   @Override
   public void visitBlock(Block block) {
+    // TODO update for the int, Object argument order
     BlockDefiner definer = block.definer();
     int copiedValueCount = block.scope().copiedVariableCount();
     // Generate a constructor call of Closure in either the positional argument or
-    // varargs form, depending on the number of copied values.
+    // the varargs form, depending on the number of copied values.
     methodWriter.visitTypeInsn(Opcodes.NEW, Closure.INTERNAL_CLASS_NAME);
     methodWriter.visitInsn(Opcodes.DUP);
     // push implementation method handle
@@ -254,8 +265,8 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
 
   @Override
   public void visitLiteralNumber(LiteralNumber literalNumber) {
-    generateLoadUndefined(methodWriter);
     generateLoadInt(methodWriter, literalNumber.value().intValue());
+    generateLoadUndefined(methodWriter);
   }
 
   @Override
@@ -266,8 +277,8 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
       literal = LiteralValue.forString(string);
       classGenerator.addLiteral(literal);
     }
-    literal.generateLoad(methodWriter);
     generateLoadInt(methodWriter, 0);
+    literal.generateLoad(methodWriter);
   }
 
   @Override
@@ -283,16 +294,6 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
   @Override
   public void visitMessageSendNoReceiver(MessageSendNoReceiver messageNode) {
     unexpectedVisit(messageNode); // this node is supposed to be rewritten and not visited for code generation
-
-//    if (messageNode.meaning().isLexicalVarReference()) {
-//      generateLexicalVarReference(messageNode);
-//    } else if (messageNode.meaning().isSendToEnclosingObject()) {
-//      generateSendToEnclosingObject(messageNode);
-//    } else if (messageNode.meaning().isSelfSend()) {
-//      generateSelfSend(messageNode);
-//    } else {
-//      throw new IllegalStateException("unrecognized here send meaning");
-//    }
   }
 
   /**
@@ -314,12 +315,13 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
       methodWriter.visitVarInsn(Opcodes.ALOAD, index);
       methodWriter.visitTypeInsn(Opcodes.CHECKCAST, Box.INTERNAL_CLASS_NAME);
       methodWriter.visitInsn(Opcodes.DUP); // stack: Box, Box
-      methodWriter.visitFieldInsn(Opcodes.GETFIELD, Box.INTERNAL_CLASS_NAME, "value", Descriptor.OBJECT_TYPE_DESCRIPTOR);
-      methodWriter.visitInsn(Opcodes.SWAP); // stack: Object, Box
       methodWriter.visitFieldInsn(Opcodes.GETFIELD, Box.INTERNAL_CLASS_NAME, "intValue", Descriptor.INT_TYPE_DESCRIPTOR);
+      methodWriter.visitInsn(Opcodes.SWAP); // stack: int, Box
+      methodWriter.visitFieldInsn(Opcodes.GETFIELD, Box.INTERNAL_CLASS_NAME, "value", Descriptor.OBJECT_TYPE_DESCRIPTOR);
+      // stack: int, Object
     } else {
-      methodWriter.visitVarInsn(Opcodes.ALOAD, index);
-      methodWriter.visitVarInsn(Opcodes.ILOAD, index + 1);
+      methodWriter.visitVarInsn(Opcodes.ILOAD, index);
+      methodWriter.visitVarInsn(Opcodes.ALOAD, index + 1);
     }
   }
 
@@ -330,48 +332,48 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
     if (node.isPassThrough()) {
       // foo::
       visit(node.expression());
-      methodWriter.visitInsn(Opcodes.DUP2); // the result is an Object/int pair
+      methodWriter.visitInsn(Opcodes.DUP2); // the result is an int/Object pair
       if (local.isBoxed()) {
         // foo:: boxed
-        methodWriter.visitVarInsn(Opcodes.ALOAD, index); // stack: Object, int, Box
+        methodWriter.visitVarInsn(Opcodes.ALOAD, index); // stack: int, Object, Box
         methodWriter.visitTypeInsn(Opcodes.CHECKCAST, Box.INTERNAL_CLASS_NAME);
-        methodWriter.visitInsn(Opcodes.DUP_X2); // stack: Box, Object, int, Box
-        methodWriter.visitInsn(Opcodes.SWAP); // stack: Box, Object, Box, int
-        methodWriter.visitFieldInsn(Opcodes.PUTFIELD, Box.INTERNAL_CLASS_NAME, "intValue", Descriptor.INT_TYPE_DESCRIPTOR);
+        methodWriter.visitInsn(Opcodes.DUP_X2); // stack: Box, int, Object, Box
+        methodWriter.visitInsn(Opcodes.SWAP); // stack: Box, int, Box, Object
         methodWriter.visitFieldInsn(Opcodes.PUTFIELD, Box.INTERNAL_CLASS_NAME, "value", Descriptor.OBJECT_TYPE_DESCRIPTOR);
+        methodWriter.visitFieldInsn(Opcodes.PUTFIELD, Box.INTERNAL_CLASS_NAME, "intValue", Descriptor.INT_TYPE_DESCRIPTOR);
       } else {
         // foo:: unboxed
-        methodWriter.visitVarInsn(Opcodes.ISTORE, index + 1); // store the int
-        methodWriter.visitVarInsn(Opcodes.ASTORE, index); // store the object part
+        methodWriter.visitVarInsn(Opcodes.ASTORE, index + 1); // store the object part
+        methodWriter.visitVarInsn(Opcodes.ISTORE, index); // store the int
       }
       // the original value pair is now on top
     } else {
       // foo:
       if (local.isBoxed()) {
         // foo: boxed
-        visit(node.expression()); // stack: Object, Int
+        visit(node.expression()); // stack: int, Object
         methodWriter.visitVarInsn(Opcodes.ALOAD, index);
-        methodWriter.visitTypeInsn(Opcodes.CHECKCAST, Box.INTERNAL_CLASS_NAME); // stack: Object, Int, Box
-        methodWriter.visitInsn(Opcodes.DUP_X2); // stack: Box, Object, Int, Box
-        methodWriter.visitInsn(Opcodes.SWAP); // stack: Box, Object, Box, Int
-        methodWriter.visitFieldInsn(Opcodes.PUTFIELD, Box.INTERNAL_CLASS_NAME, "intValue", Descriptor.INT_TYPE_DESCRIPTOR);
+        methodWriter.visitTypeInsn(Opcodes.CHECKCAST, Box.INTERNAL_CLASS_NAME); // stack: int, Object, Box
+        methodWriter.visitInsn(Opcodes.DUP_X2); // stack: Box, int, Object, Box
+        methodWriter.visitInsn(Opcodes.SWAP); // stack: Box, int, Box, Object
         methodWriter.visitFieldInsn(Opcodes.PUTFIELD, Box.INTERNAL_CLASS_NAME, "value", Descriptor.OBJECT_TYPE_DESCRIPTOR);
+        methodWriter.visitFieldInsn(Opcodes.PUTFIELD, Box.INTERNAL_CLASS_NAME, "intValue", Descriptor.INT_TYPE_DESCRIPTOR);
       } else {
         // foo: unboxed
         visit(node.expression());
-        methodWriter.visitVarInsn(Opcodes.ISTORE, index + 1);
-        methodWriter.visitVarInsn(Opcodes.ASTORE, index);
+        methodWriter.visitVarInsn(Opcodes.ASTORE, index + 1);
+        methodWriter.visitVarInsn(Opcodes.ISTORE, index);
       }
-      methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
       methodWriter.visitInsn(Opcodes.ICONST_0);
+      methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
     }
   }
 
   @Override
   public void visitEnclosingObjectReference(EnclosingObjectReference node) {
     int scopeLevel = node.scopeLevel();
-    generateLoadOfEnclosingObject(scopeLevel);
     generateLoadInt(methodWriter, 0);
+    generateLoadOfEnclosingObject(scopeLevel);
   }
 
   /**
@@ -407,16 +409,20 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
   @Override
   public void visitMessageSendWithReceiver(MessageSendWithReceiver node) {
     if (node.isSetterSend()) {
+
+      // TODO implement this case
+
       // A setter send should leave the message argument on the stack.
       assert node.arity() == 1;
-      visit(node.arguments().get(0)); // stack: Object, int
-      methodWriter.visitInsn(Opcodes.DUP2); // stack: Object, int, Object, int
-      visit(node.receiver()); // stack: Object, int, Object, int, receiverObj, receiverInt
+      visit(node.arguments().get(0)); // stack: int, Object
+      methodWriter.visitInsn(Opcodes.DUP2); // stack: int, Object, int, Object
+      visit(node.receiver()); // stack: int, Object, int, Object, receiverInt, receiverObj
       // Now we can cheat to make the stack massaging easier. We know the receiver of a setter send
       // is never a primitive object. Hence, we can drop the int and later push a 0.
-      methodWriter.visitInsn(Opcodes.POP); // stack: Object, int, Object, int, receiver
-      methodWriter.visitInsn(Opcodes.DUP_X2); // stack: Object, int, receiver, Object, int, receiver
-      methodWriter.visitInsn(Opcodes.POP); // stack: Object, int, receiver, Object, int
+      methodWriter.visitInsn(Opcodes.SWAP); // stack: int, Object, int, Object, receiverObj, receiverInt
+      methodWriter.visitInsn(Opcodes.POP); // stack: int, Object, int, Object, receiverObj
+      methodWriter.visitInsn(Opcodes.DUP_X2); // stack: int, Object, receiverObj, int, Object, receiverObj
+      methodWriter.visitInsn(Opcodes.POP); // stack: int, Object, receiverObj, int, Object
       // In the following line we use a random int we have on the stack as the int value of the receiver pair
       // because it's there and we don't care about the value, we just need an int there to conform to the
       // standard method signature. The receiver is always a real object, so the
@@ -424,6 +430,9 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
       methodWriter.visitInsn(Opcodes.DUP_X1); // stack: Object, int, receiver, int, Object, int
       // We now have a copy of the argument pair above the receiver and the argument pair;
       // should also pop the send result once we are done.
+
+      throw new UnsupportedOperationException("unimplemented");
+
     } else {
       // not a setter send -- piece of cake
       node.receiver().accept(this);
@@ -434,52 +443,46 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
         callSiteTypeDescriptor(node.arguments().size()),
         MessageDispatcher.bootstrapHandle()); // stack: Object
     if (node.isSetterSend()) {
-      // now the setter send case is easy--ignore the result. the argument copy is on the stack below
+      // now the setter send case is easy: discard the result. The argument copy is on the stack below
       methodWriter.visitInsn(Opcodes.POP);
     } else {
       Label objectResult = new Label();
       Label end = new Label();
       methodWriter.visitInsn(Opcodes.DUP); // stack: Object, Object
-      methodWriter.visitTypeInsn(Opcodes.INSTANCEOF, ReturnPrimitiveValue.INTERNAL_CLASS_NAME); // stack: Object, int
-      methodWriter.visitJumpInsn(Opcodes.IFEQ, objectResult); // stack: Object
-      // the result is a ReturnPrimitiveValue wrapper
-      methodWriter.visitTypeInsn(Opcodes.CHECKCAST, ReturnPrimitiveValue.INTERNAL_CLASS_NAME);
-      methodWriter.visitFieldInsn(
-          Opcodes.GETFIELD,
-          ReturnPrimitiveValue.INTERNAL_CLASS_NAME,
-          "value",
-          Descriptor.INT_TYPE_DESCRIPTOR); // stack: int
-      generateLoadUndefined(methodWriter); // stack: int, Object
-      methodWriter.visitInsn(Opcodes.SWAP); // stack: Object, int
+      generateLoadUndefined(methodWriter); // stack: Object, Object, Undefined
+      methodWriter.visitJumpInsn(Opcodes.IF_ACMPNE, objectResult); // stack: Object
+      // the object is undefined, need int from stack
+      generateLoadIntFromStack(methodWriter); // stack: Object, int
       methodWriter.visitJumpInsn(Opcodes.GOTO, end);
 // objectResult:
       methodWriter.visitLabel(objectResult); // stack: Object
       generateLoadInt(methodWriter, 0); // stack: Object, int
 // end:
       methodWriter.visitLabel(end);
+      methodWriter.visitInsn(Opcodes.SWAP); // stack: int, Object
     }
   }
 
   @Override
   public void visitLiteralNil(LiteralNil literalNil) {
-    methodWriter.visitInsn(Opcodes.ACONST_NULL);
     generateLoadInt(methodWriter, 0);
+    methodWriter.visitInsn(Opcodes.ACONST_NULL);
   }
 
   @Override
   public void visitLiteralBoolean(LiteralBoolean literalBoolean) {
+    generateLoadInt(methodWriter, 0);
     methodWriter.visitFieldInsn(
         Opcodes.GETSTATIC,
         Builtins.INTERNAL_CLASS_NAME,
         literalBoolean.value() ? "TRUE" : "FALSE",
         Descriptor.OBJECT_TYPE_DESCRIPTOR);
-    generateLoadInt(methodWriter, 0);
   }
 
   @Override
   public void visitSelf(Self self) {
-    methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
     generateLoadInt(methodWriter, 0);
+    methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
   }
 
   @Override
@@ -490,24 +493,28 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
   @Override
   public void visitOuter(Outer outer) {
     int scopeLevel = outer.targetClassScope().level();
-    generateLoadOfEnclosingObject(scopeLevel);
     generateLoadInt(methodWriter, 0);
+    generateLoadOfEnclosingObject(scopeLevel);
   }
 
   @Override
   public void visitReturn(Return returnNode) {
-    returnNode.expression().accept(this); // stack: Object, int
-    methodWriter.visitInsn(Opcodes.SWAP);
+    returnNode.expression().accept(this); // stack: int, Object
     methodWriter.visitInsn(Opcodes.DUP);
     generateLoadUndefined(methodWriter); // stack: int, Object, Object, Undefined
     Label objectPresent = new Label();
+    Label end = new Label();
     methodWriter.visitJumpInsn(Opcodes.IF_ACMPNE, objectPresent); // stack: int, Object
     // Object undefined, int is the return value
     methodWriter.visitInsn(Opcodes.POP); // stack: int
-    methodWriter.visitInsn(Opcodes.DUP); // need to have the same stack signature at the objectPresent join
-    generateCreateReturnPrimitiveValue(methodWriter); // stack: int, Object
+    prepareToReturnSingleIntOnStack(methodWriter); // stack: Object
+    methodWriter.visitJumpInsn(Opcodes.GOTO, end);
 // objectPresent:
     methodWriter.visitLabel(objectPresent);
+    methodWriter.visitInsn(Opcodes.SWAP); // stack: Object, int
+    methodWriter.visitInsn(Opcodes.POP); // stack: Object
+// end:
+    methodWriter.visitLabel(end);
     methodWriter.visitInsn(Opcodes.ARETURN);
   }
 
@@ -532,8 +539,8 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
     result.append("(");
     for (int i = 0; i < arity + 1; i++) {
       result
-          .append(Descriptor.OBJECT_TYPE_DESCRIPTOR)
-          .append(Descriptor.INT_TYPE_DESCRIPTOR);
+          .append(Descriptor.INT_TYPE_DESCRIPTOR)
+          .append(Descriptor.OBJECT_TYPE_DESCRIPTOR);
     }
     result.append(")");
     result.append(Descriptor.OBJECT_TYPE_DESCRIPTOR);

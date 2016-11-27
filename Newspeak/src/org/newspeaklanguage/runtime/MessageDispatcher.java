@@ -56,20 +56,24 @@ public final class MessageDispatcher {
   /**
    * Unary message dispatch.
    */
-  public static Object dispatch(MessageSendSite callSite, Object receiver, int intReceiver) throws Throwable {
+  public static Object dispatch(MessageSendSite callSite, int intReceiver, Object receiver) throws Throwable {
     if (receiver == null) throw new RuntimeError("null receiver not supported yet");
     Class<?> methodContainer = receiver == NsObject.UNDEFINED ? Builtins.IntMethods.class : methodContainerOf(receiver);
     MethodHandle method;
     try {
-      // TODO is the following fast enough or should we remember the findings in methodContainerOf?
+      // TODO is isAsignableFrom() fast enough or should we remember the findings in methodContainerOf?
       if (StandardObject.class.isAssignableFrom(methodContainer)) {
         method = callSite.lookup()
-            .findVirtual(methodContainer, callSite.methodName(), methodType(callSite.type().parameterCount()))
-            .asType(callSite.type());
+            .findVirtual(methodContainer, callSite.methodName(), methodType(callSite.type().parameterCount()));
+        method = method.asType(method.type().changeParameterType(0, Object.class));
+        callSite.addInlineCache(receiver.getClass(), method);
+        return method.invoke(receiver);
       } else {
         method = callSite.lookup()
             .findStatic(methodContainer, callSite.methodName(), staticMethodType(callSite.type().parameterCount()))
             .asType(callSite.type());
+        callSite.addInlineCacheStatic(receiver.getClass(), method);
+        return method.invoke(intReceiver, receiver);
       }
     } catch (NoSuchMethodException e) {
       throw new MessageNotUnderstood(receiver, callSite.methodName(), new Object[0]);
@@ -77,14 +81,12 @@ public final class MessageDispatcher {
     // FIXME receiver.getClass() will not work for null receivers
     // getClass() also works in the primitive case. In that case receiver.getClass() is NsObject.Undefined.class,
     // which works fine as the primitive specialization marker.
-    callSite.addInlineCache(receiver.getClass(), method);
-    return method.invoke(receiver, intReceiver);
   }
   
   /**
    * Single argument message dispatch (binary and 1-arg keyword messages).
    */
-  public static Object dispatch(MessageSendSite callSite, Object receiver, int intReceiver, Object arg1, int intArg1)
+  public static Object dispatch(MessageSendSite callSite, int intReceiver, Object receiver, int intArg1, Object arg1)
       throws Throwable
   {
     if (receiver == null) throw new RuntimeError("null receiver not supported yet");
@@ -93,24 +95,26 @@ public final class MessageDispatcher {
     try {
       if (StandardObject.class.isAssignableFrom(methodContainer)) {
         method = callSite.lookup()
-            .findVirtual(methodContainer, callSite.methodName(), methodType(callSite.type().parameterCount()))
-            .asType(callSite.type());
+            .findVirtual(methodContainer, callSite.methodName(), methodType(callSite.type().parameterCount()));
+        method = method.asType(method.type().changeParameterType(0, Object.class));
+        callSite.addInlineCache(receiver.getClass(), method);
+        return method.invoke(receiver, intArg1, arg1);
       } else {
         method = callSite.lookup()
             .findStatic(methodContainer, callSite.methodName(), staticMethodType(callSite.type().parameterCount()))
             .asType(callSite.type());
+        callSite.addInlineCacheStatic(receiver.getClass(), method);
+        return method.invoke(intReceiver, receiver, intArg1, arg1);
       }
     } catch (NoSuchMethodException e) {
       throw new MessageNotUnderstood(receiver, callSite.methodName(), new Object[]{arg1});
     }
-    callSite.addInlineCache(receiver.getClass(), method);
-    return method.invoke(receiver, intReceiver, arg1, intArg1);
   }
   
   /**
    * Two -argument message dispatch.
    */
-  public static Object dispatch(MessageSendSite callSite, Object receiver, int intReceiver, Object arg1, int intArg1, Object arg2, int intArg2)
+  public static Object dispatch(MessageSendSite callSite, int intReceiver, Object receiver, int intArg1, Object arg1, int intArg2, Object arg2)
       throws Throwable
   {
     if (receiver == null) throw new RuntimeError("null receiver not supported yet");
@@ -119,25 +123,27 @@ public final class MessageDispatcher {
     try {
       if (StandardObject.class.isAssignableFrom(methodContainer)) {
         method = callSite.lookup()
-            .findVirtual(methodContainer, callSite.methodName(), methodType(callSite.type().parameterCount()))
-            .asType(callSite.type());
+            .findVirtual(methodContainer, callSite.methodName(), methodType(callSite.type().parameterCount()));
+        method = method.asType(method.type().changeParameterType(0, Object.class));
+        callSite.addInlineCache(receiver.getClass(), method);
+        return method.invoke(receiver, intArg1, arg1, intArg2, arg2);
       } else {
         method = callSite.lookup()
             .findStatic(methodContainer, callSite.methodName(), staticMethodType(callSite.type().parameterCount()))
             .asType(callSite.type());
+        callSite.addInlineCache(receiver.getClass(), method);
+        return method.invoke(intReceiver, receiver, intArg1, arg1, intArg2, arg2);
       }
     } catch (NoSuchMethodException e) {
       throw new MessageNotUnderstood(receiver, callSite.methodName(), new Object[]{arg1, arg2});
     }
-    callSite.addInlineCache(receiver.getClass(), method);
-    return method.invoke(receiver, intReceiver, arg1, intArg1, arg2, intArg2);
   }
   
   /**
    * Three-argument message dispatch.
    */
-  public static Object dispatch(MessageSendSite callSite, Object receiver, int intReceiver, Object arg1, int intArg1, Object arg2, int intArg2,
-                                  Object arg3, int intArg3)
+  public static Object dispatch(MessageSendSite callSite, int intReceiver, Object receiver, int intArg1, Object arg1, int intArg2, Object arg2,
+                                int intArg3, Object arg3)
       throws Throwable
   {
     if (receiver == null) throw new RuntimeError("null receiver not supported yet");
@@ -146,18 +152,20 @@ public final class MessageDispatcher {
     try {
       if (StandardObject.class.isAssignableFrom(methodContainer)) {
         method = callSite.lookup()
-            .findVirtual(methodContainer, callSite.methodName(), methodType(callSite.type().parameterCount()))
-            .asType(callSite.type());
+            .findVirtual(methodContainer, callSite.methodName(), methodType(callSite.type().parameterCount()));
+        method = method.asType(method.type().changeParameterType(0, Object.class));
+        callSite.addInlineCache(receiver.getClass(), method);
+        return method.invoke(receiver, intArg1, arg1, intArg2, arg2, intArg3, arg3);
       } else {
         method = callSite.lookup()
             .findStatic(methodContainer, callSite.methodName(), staticMethodType(callSite.type().parameterCount()))
             .asType(callSite.type());
+        callSite.addInlineCache(receiver.getClass(), method);
+        return method.invoke(intReceiver, intArg1, arg1, intArg2, arg2, intArg3, arg3);
       }
     } catch (NoSuchMethodException e) {
       throw new MessageNotUnderstood(receiver, callSite.methodName(), new Object[]{arg1, arg2, arg3});
     }
-    callSite.addInlineCache(receiver.getClass(), method);
-    return method.invoke(receiver, intReceiver, arg1, intArg1, arg2, intArg2, arg3, intArg3);
   }
 
   /**
@@ -166,9 +174,9 @@ public final class MessageDispatcher {
    * full-blown Object/int pair in the signature.
    */
   private static MethodType dispatchType(int arity) {
-    MethodType type = MethodType.methodType(Object.class, MessageSendSite.class, Object.class, int.class);
+    MethodType type = MethodType.methodType(Object.class, MessageSendSite.class, int.class, Object.class);
     for (int i = 0; i < arity; i++) {
-      type = type.appendParameterTypes(Object.class, int.class);
+      type = type.appendParameterTypes(int.class, Object.class);
     }
     return type;
   }
@@ -179,9 +187,9 @@ public final class MessageDispatcher {
    * Object/int pair as part of the signature, but the type we produce should only include the int.
    */
   private static MethodType methodType(int callSiteParameterCount) {
-    MethodType type = MethodType.methodType(Object.class, int.class); // the result and the unused receiver int
+    MethodType type = MethodType.methodType(Object.class); // the result and the unused receiver int
     for (int i = 0; i < callSiteParameterCount / 2 - 1; i++) {
-      type = type.appendParameterTypes(Object.class, int.class);
+      type = type.appendParameterTypes(int.class, Object.class);
     }
     return type;
   }
@@ -189,7 +197,7 @@ public final class MessageDispatcher {
   private static MethodType staticMethodType(int callSiteParameterCount) {
     MethodType type = MethodType.methodType(Object.class);
     for (int i = 0; i < callSiteParameterCount / 2; i++) {
-      type = type.appendParameterTypes(Object.class, int.class);
+      type = type.appendParameterTypes(int.class, Object.class);
     }
     return type;
   }

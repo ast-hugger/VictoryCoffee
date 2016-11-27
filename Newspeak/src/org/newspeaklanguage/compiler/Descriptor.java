@@ -51,18 +51,16 @@ public final class Descriptor {
    * Return a method descriptor string for a Java method implementing
    * a Newspeak method of the specified arity. The implementation has
    * twice the number of arguments; each Newspeak argument becomes an
-   * Object/primitive int pair. Also, the int of the Object/int pair
-   * for the receiver becomes an unused first argument.
+   * Object/primitive int pair.
    */
   public static String ofMethodImplMethod(int arity) {
     StringBuilder result = new StringBuilder();
     result
-        .append("(")
-        .append(INT_TYPE_DESCRIPTOR);
+        .append("(");
     for (int i = 0; i < arity; i++) {
       result
-          .append(OBJECT_TYPE_DESCRIPTOR)
-          .append(INT_TYPE_DESCRIPTOR);
+          .append(INT_TYPE_DESCRIPTOR)
+          .append(OBJECT_TYPE_DESCRIPTOR);
     }
     result.append(")");
     // One or the other: return 'I' normally and object via an exception or the other way around:
