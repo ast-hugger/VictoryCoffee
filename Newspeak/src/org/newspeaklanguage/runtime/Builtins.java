@@ -46,11 +46,11 @@ public final class Builtins {
     private ObjectMethods() { // no instances, this and the subclasses are just repositories of static methods
     }
 
-    public static Object $class(Object self, int unused) {
+    public static Object $class(int unused, Object self) {
       return null;
     }
 
-    public static Object $printString(Object self, int unused) {
+    public static Object $printString(int unused, Object self) {
       String className = self.getClass().getSimpleName();
       String article = isVowel(className.charAt(0)) ? "an " : "a ";
       return Builtins.string(article + className);
@@ -63,21 +63,21 @@ public final class Builtins {
 
   public static final class UndefinedObjectMethods extends ObjectMethods {
 
-    public static Object $printString(Object self, int unused) {
+    public static Object $printString(int unused, Object self) {
       return "<nil>";
     }
   }
 
   public abstract static class BooleanMethods extends ObjectMethods {
 
-    public static Object $ifTrue$ifFalse$(Object self, int unused, Object trueBlock, int unused2, Object falseBlock, int unused3) {
+    public static Object $ifTrue$ifFalse$(int unused, Object self, int unused2, Object trueBlock, int unused3, Object falseBlock) {
       // FIXME this will barf if the blocks are not blocks, but not with an informative message
       return ((Boolean) self)
           ? ((Closure) trueBlock).$value(0)
           : ((Closure) falseBlock).$value(0);
     }
 
-    public static Object $printString(Object self, int unused) {
+    public static Object $printString(int unused, Object self) {
       return ((Boolean) self)
           ? "<true>"
           : "<false>";
@@ -86,59 +86,59 @@ public final class Builtins {
 
   public static final class IntMethods extends ObjectMethods {
 
-    public static Object $$plus(Object unused, int self, Object arg, int intArg) {
+    public static Object $$plus(int self, Object unused, int intArg, Object arg) {
       int result = self + (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue());
       return ReturnPrimitiveValue.create(result);
     }
 
-    public static Object $$minus(Object unused, int self, Object arg, int intArg) {
+    public static Object $$minus(int self, Object unused, int intArg, Object arg) {
       int result = self - (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue());
       return ReturnPrimitiveValue.create(result);
     }
 
-    public static Object $$lt(Object unused, int self, Object arg, int intArg) {
+    public static Object $$lt(int self, Object unused, int intArg, Object arg) {
       return (Boolean) (self < (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue()));
     }
 
-    public static Object $$gt(Object unused, int self, Object arg, int intArg) {
+    public static Object $$gt(int self, Object unused, int intArg, Object arg) {
       return (Boolean) (self > (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue()));
     }
 
-    public static Object $$eq(Object unused, int self, Object arg, int intArg) {
+    public static Object $$eq(int self, Object unused, int intArg, Object arg) {
       return (Boolean) (self == (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue()));
     }
 
-    public static Object $printString(Object unused, int self) {
+    public static Object $printString(int self, Object unused) {
       return "<" + self + ">";
     }
   }
 
   public static final class NumberMethods extends ObjectMethods {
 
-    public static Object $$plus(Object self, int unused, Object arg, int intArg) {
+    public static Object $$plus(int unused, Object self, int intArg, Object arg) {
       return ((Number) self).intValue() + (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue());
     }
 
-    public static Object $$minus(Object self, int unused, Object arg, int intArg) {
+    public static Object $$minus(int unused, Object self, int intArg, Object arg) {
       return ((Number) self).intValue() - (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue());
     }
 
-    public static Object $$lt(Object self, int unused, Object arg, int intArg) {
+    public static Object $$lt(int unused, Object self, int intArg, Object arg) {
       return ((Number) self).intValue() < (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue())
           ? TRUE : FALSE;
     }
 
-    public static Object $$gt(Object self, int unused, Object arg, int intArg) {
+    public static Object $$gt(int unused, Object self, int intArg, Object arg) {
       return ((Number) self).intValue() > (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue())
           ? TRUE : FALSE;
     }
 
-    public static Object $$eq(Object self, int unused, Object arg, int intArg) {
+    public static Object $$eq(int unused, Object self, int intArg, Object arg) {
       return ((Number) self).intValue() == (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue())
           ? TRUE : FALSE;
     }
 
-    public static Object $printString(Object self, int unused) {
+    public static Object $printString(int unused, Object self) {
       return "<" + ((Number) self).intValue() + ">";
     }
 

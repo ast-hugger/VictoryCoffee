@@ -51,6 +51,7 @@ import org.newspeaklanguage.runtime.IntReturnStack;
 import org.newspeaklanguage.runtime.MessageDispatcher;
 import org.newspeaklanguage.runtime.NsObject;
 import org.newspeaklanguage.runtime.ObjectFactory;
+import org.newspeaklanguage.runtime.PassThroughMessageSendWrapper;
 import org.newspeaklanguage.runtime.ReturnPrimitiveValue;
 import org.newspeaklanguage.runtime.StandardObject;
 import org.objectweb.asm.ClassWriter;
@@ -409,58 +410,37 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
   @Override
   public void visitMessageSendWithReceiver(MessageSendWithReceiver node) {
     if (node.isSetterSend()) {
-
-      // TODO implement this case
-
-      // A setter send should leave the message argument on the stack.
       assert node.arity() == 1;
-      visit(node.arguments().get(0)); // stack: int, Object
-      methodWriter.visitInsn(Opcodes.DUP2); // stack: int, Object, int, Object
-      visit(node.receiver()); // stack: int, Object, int, Object, receiverInt, receiverObj
-      // Now we can cheat to make the stack massaging easier. We know the receiver of a setter send
-      // is never a primitive object. Hence, we can drop the int and later push a 0.
-      methodWriter.visitInsn(Opcodes.SWAP); // stack: int, Object, int, Object, receiverObj, receiverInt
-      methodWriter.visitInsn(Opcodes.POP); // stack: int, Object, int, Object, receiverObj
-      methodWriter.visitInsn(Opcodes.DUP_X2); // stack: int, Object, receiverObj, int, Object, receiverObj
-      methodWriter.visitInsn(Opcodes.POP); // stack: int, Object, receiverObj, int, Object
-      // In the following line we use a random int we have on the stack as the int value of the receiver pair
-      // because it's there and we don't care about the value, we just need an int there to conform to the
-      // standard method signature. The receiver is always a real object, so the
-      // int part of the receiver value pair is never used.
-      methodWriter.visitInsn(Opcodes.DUP_X1); // stack: Object, int, receiver, int, Object, int
-      // We now have a copy of the argument pair above the receiver and the argument pair;
-      // should also pop the send result once we are done.
-
-      throw new UnsupportedOperationException("unimplemented");
-
+      visit(node.receiver());
+      visit(node.arguments().get(0));
+      methodWriter.visitInvokeDynamicInsn(
+          NamingPolicy.methodNameForSelector(node.selector()),
+          callSiteTypeDescriptor(node.arity()),
+          PassThroughMessageSendWrapper.bootstrapHandle()
+      );
     } else {
-      // not a setter send -- piece of cake
       node.receiver().accept(this);
       node.arguments().forEach(this::visit);
+      methodWriter.visitInvokeDynamicInsn(
+          NamingPolicy.methodNameForSelector(node.selector()),
+          callSiteTypeDescriptor(node.arity()),
+          MessageDispatcher.bootstrapHandle());
     }
-    methodWriter.visitInvokeDynamicInsn(
-        NamingPolicy.methodNameForSelector(node.selector()),
-        callSiteTypeDescriptor(node.arguments().size()),
-        MessageDispatcher.bootstrapHandle()); // stack: Object
-    if (node.isSetterSend()) {
-      // now the setter send case is easy: discard the result. The argument copy is on the stack below
-      methodWriter.visitInsn(Opcodes.POP);
-    } else {
-      Label objectResult = new Label();
-      Label end = new Label();
-      methodWriter.visitInsn(Opcodes.DUP); // stack: Object, Object
-      generateLoadUndefined(methodWriter); // stack: Object, Object, Undefined
-      methodWriter.visitJumpInsn(Opcodes.IF_ACMPNE, objectResult); // stack: Object
-      // the object is undefined, need int from stack
-      generateLoadIntFromStack(methodWriter); // stack: Object, int
-      methodWriter.visitJumpInsn(Opcodes.GOTO, end);
+    Label objectResult = new Label();
+    Label end = new Label();
+    methodWriter.visitInsn(Opcodes.DUP); // stack: Object, Object
+    generateLoadUndefined(methodWriter); // stack: Object, Object, Undefined
+    methodWriter.visitJumpInsn(Opcodes.IF_ACMPNE, objectResult); // stack: Object
+    // the object is undefined, need int from stack
+    generateLoadIntFromStack(methodWriter); // stack: Object, int
+    methodWriter.visitJumpInsn(Opcodes.GOTO, end);
 // objectResult:
-      methodWriter.visitLabel(objectResult); // stack: Object
-      generateLoadInt(methodWriter, 0); // stack: Object, int
+    methodWriter.visitLabel(objectResult); // stack: Object
+    generateLoadInt(methodWriter, 0); // stack: Object, int
 // end:
-      methodWriter.visitLabel(end);
-      methodWriter.visitInsn(Opcodes.SWAP); // stack: int, Object
-    }
+    methodWriter.visitLabel(end);
+    methodWriter.visitInsn(Opcodes.SWAP); // stack: int, Object
+
   }
 
   @Override

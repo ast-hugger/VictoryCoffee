@@ -126,7 +126,7 @@ public class ObjectFactory extends StandardObject {
   }
 
   @SuppressWarnings("unused") // called by generated code
-  public Object $new(int unused) {
+  public Object $new() {
     return makeInstance();
   }
 }

@@ -41,11 +41,11 @@ public abstract class NsObject {
 
   public abstract ObjectFactory nsClass();
   
-  public Object $class(int unused) {
+  public Object $class() {
     return nsClass();
   }
   
-  public Object $printString(int unused) {
+  public Object $printString() {
     String name = this.nsClass().name();
     String article = isVowel(name.charAt(0)) ? "an" : "a";
     return Builtins.string("<" + article + " " + name + ">");

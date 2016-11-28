@@ -41,8 +41,8 @@ public final class MessageDispatcher {
   public static CallSite bootstrap(Lookup callSiteLookup, String name, MethodType callSiteType)
       throws NoSuchMethodException, IllegalAccessException
   {
-    // The call site type has an added parameter for the receiver, and each parameter is doubles
-    // to make it an Object/int pair.
+    // The call site type has an added parameter for the receiver, and each parameter
+    // (including the receiver) is really two to make it an int/Object pair.
     int arity = callSiteType.parameterCount() / 2 - 1;
     return MessageSendSite.create(
         callSiteLookup,
