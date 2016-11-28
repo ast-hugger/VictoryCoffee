@@ -62,10 +62,10 @@ public class LocalVarTests {
     assertArrayEquals(
         new String[]{"arg1", "arg2", "temp1", "temp2"}, 
         methodScope.ownVariableNames().toArray());
-    assertEquals(2, arg1.index());
-    assertEquals(4, arg2.index());
-    assertEquals(6, temp1.index());
-    assertEquals(8, temp2.index());
+    assertEquals(1, arg1.index());
+    assertEquals(3, arg2.index());
+    assertEquals(5, temp1.index());
+    assertEquals(7, temp2.index());
     
     assertFalse(arg1.isBoxed());
     assertFalse(arg2.isBoxed());
@@ -132,7 +132,7 @@ public class LocalVarTests {
     assertTrue(varOf(arg2ref).isLocal());
     
     assertArrayEquals(new String[]{"arg1"}, methodScope.ownVariableNames().toArray());
-    assertEquals(2, arg1.index());
+    assertEquals(1, arg1.index());
 
     assertArrayEquals(new String[]{"arg2"}, blockScope.ownVariableNames().toArray());
     assertArrayEquals(new String[]{"arg1"}, blockScope.copiedVariableNames().toArray());
@@ -162,7 +162,7 @@ public class LocalVarTests {
     assertTrue(varOf(arg2ref).isLocal());
     
     assertArrayEquals(new String[]{"temp"}, methodScope.ownVariableNames().toArray());
-    assertEquals(2, temp.index());
+    assertEquals(1, temp.index());
 
     LocalVariable copiedTemp = blockScope.copiedVariableNamed("temp").get();
     assertArrayEquals(new String[]{"arg2"}, blockScope.ownVariableNames().toArray());
@@ -212,8 +212,8 @@ public class LocalVarTests {
     LocalVariable innerCopiedArg1 = innerBlockScope.copiedVariableNamed("arg1").get();
     LocalVariable innerCopiedTemp = innerBlockScope.copiedVariableNamed("temp").get();
 
-    assertEquals(2, arg1.index());
-    assertEquals(4, temp.index());
+    assertEquals(1, arg1.index());
+    assertEquals(3, temp.index());
     assertEquals(1, outerCopiedArg1.index());
     assertEquals(3, outerCopiedTemp.index());
     assertEquals(1, innerCopiedArg1.index());

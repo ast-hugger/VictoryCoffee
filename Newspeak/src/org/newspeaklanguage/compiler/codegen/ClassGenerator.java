@@ -296,7 +296,7 @@ public class ClassGenerator {
   private void preprocessBlocksInMethod(Method method) {
     int i = 0;
     for (Block block : method.containedBlocks()) {
-      String implMethodName = NamingPolicy.methodNameForClosure(method.selector(), i++);
+      String implMethodName = NamingPolicy.methodNameForBlock(method.selector(), i++);
       BlockDefiner definer = new BlockDefiner(block, method, internalClassName, implMethodName);
       block.setDefiner(definer);
       definer.generateField(classWriter);

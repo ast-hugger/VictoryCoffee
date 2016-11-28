@@ -62,10 +62,9 @@ public final class Descriptor {
           .append(INT_TYPE_DESCRIPTOR)
           .append(OBJECT_TYPE_DESCRIPTOR);
     }
-    result.append(")");
-    // One or the other: return 'I' normally and object via an exception or the other way around:
-//    result.append(Descriptor.INT_TYPE_DESCRIPTOR);
-    result.append(Descriptor.OBJECT_TYPE_DESCRIPTOR);
+    result
+        .append(")")
+        .append(Descriptor.OBJECT_TYPE_DESCRIPTOR);
     return result.toString();
   }
 

@@ -64,8 +64,8 @@ public class BlockDefiner implements StaticFieldDefiner {
     int totalArgCount = blockNode.scope().copiedVariableCount() + blockNode.arity();
     for (int i = 0; i < totalArgCount; i++ ) {
       builder
-          .append(Descriptor.OBJECT_TYPE_DESCRIPTOR)
-          .append(Descriptor.INT_TYPE_DESCRIPTOR);
+          .append(Descriptor.INT_TYPE_DESCRIPTOR)
+          .append(Descriptor.OBJECT_TYPE_DESCRIPTOR);
     }
     builder
         .append(")")
@@ -97,5 +97,4 @@ public class BlockDefiner implements StaticFieldDefiner {
         fieldName(),
         Descriptor.ofType(MethodHandle.class));
   }
-  
 }

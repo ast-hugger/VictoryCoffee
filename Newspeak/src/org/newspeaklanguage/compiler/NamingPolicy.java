@@ -104,8 +104,8 @@ public final class NamingPolicy {
     return name.toString();
   }
   
-  public static String methodNameForClosure(String hostMethodSelector, int closureIndex) {
-    return methodNameForSelector(hostMethodSelector) + "$closure" + closureIndex;
+  public static String methodNameForBlock(String hostMethodSelector, int index) {
+    return methodNameForSelector(hostMethodSelector) + "$block" + index;
   }
 
   private static String binarySelectorCharToToken(char character) {

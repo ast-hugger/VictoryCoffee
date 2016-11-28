@@ -92,9 +92,9 @@ public class VarReferenceResolutionTests {
     NameDefinition fooDef = NodeFinder.findLocalVarDefinition("foo", tree);
     MessageSendNoReceiver fooRef = NodeFinder.findLocalVarReference("foo", tree);
     assertEquals(fooDef, varOf(fooRef).definition().astNode());
-    assertEquals(2, varOf(fooRef).localVariable().index());
+    assertEquals(1, varOf(fooRef).localVariable().index());
     MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
-    assertEquals(4, varOf(barRef).localVariable().index());
+    assertEquals(3, varOf(barRef).localVariable().index());
   }
 
   @Test
@@ -108,9 +108,9 @@ public class VarReferenceResolutionTests {
     NameDefinition fooDef = NodeFinder.findLocalVarDefinition("foo", tree);
     MessageSendNoReceiver fooRef = NodeFinder.findLocalVarReference("foo", tree);
     assertEquals(fooDef, varOf(fooRef).definition().astNode());
-    assertEquals(4, varOf(fooRef).localVariable().index());
+    assertEquals(3, varOf(fooRef).localVariable().index());
     MessageSendNoReceiver barRef = NodeFinder.findLocalVarReference("bar", tree);
-    assertEquals(6, varOf(barRef).localVariable().index());
+    assertEquals(5, varOf(barRef).localVariable().index());
   }
 
   @Test

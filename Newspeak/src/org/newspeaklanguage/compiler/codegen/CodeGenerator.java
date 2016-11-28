@@ -181,6 +181,10 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
     node.accept(this);
   }
 
+  /**
+   * A method prologue takes care of initializing all int parts of temps to hold 0
+   * and all boxed temps to hold a new Box instance.
+   */
   protected void generateMethodPrologue() {
     rootNode.scope().forEachTemp(each -> {
       if (each.isBoxed()) {
@@ -208,9 +212,10 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
 
   @Override
   public void visitBlock(Block block) {
-    // TODO update for the int, Object argument order
     BlockDefiner definer = block.definer();
     int copiedValueCount = block.scope().copiedVariableCount();
+    // the bogus intReceiver
+    generateLoadInt(methodWriter, 0);
     // Generate a constructor call of Closure in either the positional argument or
     // the varargs form, depending on the number of copied values.
     methodWriter.visitTypeInsn(Opcodes.NEW, Closure.INTERNAL_CLASS_NAME);
@@ -227,30 +232,32 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
     // and they don't have a leading int receiver argument.
     // push all copied values
     if (copiedValueCount <= Closure.MAX_POSITIONAL_COPIED_VALUES) {
+      // fixed arg initializer
       block.scope().forEachCopiedVariable(each -> {
-        LocalVariable here = rootNode.scope().localVariableNamed(each.name()).get(); // must be found or the analyzer is broken
-        methodWriter.visitVarInsn(Opcodes.ALOAD, here.index());
-        methodWriter.visitVarInsn(Opcodes.ILOAD, here.index() + 1);
+        LocalVariable here = rootNode.scope().localVariableNamed(each.name()).get(); // always found or the analyzer is broken
+        methodWriter.visitVarInsn(Opcodes.ILOAD, here.index());
+        methodWriter.visitVarInsn(Opcodes.ALOAD, here.index() + 1);
       });
     } else {
+      // vararg initializer
       generateLoadInt(methodWriter, copiedValueCount * 2);
       methodWriter.visitTypeInsn(Opcodes.ANEWARRAY, Descriptor.OBJECT_INTERNAL_CLASS_NAME);
       int i = 0;
       for (LocalVariable copied : block.scope().copiedVariables()) {
-        LocalVariable here = rootNode.scope().localVariableNamed(copied.name()).get(); // must be found or the analyzer is broken
+        LocalVariable here = rootNode.scope().localVariableNamed(copied.name()).get(); // always found or the analyzer is broken
         methodWriter.visitInsn(Opcodes.DUP);
         generateLoadInt(methodWriter, i++);
-        methodWriter.visitVarInsn(Opcodes.ALOAD, here.index());
-        methodWriter.visitInsn(Opcodes.AASTORE);
-        methodWriter.visitInsn(Opcodes.DUP);
-        generateLoadInt(methodWriter, i++);
-        methodWriter.visitVarInsn(Opcodes.ILOAD, here.index() + 1);
+        methodWriter.visitVarInsn(Opcodes.ILOAD, here.index());
         methodWriter.visitMethodInsn(
             Opcodes.INVOKESTATIC,
             Descriptor.internalClassName(Integer.class),
             "valueOf",
             Descriptor.ofMethod(Integer.class, int.class),
             false);
+        methodWriter.visitInsn(Opcodes.AASTORE);
+        methodWriter.visitInsn(Opcodes.DUP);
+        generateLoadInt(methodWriter, i++);
+        methodWriter.visitVarInsn(Opcodes.ALOAD, here.index() + 1);
         methodWriter.visitInsn(Opcodes.AASTORE);
       }
     }
@@ -260,8 +267,6 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
         "<init>",
         Closure.constructorDescriptor(copiedValueCount),
         false);
-    // the closure is now on the stack, add a bogus intReceiver
-    generateLoadInt(methodWriter, 0);
   }
 
   @Override
@@ -313,7 +318,7 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
   public void visitVariableReference(VariableReference varNode) {
     int index = varNode.localVariable().index();
     if (varNode.localVariable().isBoxed()) {
-      methodWriter.visitVarInsn(Opcodes.ALOAD, index);
+      methodWriter.visitVarInsn(Opcodes.ALOAD, index + 1);
       methodWriter.visitTypeInsn(Opcodes.CHECKCAST, Box.INTERNAL_CLASS_NAME);
       methodWriter.visitInsn(Opcodes.DUP); // stack: Box, Box
       methodWriter.visitFieldInsn(Opcodes.GETFIELD, Box.INTERNAL_CLASS_NAME, "intValue", Descriptor.INT_TYPE_DESCRIPTOR);
@@ -353,7 +358,7 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
       if (local.isBoxed()) {
         // foo: boxed
         visit(node.expression()); // stack: int, Object
-        methodWriter.visitVarInsn(Opcodes.ALOAD, index);
+        methodWriter.visitVarInsn(Opcodes.ALOAD, index + 1);
         methodWriter.visitTypeInsn(Opcodes.CHECKCAST, Box.INTERNAL_CLASS_NAME); // stack: int, Object, Box
         methodWriter.visitInsn(Opcodes.DUP_X2); // stack: Box, int, Object, Box
         methodWriter.visitInsn(Opcodes.SWAP); // stack: Box, int, Box, Object

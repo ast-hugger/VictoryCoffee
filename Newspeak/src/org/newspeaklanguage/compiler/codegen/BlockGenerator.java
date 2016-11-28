@@ -61,8 +61,8 @@ public class BlockGenerator extends CodeGenerator {
       Label end = new Label();
       methodWriter.visitJumpInsn(Opcodes.IF_ACMPNE, objectPresent); // stack: int, Object
       // Object undefined, int is the return value
-      methodWriter.visitInsn(Opcodes.POP); // stack: int
-      prepareToReturnSingleIntOnStack(methodWriter); // stack: Object
+      prepareToReturnIntFromPairOnStack(methodWriter); // stack: Object
+      methodWriter.visitJumpInsn(Opcodes.GOTO, end);
 // objectPresent:
       methodWriter.visitLabel(objectPresent); // stack: int, Object
       methodWriter.visitInsn(Opcodes.SWAP); // stack: Object, int

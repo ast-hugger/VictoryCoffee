@@ -73,8 +73,8 @@ public final class Builtins {
     public static Object $ifTrue$ifFalse$(int unused, Object self, int unused2, Object trueBlock, int unused3, Object falseBlock) {
       // FIXME this will barf if the blocks are not blocks, but not with an informative message
       return ((Boolean) self)
-          ? ((Closure) trueBlock).$value(0)
-          : ((Closure) falseBlock).$value(0);
+          ? ((Closure) trueBlock).$value()
+          : ((Closure) falseBlock).$value();
     }
 
     public static Object $printString(int unused, Object self) {
