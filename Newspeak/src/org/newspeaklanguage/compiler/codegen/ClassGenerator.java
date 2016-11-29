@@ -163,14 +163,15 @@ public class ClassGenerator {
     Label objectPresent = new Label();
     methodWriter.visitJumpInsn(Opcodes.IF_ACMPNE, objectPresent); // stack: Object
     // the real value is in the primitive int field
-    methodWriter.visitInsn(Opcodes.POP); // remove so stacks match at the objectPresent join
+    methodWriter.visitInsn(Opcodes.POP); // stack: <empty>
     methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
     methodWriter.visitFieldInsn(
         Opcodes.GETFIELD,
         toInternalFormat(classNode.implementationClassName()),
         NamingPolicy.fieldNameForPrimitiveSlot(slot.name()),
         Descriptor.INT_TYPE_DESCRIPTOR);
-    CodeGenerator.generateCreateReturnPrimitiveValue(methodWriter);
+    CodeGenerator.generateStoreToIntReturnStack(methodWriter);
+    CodeGenerator.generateLoadUndefined(methodWriter);
 // objectPresent:
     methodWriter.visitLabel(objectPresent);
     methodWriter.visitInsn(Opcodes.ARETURN);

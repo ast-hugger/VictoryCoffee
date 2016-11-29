@@ -47,6 +47,7 @@ import org.newspeaklanguage.compiler.semantics.VariableReference;
 import org.newspeaklanguage.runtime.Box;
 import org.newspeaklanguage.runtime.Builtins;
 import org.newspeaklanguage.runtime.Closure;
+import org.newspeaklanguage.runtime.IntReturnStack;
 import org.newspeaklanguage.runtime.MessageDispatcher;
 import org.newspeaklanguage.runtime.NsObject;
 import org.newspeaklanguage.runtime.ObjectFactory;
@@ -102,6 +103,29 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
         false
     );
   }
+
+  public static void generateStoreToIntReturnStack(MethodVisitor methodWriter) {
+    // initial stack: int
+    methodWriter.visitMethodInsn(
+        Opcodes.INVOKESTATIC,
+        IntReturnStack.INTERNAL_CLASS_NAME,
+        "push",
+        IntReturnStack.PUSH_DESCRIPTOR,
+        false
+    );
+  }
+
+  public static void generateLoadFromIntReturnStack(MethodVisitor methodWriter) {
+    // initial stack: int
+    methodWriter.visitMethodInsn(
+        Opcodes.INVOKESTATIC,
+        IntReturnStack.INTERNAL_CLASS_NAME,
+        "pop",
+        IntReturnStack.POP_DESCRIPTOR,
+        false
+    );
+  }
+
 
   /*
    * Instance side
@@ -412,17 +436,10 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
       Label objectResult = new Label();
       Label end = new Label();
       methodWriter.visitInsn(Opcodes.DUP); // stack: Object, Object
-      methodWriter.visitTypeInsn(Opcodes.INSTANCEOF, ReturnPrimitiveValue.INTERNAL_CLASS_NAME); // stack: Object, int
-      methodWriter.visitJumpInsn(Opcodes.IFEQ, objectResult); // stack: Object
-      // the result is a ReturnPrimitiveValue wrapper
-      methodWriter.visitTypeInsn(Opcodes.CHECKCAST, ReturnPrimitiveValue.INTERNAL_CLASS_NAME);
-      methodWriter.visitFieldInsn(
-          Opcodes.GETFIELD,
-          ReturnPrimitiveValue.INTERNAL_CLASS_NAME,
-          "value",
-          Descriptor.INT_TYPE_DESCRIPTOR); // stack: int
-      generateLoadUndefined(methodWriter); // stack: int, Object
-      methodWriter.visitInsn(Opcodes.SWAP); // stack: Object, int
+      generateLoadUndefined(methodWriter);
+      methodWriter.visitJumpInsn(Opcodes.IF_ACMPNE, objectResult);
+      // stack: Object=Undefined; result on IntReturnStack
+      generateLoadFromIntReturnStack(methodWriter); // stack: Object, int
       methodWriter.visitJumpInsn(Opcodes.GOTO, end);
 // objectResult:
       methodWriter.visitLabel(objectResult); // stack: Object
@@ -476,8 +493,9 @@ abstract class CodeGenerator implements RewrittenNodeVisitor {
     methodWriter.visitJumpInsn(Opcodes.IF_ACMPNE, objectPresent); // stack: int, Object
     // Object undefined, int is the return value
     methodWriter.visitInsn(Opcodes.POP); // stack: int
-    methodWriter.visitInsn(Opcodes.DUP); // need to have the same stack signature at the objectPresent join
-    generateCreateReturnPrimitiveValue(methodWriter); // stack: int, Object
+    methodWriter.visitInsn(Opcodes.DUP); // stack: int, int -- need same stack signature at join
+    generateStoreToIntReturnStack(methodWriter);
+    generateLoadUndefined(methodWriter);
 // objectPresent:
     methodWriter.visitLabel(objectPresent);
     methodWriter.visitInsn(Opcodes.ARETURN);

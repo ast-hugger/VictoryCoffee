@@ -63,7 +63,8 @@ public class BlockGenerator extends CodeGenerator {
       // Object undefined, int is the return value
       methodWriter.visitInsn(Opcodes.POP); // stack: int
       methodWriter.visitInsn(Opcodes.DUP); // stack: int, int
-      generateCreateReturnPrimitiveValue(methodWriter); //stack: int, Object
+      generateStoreToIntReturnStack(methodWriter); // stack: int
+      generateLoadUndefined(methodWriter); // stack: int, Object
 // objectPresent:
       methodWriter.visitLabel(objectPresent); // stack: int, Object
     }
