@@ -22,13 +22,13 @@ The AllWrapped branch is the implementation approach where every
 Newspeak value is represented as a single JVM Object reference, with
 integers always wrapped. It is simple.
 
-Commit 58a6826, not explicitly marked as a branch, is a stable state
-of the system in which every Newspeak value is represented in object
-fields, temporary variables and method arguments, and on the JVM stack
-as an Object/int pair. If the Object part is NsObject.UNDEFINED, then
-the value is an integer and the int part is holding its value.  Method
-return values are always objects. If a method returns an int, it
-returns it wrapped in PrimitiveReturnValue.
+Commit 58a6826, which is a common ancestor of the three branches below,
+is in itself a stable state of the system in which every Newspeak value
+is represented in object fields, temporary variables, method arguments,
+and on the JVM stack as an Object/int pair. If the Object part is
+NsObject.UNDEFINED, then the value is an integer and the int part
+is holding its value.  Method return values are always objects.
+If a method returns an int, it returns it wrapped in PrimitiveReturnValue.
 
 The IntReturnStackSameOrder branch is a derivative of commit 58a6826
 in which instead of wrapping an int to be returned from a method, the
