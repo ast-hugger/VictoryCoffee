@@ -88,12 +88,14 @@ public final class Builtins {
 
     public static Object $$plus(int self, Object unused, int intArg, Object arg) {
       int result = self + (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue());
-      return ReturnPrimitiveValue.create(result);
+      IntReturnStack.push(result);
+      return NsObject.UNDEFINED;
     }
 
     public static Object $$minus(int self, Object unused, int intArg, Object arg) {
       int result = self - (arg == NsObject.UNDEFINED ? intArg : ((Number) arg).intValue());
-      return ReturnPrimitiveValue.create(result);
+      IntReturnStack.push(result);
+      return NsObject.UNDEFINED;
     }
 
     public static Object $$lt(int self, Object unused, int intArg, Object arg) {

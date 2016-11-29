@@ -131,7 +131,7 @@ public final class MessageDispatcher {
         method = callSite.lookup()
             .findStatic(methodContainer, callSite.methodName(), staticMethodType(callSite.type().parameterCount()))
             .asType(callSite.type());
-        callSite.addInlineCache(receiver.getClass(), method);
+        callSite.addInlineCacheStatic(receiver.getClass(), method);
         return method.invoke(intReceiver, receiver, intArg1, arg1, intArg2, arg2);
       }
     } catch (NoSuchMethodException e) {
@@ -160,7 +160,7 @@ public final class MessageDispatcher {
         method = callSite.lookup()
             .findStatic(methodContainer, callSite.methodName(), staticMethodType(callSite.type().parameterCount()))
             .asType(callSite.type());
-        callSite.addInlineCache(receiver.getClass(), method);
+        callSite.addInlineCacheStatic(receiver.getClass(), method);
         return method.invoke(intReceiver, intArg1, arg1, intArg2, arg2, intArg3, arg3);
       }
     } catch (NoSuchMethodException e) {

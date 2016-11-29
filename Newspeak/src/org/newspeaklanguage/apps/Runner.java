@@ -89,8 +89,8 @@ public class Runner {
 
   private static Object invoke(Object object, String methodName) {
     try {
-      Method method = object.getClass().getMethod(methodName, int.class);
-      return method.invoke(object, 0);
+      Method method = object.getClass().getMethod(methodName);
+      return method.invoke(object);
     } catch (Exception e) {
       e.printStackTrace();
       return null;

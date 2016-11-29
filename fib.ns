@@ -2,7 +2,7 @@ class App = ()
 (
     'testing'
     main = (
-        ^(fib: 26) printString
+        ^(fib: 16) printString
     )
     fib: n = (
         ^n < 2

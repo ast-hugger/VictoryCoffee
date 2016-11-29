@@ -32,7 +32,7 @@ public class TryFibonacci {
 + ")                   \n"
 + "('testing'          \n"
 + "main = (            \n"
-+ "  ^(fib: 26) printString  \n"
++ "  ^(fib: 12) printString  \n"
 + ")  "
 + "fib: n = ("
 + "^n < 2 ifTrue: [1] ifFalse: [(fib: n - 1) + (fib: n - 2)]) \n"
@@ -78,8 +78,8 @@ public class TryFibonacci {
   
   private static Object invoke(Object object, String methodName) {
     try {
-      Method method = object.getClass().getMethod(methodName, int.class);
-      return method.invoke(object, 0);
+      Method method = object.getClass().getMethod(methodName);
+      return method.invoke(object);
     } catch (Exception e) {
       e.printStackTrace();
       return null;
