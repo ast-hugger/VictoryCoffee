@@ -93,6 +93,7 @@ public final class MessageSendSite extends MutableCallSite {
     MethodHandle typeCheck = here
         .findStatic(here.lookupClass(), "checkClass", CHECK_CLASS_TYPE)
         .bindTo(expectedClass);
+    typeCheck = MethodHandles.dropArguments(typeCheck, 0, int.class);
     typeCheck = typeCheck.asType(
         typeCheck.type().changeParameterType(0, this.type().parameterType(0)));
     MethodHandle cacheNode =
