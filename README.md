@@ -13,20 +13,42 @@ scheme. Runtime is rudimentary at best, just enough to run some basic
 test examples. The following are not implemented because they are
 trivial: subclassing, class initializers, slot initializers.
 
+## Branches
+
+The commit tree currently contains the following five implementation
+experiments spread across four branches.
+
 The AllWrapped branch is the implementation approach where every
 Newspeak value is represented as a single JVM Object reference, with
 integers always wrapped. It is simple.
 
-The default branch is current work in progress aiming at using
-primitive ints for integers, by using parallel data paths. Each
-Newspeak value is represented as a pair of JVM values, an Object and
-an int. When the Object value is an UNDEFINED constant, the Newspeak
-value is represented by the int, otherwise it's represented by the
-object. The tricky part are message send return values. A
-straightforward implementation with calls and returns would still
-require wrapping. The only way to avoid that seems to be the CPS. Or
-perhaps some clever type feedback optimization I haven't figured out
-yet.
+Commit 58a6826, not explicitly marked as a branch, is a stable state
+of the system in which every Newspeak value is represented in object
+fields, temporary variables and method arguments, and on the JVM stack
+as an Object/int pair. If the Object part is NsObject.UNDEFINED, then
+the value is an integer and the int part is holding its value.  Method
+return values are always objects. If a method returns an int, it
+returns it wrapped in PrimitiveReturnValue.
+
+The IntReturnStackSameOrder branch is a derivative of commit 58a6826
+in which instead of wrapping an int to be returned from a method, the
+implementation pushes the int on a thread-local stack of ints and
+returns an NsObject.UNDEFINED to indicate that the value should be
+popped from the stack of ints by the sender.
+
+The IntReturnStack branch is another derivative of commit 58a6826
+similar to the above, but in which the order of Object/int parts
+of values on the JVM stack is reversed so the int part is pushed first.
+This permits a more streamlined comparison of the Object part with
+NsObject.UNDEFINED, but requires more work to adapt the arguments
+at the call sites to implementation method signatures.
+
+The default branch is a mostly functional and most likely dead-end
+attempt to translate code to CPS to allow "returning" an Object/int
+pair from message sends. It is most likely dead-end because there
+doesn't appear to be a way to bind arguments to MethodHandles without
+creating wrapper objects on ints, which defeats the purpose of this
+whole tour de force.
 
 ## Prerequisites, Building, and Running ##
 
