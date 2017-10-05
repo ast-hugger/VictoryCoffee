@@ -6,6 +6,7 @@ syntax: regexp
 syntax: glob
 
 Newspeak/bin
+Newspeak/gen
 Tests/bin
 build/
 .classpath
