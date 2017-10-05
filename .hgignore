@@ -5,9 +5,10 @@ syntax: regexp
 
 syntax: glob
 
-Newspeak/bin
-Tests/bin
+bin/
 build/
+gen/
+out/
 .classpath
 .project
 .settings
