@@ -2,18 +2,18 @@
 
     <!-- Make sure this points at the dir with 3rd party jars and names them correctly -->
 
-    <property name="lib.dir"     value="../java"/>
+    <property name="lib.dir"     value="lib"/>
 
     <path id="classpath">
         <fileset dir="${lib.dir}">
-            <include name="antlr-4.5.3-complete.jar"/>
-            <include name="asm-5.1/lib/asm-5.1.jar"/>
+            <include name="antlr-4.7-complete.jar"/>
+            <include name="asm-6.0.jar"/>
         </fileset>
     </path>
 
 
-    <property name="src.dir"     value="Newspeak/src"/>
-    <property name="test.dir"    value="Tests/src"/>
+    <property name="src.dir"     value="src"/>
+    <property name="test.dir"    value="tests"/>
     <property name="build.dir"   value="build"/>
     <property name="classes.dir" value="${build.dir}/classes"/>
     <property name="jar.dir"     value="${build.dir}/jar"/>
@@ -31,7 +31,7 @@
             <arg value="-visitor"/>
             <arg value="-no-listener"/>
             <classpath>
-                <pathelement location="${lib.dir}/antlr-4.5.3-complete.jar"/>
+                <pathelement location="${lib.dir}/antlr-4.7-complete.jar"/>
             </classpath>
         </java>
     </target>
@@ -50,8 +50,8 @@
                 <attribute name="Main-Class" value="${main-class}"/>
             </manifest>
             <fileset dir="${classes.dir}" includes="**/*.class" />
-            <zipfileset src="${lib.dir}/antlr-4.5.3-complete.jar" />
-            <zipfileset src="${lib.dir}/asm-5.1/lib/asm-5.1.jar" />
+            <zipfileset src="${lib.dir}/antlr-4.7-complete.jar" />
+            <zipfileset src="${lib.dir}/asm-6.0.jar" />
         </jar>
     </target>
 
