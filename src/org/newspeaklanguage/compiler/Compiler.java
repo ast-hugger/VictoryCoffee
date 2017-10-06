@@ -16,10 +16,8 @@
 
 package org.newspeaklanguage.compiler;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CodePointCharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.newspeaklanguage.compiler.ast.AstBuilder;
 import org.newspeaklanguage.compiler.ast.AstNode;
@@ -30,6 +28,9 @@ import org.newspeaklanguage.compiler.parser.NewspeakParser;
 import org.newspeaklanguage.compiler.parser.NewspeakParser.SourceUnitContext;
 import org.newspeaklanguage.compiler.semantics.AnalyzerStage1;
 import org.newspeaklanguage.compiler.semantics.AnalyzerStage2;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Compiler {
 
@@ -98,7 +99,7 @@ public class Compiler {
   }
   
   private AstNode parse(String sourceCode) {
-    ANTLRInputStream in = new ANTLRInputStream(sourceCode);
+    CodePointCharStream in = CharStreams.fromString(sourceCode);
     NewspeakLexer lexer = new NewspeakLexer(in);
     CommonTokenStream tokens = new CommonTokenStream(lexer);
     NewspeakParser parser = new NewspeakParser(tokens);

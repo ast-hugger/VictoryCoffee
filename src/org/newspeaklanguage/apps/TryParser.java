@@ -16,7 +16,8 @@
 
 package org.newspeaklanguage.apps;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CodePointCharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.newspeaklanguage.compiler.ast.AstBuilder;
 import org.newspeaklanguage.compiler.ast.AstNode;
@@ -37,7 +38,7 @@ public class TryParser {
 + ")";
   
   public static void main(String[] args) {
-    ANTLRInputStream in = new ANTLRInputStream(source);
+    CodePointCharStream in = CharStreams.fromString(source);
     NewspeakLexer lexer = new NewspeakLexer(in);
     CommonTokenStream tokens = new CommonTokenStream(lexer);
     NewspeakParser parser = new NewspeakParser(tokens);

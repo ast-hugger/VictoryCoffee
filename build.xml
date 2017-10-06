@@ -1,8 +1,6 @@
 <project name="VictoryCoffee" default="compile">
 
-    <!-- Make sure this points at the dir with 3rd party jars and names them correctly -->
-
-    <property name="lib.dir"     value="lib"/>
+    <property name="lib.dir"     value="${basedir}/lib"/>
 
     <path id="classpath">
         <fileset dir="${lib.dir}">
@@ -11,34 +9,42 @@
         </fileset>
     </path>
 
-
-    <property name="src.dir"     value="src"/>
-    <property name="test.dir"    value="tests"/>
-    <property name="build.dir"   value="build"/>
+    <property name="src.dir"     value="${basedir}/src"/>
+    <property name="gen.dir"     value="${basedir}/gen"/>
+    <property name="test.dir"    value="${basedir}/tests"/>
+    <property name="build.dir"   value="${basedir}/build"/>
     <property name="classes.dir" value="${build.dir}/classes"/>
     <property name="jar.dir"     value="${build.dir}/jar"/>
-    <property name="grammar.dir" value="${src.dir}/org/newspeaklanguage/compiler/parser"/>
+    <property name="grammar.dir.src" value="${src.dir}/org/newspeaklanguage/compiler/parser"/>
+    <property name="grammar.dir.out" value="${gen.dir}/org/newspeaklanguage/compiler/parser"/>
     <property name="main-class"  value="org.newspeaklanguage.apps.Runner"/>
 
     <target name="compile" depends="genparser">
         <mkdir dir="${classes.dir}"/>
-        <javac includeantruntime="false" srcdir="${src.dir}" destdir="${classes.dir}" classpathref="classpath" />
+        <javac includeantruntime="false" destdir="${classes.dir}" classpathref="classpath">
+            <src path="${src.dir}"/>
+            <src path="${gen.dir}"/>
+        </javac>
     </target>
 
     <target name="genparser" depends="parser-uptodate" unless="uptodate">
-        <java classname="org.antlr.v4.Tool" fork="true" failonerror="true" dir="${grammar.dir}">
-            <arg value="Newspeak.g4"/>
-            <arg value="-visitor"/>
-            <arg value="-no-listener"/>
+        <java classname="org.antlr.v4.Tool" fork="true" failonerror="true">
             <classpath>
                 <pathelement location="${lib.dir}/antlr-4.7-complete.jar"/>
             </classpath>
+            <arg value="-o"/>
+            <arg value="${grammar.dir.out}"/>
+            <arg value="-package"/>
+            <arg value="org.newspeaklanguage.compiler.parser"/>
+            <arg value="-visitor"/>
+            <arg value="-no-listener"/>
+            <arg value="${grammar.dir.src}/Newspeak.g4"/>
         </java>
     </target>
 
     <target name="parser-uptodate">
-        <uptodate srcfile="${grammar.dir}/Newspeak.g4" property="uptodate">
-            <mergemapper to="${grammar.dir}/NewspeakParser.java"/>
+        <uptodate srcfile="${grammar.dir.src}/Newspeak.g4" property="uptodate">
+            <mergemapper to="${grammar.dir.out}/NewspeakParser.java"/>
         </uptodate>
     </target>
 
